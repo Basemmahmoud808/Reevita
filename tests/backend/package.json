@@ -1,0 +1,12 @@
+{
+  "name": "reevita-backend-tests",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "REEVITA Backend QA and Database Test Suite",
+  "scripts": {
+    "test": "node --test --test-concurrency=1"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.2.14"
+  }
+}
