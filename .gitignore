@@ -1,0 +1,16 @@
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Supabase local generated / internal
+.branches/
+.temp/
+
+# OS files
+Thumbs.db
+.DS_Store
