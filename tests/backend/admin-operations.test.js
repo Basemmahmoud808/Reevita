@@ -10,15 +10,16 @@ test('Admin Operations: Order listing, KPI metrics, inventory updates, and audit
   const cairoGovId = '11111111-0000-0000-0000-000000000001';
   const shampooId = '33333333-0000-0000-0000-000000000001';
 
-  // Seed users
+  // Seed users (profiles are created by the auth.users trigger from migration 000006)
   await db.exec(`
     INSERT INTO auth.users (id, email) VALUES
     ('${adminId}', 'admin@reevita.com'),
     ('${customerId}', 'user@reevita.com');
+  `);
 
-    INSERT INTO public.profiles (id, full_name, phone, role) VALUES
-    ('${adminId}', 'Store Admin', '+201099999999', 'admin'),
-    ('${customerId}', 'Normal User', '+201088888888', 'customer');
+  await db.exec(`
+    UPDATE public.profiles SET full_name = 'Store Admin', phone = '+201099999999', role = 'admin' WHERE id = '${adminId}';
+    UPDATE public.profiles SET full_name = 'Normal User', phone = '+201088888888' WHERE id = '${customerId}';
   `);
 
   // Place a test order

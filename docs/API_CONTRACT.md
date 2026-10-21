@@ -111,6 +111,20 @@
 
 ---
 
+
+### 1.3 التحقق الآمن من توفر المنتجات: `product_availability` (View)
+- **النوع:** `PostgREST View (GET /rest/v1/product_availability)`
+- **الصلاحية:** الزائر (Anon) والعميل المسجل (Authenticated).
+- **الأمان:** حماية المنافسة والخصوصية — تعرض فقط حالة التوفر (`in_stock`, `low_stock`, `out_of_stock`) دون كشف كميات المخزون الحقيقية نهائياً.
+- **الأعمدة:** `product_id (UUID)`, `in_stock (BOOLEAN)`, `stock_status (TEXT)`.
+
+### 1.4 الاشتراك في القائمة البريدية: `newsletter_subscribers`
+- **النوع:** `PostgREST Table (POST /rest/v1/newsletter_subscribers)`
+- **الصلاحية:** الزائر والعميل المسجل (Insert-Only عبر RLS). القراءة محجوبة تماماً على غير الأدمن.
+- **الحقول:** `email (TEXT UNIQUE)`, `source (TEXT DEFAULT 'storefront')`.
+
+---
+
 ## 2. دوال الإدارة والتحكم (Admin APIs)
 
 > [!IMPORTANT]

@@ -9,17 +9,18 @@ test('RLS enforcement: Visitor, Customer, and Admin permissions', async () => {
   const otherCustomerId = '44444444-0000-0000-0000-000000000002';
   const adminId = '55555555-0000-0000-0000-000000000001';
 
-  // Seed users and profiles
+  // Seed users (migration 000006 auto-creates profiles from the auth.users trigger)
   await db.exec(`
     INSERT INTO auth.users (id, email) VALUES
     ('${customerId}', 'customer@example.com'),
     ('${otherCustomerId}', 'other@example.com'),
     ('${adminId}', 'admin@reevita.com');
+  `);
 
-    INSERT INTO public.profiles (id, full_name, phone, role) VALUES
-    ('${customerId}', 'Customer One', '+201011111111', 'customer'),
-    ('${otherCustomerId}', 'Customer Two', '+201022222222', 'customer'),
-    ('${adminId}', 'Admin User', '+201099999999', 'admin');
+  await db.exec(`
+    UPDATE public.profiles SET full_name = 'Customer One', phone = '+201011111111' WHERE id = '${customerId}';
+    UPDATE public.profiles SET full_name = 'Customer Two', phone = '+201022222222' WHERE id = '${otherCustomerId}';
+    UPDATE public.profiles SET full_name = 'Admin User', phone = '+201099999999', role = 'admin' WHERE id = '${adminId}';
   `);
 
   // 1. Visitor (anon) tests
@@ -27,7 +28,7 @@ test('RLS enforcement: Visitor, Customer, and Admin permissions', async () => {
 
   // Anon CAN select active products
   const anonProdRes = await db.query('SELECT count(*) as count FROM public.products;');
-  assert.ok(Number(anonProdRes.rows[0].count) >= 9, 'Anon can view active products');
+  assert.ok(Number(anonProdRes.rows[0].count) >= 14, 'Anon can view active products');
 
   // Anon CANNOT directly read inventory table (restricted to admin)
   const anonInvRes = await db.query('SELECT count(*) as count FROM public.inventory;');
@@ -98,7 +99,7 @@ test('RLS enforcement: Visitor, Customer, and Admin permissions', async () => {
 
   // Admin CAN query inventory
   const adminInvRes = await db.query('SELECT count(*) as count FROM public.inventory;');
-  assert.ok(Number(adminInvRes.rows[0].count) >= 9, 'Admin can view all inventory rows');
+  assert.ok(Number(adminInvRes.rows[0].count) >= 14, 'Admin can view all inventory rows');
 
   // Admin CAN view all customer orders
   const adminOrders = await db.query('SELECT count(*) as count FROM public.orders;');

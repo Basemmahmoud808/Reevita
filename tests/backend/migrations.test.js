@@ -15,15 +15,15 @@ test('Database Migrations and Seed apply cleanly from scratch', async () => {
 
   // Verify Categories
   const catRes = await db.query('SELECT count(*) as count FROM public.categories;');
-  assert.equal(Number(catRes.rows[0].count), 3, 'Should have 3 categories (Hair Care, Skincare, Body Care)');
+  assert.equal(Number(catRes.rows[0].count), 5, 'Should have 5 product lines');
 
   // Verify Products
   const prodRes = await db.query('SELECT count(*) as count FROM public.products;');
-  assert.equal(Number(prodRes.rows[0].count), 9, 'Should have 9 initial products');
+  assert.equal(Number(prodRes.rows[0].count), 14, 'Should have the 14 real REEVITA SKUs');
 
   // Verify Inventory rows match products
   const invRes = await db.query('SELECT count(*) as count FROM public.inventory;');
-  assert.equal(Number(invRes.rows[0].count), 9, 'Every product should have an inventory record');
+  assert.equal(Number(invRes.rows[0].count), 14, 'Every product should have an inventory record');
 
   // Verify Site Settings
   const settingsRes = await db.query('SELECT count(*) as count FROM public.site_settings;');

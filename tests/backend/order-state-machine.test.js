@@ -10,15 +10,16 @@ test('Order State Machine, Inventory Auto-Restoration, and Secure Tracking', asy
   const adminId = '55555555-0000-0000-0000-000000000001';
   const customerId = '66666666-0000-0000-0000-000000000001';
 
-  // Seed admin & customer
+  // Seed admin & customer (migration 000006 auto-creates profiles from auth.users)
   await db.exec(`
     INSERT INTO auth.users (id, email) VALUES
     ('${adminId}', 'admin@reevita.com'),
     ('${customerId}', 'customer@example.com');
+  `);
 
-    INSERT INTO public.profiles (id, full_name, phone, role) VALUES
-    ('${adminId}', 'Admin REEVITA', '+201099999999', 'admin'),
-    ('${customerId}', 'محمود حسن', '+201055555555', 'customer');
+  await db.exec(`
+    UPDATE public.profiles SET full_name = 'Admin REEVITA', phone = '+201099999999', role = 'admin' WHERE id = '${adminId}';
+    UPDATE public.profiles SET full_name = 'Mahmoud Hassan', phone = '+201055555555' WHERE id = '${customerId}';
   `);
 
   // Place order for 2 bottles of shampoo (stock: 50 -> 48 available, 2 reserved)

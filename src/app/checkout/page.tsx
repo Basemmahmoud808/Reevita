@@ -1,0 +1,19 @@
+import type { Metadata } from "next";
+import { getGovernorates } from "@/lib/data/catalog";
+import { isDemoMode } from "@/lib/env";
+import { CheckoutForm } from "@/components/checkout/checkout-form";
+
+export const metadata: Metadata = {
+  title: "إتمام الطلب — الدفع عند الاستلام",
+  description: "أكملي طلبك من ريفيتا بالدفع عند الاستلام مع شحن لكل محافظات مصر.",
+  robots: { index: false, follow: false },
+};
+
+export default async function CheckoutPage() {
+  const governorates = await getGovernorates();
+  return (
+    <div className="bg-ivory">
+      <CheckoutForm governorates={governorates} isDemo={isDemoMode} />
+    </div>
+  );
+}

@@ -242,6 +242,35 @@ export interface Database {
           created_at: string
         }
       }
+      newsletter_subscribers: {
+        Row: {
+          id: string
+          email: string
+          source: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          source?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          source?: string
+          created_at?: string
+        }
+      }
+    }
+    Views: {
+      product_availability: {
+        Row: {
+          product_id: string
+          in_stock: boolean
+          stock_status: 'in_stock' | 'low_stock' | 'out_of_stock'
+        }
+      }
     }
     Functions: {
       normalize_egyptian_phone: {

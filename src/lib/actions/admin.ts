@@ -1,0 +1,160 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { getAdminSession } from "@/lib/auth/session";
+import {
+  updateInventory,
+  updateOrderStatus,
+  updateProductFlags,
+  updateShippingRate,
+} from "@/lib/data/admin";
+import { OrderError } from "@/lib/data/orders";
+import { getStaticProduct } from "@/lib/catalog";
+import {
+  adminInventorySchema,
+  adminShippingSchema,
+  adminStatusSchema,
+} from "@/lib/validation";
+import type { OrderStatus } from "@/lib/types";
+
+export interface AdminActionState {
+  ok?: boolean;
+  error?: string;
+  message?: string;
+}
+
+async function guard(): Promise<string | null> {
+  const admin = await getAdminSession();
+  return admin ? null : "غير مصرح لك بهذا الإجراء.";
+}
+
+export async function updateOrderStatusAction(
+  _prev: AdminActionState | null,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const denied = await guard();
+  if (denied) return { error: denied };
+
+  const parsed = adminStatusSchema.safeParse({
+    orderId: formData.get("orderId"),
+    newStatus: formData.get("newStatus"),
+    reason: formData.get("reason") || undefined,
+    carrier: formData.get("carrier") || undefined,
+    trackingNumber: formData.get("trackingNumber") || undefined,
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "بيانات غير صالحة" };
+
+  try {
+    await updateOrderStatus({
+      orderId: parsed.data.orderId,
+      newStatus: parsed.data.newStatus as OrderStatus,
+      reason: parsed.data.reason,
+      carrier: parsed.data.carrier,
+      trackingNumber: parsed.data.trackingNumber,
+    });
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${parsed.data.orderId}`);
+    return { ok: true, message: "تم تحديث حالة الطلب بنجاح." };
+  } catch (error) {
+    if (error instanceof OrderError) return { error: error.message };
+    console.error("[reevita] status update failed", error);
+    return { error: "تعذّر تحديث الطلب." };
+  }
+}
+
+export async function updateInventoryAction(
+  _prev: AdminActionState | null,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const denied = await guard();
+  if (denied) return { error: denied };
+
+  const parsed = adminInventorySchema.safeParse({
+    productId: formData.get("productId"),
+    quantityAvailable: Number(formData.get("quantityAvailable")),
+    lowStockThreshold: formData.get("lowStockThreshold")
+      ? Number(formData.get("lowStockThreshold"))
+      : undefined,
+  });
+  if (!parsed.success) return { error: "الكمية أو معرف المنتج غير صالح." };
+
+  try {
+    await updateInventory(parsed.data.productId, parsed.data.quantityAvailable, parsed.data.lowStockThreshold);
+    revalidatePath("/admin/products");
+    revalidatePath("/admin");
+    return { ok: true, message: "تم تحديث المخزون." };
+  } catch (error) {
+    if (error instanceof OrderError) return { error: error.message };
+    return { error: "تعذّر تحديث المخزون." };
+  }
+}
+
+export async function updateShippingRateAction(
+  _prev: AdminActionState | null,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const denied = await guard();
+  if (denied) return { error: denied };
+
+  const parsed = adminShippingSchema.safeParse({
+    governorateId: formData.get("governorateId"),
+    shippingCost: Number(formData.get("shippingCost")),
+    freeShippingThreshold: Number(formData.get("freeShippingThreshold")),
+  });
+  if (!parsed.success) return { error: "بيانات الشحن غير صالحة." };
+
+  try {
+    await updateShippingRate(
+      parsed.data.governorateId,
+      parsed.data.shippingCost,
+      parsed.data.freeShippingThreshold,
+    );
+    revalidatePath("/admin/shipping");
+    return { ok: true, message: "تم تحديث رسوم الشحن." };
+  } catch (error) {
+    if (error instanceof OrderError) return { error: error.message };
+    return { error: "تعذّر تحديث رسوم الشحن." };
+  }
+}
+
+export async function updateProductAction(
+  _prev: AdminActionState | null,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const denied = await guard();
+  if (denied) return { error: denied };
+
+  const productId = String(formData.get("productId") ?? "");
+  if (!productId) return { error: "معرف المنتج مطلوب." };
+
+  const priceRaw = formData.get("price");
+  const compareRaw = formData.get("compareAtPrice");
+  const price = priceRaw === null || priceRaw === "" ? undefined : Number(priceRaw);
+  const compareAtPrice =
+    compareRaw === null || compareRaw === "" ? null : Number(compareRaw);
+  if (price !== undefined && (Number.isNaN(price) || price < 0)) return { error: "السعر غير صالح." };
+  if (compareAtPrice !== null && (Number.isNaN(compareAtPrice) || compareAtPrice < 0)) {
+    return { error: "سعر المقارنة غير صالح." };
+  }
+
+  const slug = String(formData.get("slug") ?? "");
+  const fallback = getStaticProduct(slug);
+
+  try {
+    await updateProductFlags(productId, {
+      price,
+      compareAtPrice,
+      isActive: formData.get("isActive") === "on" || formData.get("isActive") === "true",
+      isFeatured: formData.get("isFeatured") === "on" || formData.get("isFeatured") === "true",
+    });
+    revalidatePath("/admin/products");
+    revalidatePath("/shop");
+    revalidatePath(`/products/${slug}`);
+    if (!fallback) console.warn("[reevita] product flags updated for unknown slug", slug);
+    return { ok: true, message: "تم حفظ تعديلات المنتج." };
+  } catch (error) {
+    if (error instanceof OrderError) return { error: error.message };
+    return { error: "تعذّر حفظ تعديلات المنتج." };
+  }
+}
