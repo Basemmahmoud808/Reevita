@@ -21,14 +21,19 @@ export function ProductCard({
   const { t, locale } = useI18n();
   const badge = product.badge ? (locale === "en" ? (product.isNew ? t("new") : t("bestseller")) : product.badge) : (product.isNew ? t("new") : null);
   const image = product.images[0];
+  const imageSrc = image
+    ? image.url.startsWith("/") || image.url.startsWith("http://") || image.url.startsWith("https://")
+      ? image.url
+      : `/${image.url}`
+    : null;
 
   return (
     <article className={cn("group relative flex flex-col", className)}>
       <div className="relative overflow-hidden rounded-[0.75rem] border border-line/70 bg-ivory shadow-card transition-shadow duration-500 group-hover:shadow-luxe">
         <div className="relative aspect-[4/5] w-full bg-ivory p-2 sm:p-3">
-          {image && (
+          {imageSrc && (
             <Image
-              src={image.url}
+              src={imageSrc}
               alt={image.alt}
               fill
               quality={100}
