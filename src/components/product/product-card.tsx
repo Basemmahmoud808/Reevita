@@ -22,9 +22,9 @@ export function ProductCard({
   const badge = product.badge ? (locale === "en" ? (product.isNew ? t("new") : t("bestseller")) : product.badge) : (product.isNew ? t("new") : null);
   const image = product.images[0];
   const imageSrc = image
-    ? image.url.startsWith("/") || image.url.startsWith("http://") || image.url.startsWith("https://")
-      ? image.url
-      : `/${image.url}`
+    ? image?.url?.startsWith("/") || image?.url?.startsWith("http://") || image?.url?.startsWith("https://")
+      ? image?.url
+      : `/${image?.url}`
     : null;
 
   return (
@@ -34,7 +34,7 @@ export function ProductCard({
           {imageSrc && (
             <Image
               src={imageSrc}
-              alt={image.alt}
+              alt={image?.alt ?? product.nameEn}
               fill
               quality={100}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
