@@ -80,7 +80,7 @@ export function ReferenceHome({ products }: { products: Product[] }) {
 
         <section id="story" className="reference-container scroll-mt-20 pb-12 md:pb-16">
           <div className="reference-story">
-            <Image src={suppliedImages[1]!} alt="REEVITA care products" fill quality={100} sizes="100vw" className="object-cover" />
+            <Image src={suppliedImages[1]!} alt="REEVITA care products" fill quality={80} sizes="100vw" unoptimized placeholder="blur" className="object-cover" />
             <div className="relative z-10 max-w-[330px] px-7 py-10 md:px-12">
               <p className="reference-kicker">OUR PHILOSOPHY</p>
               <h2 className="mt-3">Skincare<br />That Works</h2>

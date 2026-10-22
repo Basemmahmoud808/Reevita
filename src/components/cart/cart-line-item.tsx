@@ -25,6 +25,7 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
           fill
           quality={70}
           sizes="80px"
+          unoptimized={line.image.startsWith("/")}
           placeholder="blur"
           blurDataURL={blurForSlug(line.slug)}
           className="object-cover"

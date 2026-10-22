@@ -381,34 +381,49 @@
     }
 
     .reference-hero {
-      min-height: 560px;
+      min-height: 500px;
       background-image:
         linear-gradient(90deg, rgba(247, 243, 233, 0.96) 0%, rgba(247, 243, 233, 0.78) 48%, rgba(247, 243, 233, 0.12) 100%),
         url("/images/reevita-hero.png");
-      background-position: 74% center;
+      background-position: 82% center;
       background-size: auto 100%;
     }
 
     .reference-hero > .reference-container {
-      min-height: 560px;
+      min-height: 500px;
       align-items: flex-start;
       padding-top: 3.25rem;
-      padding-bottom: 8rem;
+      padding-bottom: 6rem;
     }
 
     .reference-hero-copy {
-      max-width: min(80%, 22rem);
+      max-width: min(58%, 17rem);
       transform: none;
     }
 
     .reference-hero h1 {
-      font-size: clamp(2.15rem, 10vw, 2.65rem);
+      font-size: clamp(1.65rem, 8vw, 2.15rem);
+      line-height: 1.08;
+    }
+
+    .reference-hero-copy .reference-kicker {
+      font-size: 0.48rem;
+      letter-spacing: 0.12em;
+    }
+
+    .reference-hero-copy > p:not(.reference-kicker) {
+      max-width: 13rem;
+      margin-top: 0.65rem;
+      font-size: 0.7rem;
+      line-height: 1.55;
     }
 
     .reference-hero-copy .reference-button,
     .reference-hero-copy .reference-outline-button {
       margin-inline-start: 0;
-      margin-top: 1rem;
+      margin-top: 0.8rem;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.62rem;
     }
 
     .reference-hero-copy .reference-outline-button {

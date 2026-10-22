@@ -42,6 +42,7 @@ export function ProductGallery({
               fill
               quality={60}
               sizes="96px"
+              unoptimized={image.url.startsWith("/")}
               placeholder="blur"
               blurDataURL={blurForSlug(slug)}
               className="object-cover"
@@ -61,6 +62,7 @@ export function ProductGallery({
               priority={priority}
               quality={85}
               sizes="(max-width: 1024px) 100vw, 45vw"
+              unoptimized={current.url.startsWith("/")}
               placeholder="blur"
               blurDataURL={blurForSlug(slug)}
               className="object-cover animate-fade"
