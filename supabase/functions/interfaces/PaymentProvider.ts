@@ -1,6 +1,6 @@
 /**
  * REEVITA E-Commerce - Online Payment Provider Interface
- * Status: DISABLED by default (ONLINE_PAYMENTS_ENABLED=false)
+ * Status: DISABLED by default (NEXT_PUBLIC_ENABLE_ONLINE_PAYMENTS=false)
  * In accordance with Phase 2 rules: Electronic payment is architected as an
  * inactive interface until real provider credentials and webhooks are configured.
  */

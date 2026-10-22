@@ -12,6 +12,21 @@ export interface CheckoutFormState {
   error?: string;
   code?: string;
   fieldErrors?: Record<string, string[]>;
+  values?: Record<string, string>;
+}
+
+function checkoutValues(formData: FormData): Record<string, string> {
+  return {
+    customerName: String(formData.get("customerName") ?? ""),
+    customerPhone: String(formData.get("customerPhone") ?? ""),
+    customerEmail: String(formData.get("customerEmail") ?? ""),
+    governorateId: String(formData.get("governorateId") ?? ""),
+    city: String(formData.get("city") ?? ""),
+    addressLine: String(formData.get("addressLine") ?? ""),
+    landmark: String(formData.get("landmark") ?? ""),
+    orderNotes: String(formData.get("orderNotes") ?? ""),
+    terms: formData.get("terms") === "on" ? "on" : "",
+  };
 }
 
 /** Creates the COD order through the security-definer RPC; prices are computed server-side. */
@@ -19,13 +34,15 @@ export async function placeOrderAction(
   _prev: CheckoutFormState | null,
   formData: FormData,
 ): Promise<CheckoutFormState> {
+  const values = checkoutValues(formData);
   const headerList = await headers();
   const ip = clientIp(headerList);
-  const limited = rateLimit(`checkout:${ip}`, 5, 10 * 60 * 1000);
+  const limited = await rateLimit(`checkout:${ip}`, 5, 10 * 60 * 1000);
   if (!limited.allowed) {
     return {
       error: "عدد محاولات الطلب كبير. يرجى المحاولة بعد قليل.",
       code: "RATE_LIMITED",
+      values,
     };
   }
 
@@ -33,7 +50,7 @@ export async function placeOrderAction(
   try {
     items = JSON.parse(String(formData.get("items") ?? "[]"));
   } catch {
-    return { error: "سلة المشتريات غير صالحة. يرجى تحديث الصفحة.", code: "INVALID_ITEM" };
+    return { error: "سلة المشتريات غير صالحة. يرجى تحديث الصفحة.", code: "INVALID_ITEM", values };
   }
 
   // Display-only snapshot for the confirmation page (prices/totals always come from the RPC).
@@ -77,6 +94,7 @@ export async function placeOrderAction(
       error: firstError ?? "يرجى مراجعة بيانات الطلب.",
       code: "VALIDATION",
       fieldErrors,
+      values,
     };
   }
 
@@ -117,11 +135,11 @@ export async function placeOrderAction(
     redirect(`/order/${order.orderNumber}`);
   } catch (error) {
     if (error instanceof OrderError) {
-      return { error: error.message, code: error.code };
+      return { error: error.message, code: error.code, values };
     }
     if (error && typeof error === "object" && "digest" in error) throw error;
     console.error("[reevita] checkout failed", error);
-    return { error: ORDER_ERROR_MESSAGES.UNKNOWN ?? "تعذّر إتمام الطلب. يرجى المحاولة مرة أخرى." };
+    return { error: ORDER_ERROR_MESSAGES.UNKNOWN ?? "تعذّر إتمام الطلب. يرجى المحاولة مرة أخرى.", values };
   }
 }
 
@@ -133,7 +151,7 @@ export interface TrackFormState {
 export async function trackOrderAction(_prev: TrackFormState | null, formData: FormData): Promise<TrackFormState> {
   const headerList = await headers();
   const ip = clientIp(headerList);
-  const limited = rateLimit(`track:${ip}`, 12, 60 * 1000);
+  const limited = await rateLimit(`track:${ip}`, 12, 60 * 1000);
   if (!limited.allowed) {
     return { error: "عدد كبير من المحاولات. يرجى الانتظار دقيقة ثم المحاولة مرة أخرى." };
   }

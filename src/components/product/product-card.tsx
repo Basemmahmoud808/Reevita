@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { AddToCartButton } from "@/components/cart/add-to-cart-button";
 import { Price } from "@/components/ui/price";
 import { Rating } from "@/components/ui/rating";
@@ -59,7 +60,7 @@ export function ProductCard({
           </span>
         )}
 
-        <div className="absolute inset-x-3 bottom-3 flex justify-center opacity-100 transition-all duration-300 md:translate-y-2 md:opacity-0 md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 md:group-hover:translate-y-0 md:group-hover:opacity-100">
+        <div className="absolute inset-x-3 bottom-3 z-10 flex justify-center opacity-100 transition-all duration-300 md:pointer-events-none md:translate-y-2 md:opacity-0 md:group-focus-within:pointer-events-auto md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 md:group-hover:pointer-events-auto md:group-hover:translate-y-0 md:group-hover:opacity-100">
           <AddToCartButton product={product} variant="compact" label={t("addToCart")} className="w-full" />
         </div>
       </div>
@@ -72,7 +73,12 @@ export function ProductCard({
           <Rating rating={product.rating} reviews={product.reviews} />
         </div>
         <h3 className="mt-2 text-[0.98rem] font-bold leading-7 text-plum">
-          {locale === "en" ? product.nameEn : product.nameAr}
+          <Link
+            href={`/products/${product.slug}`}
+            className="transition-colors hover:text-gold-deep focus-visible:outline-none after:absolute after:inset-0 after:z-[1] after:rounded-[0.75rem] focus-visible:after:ring-2 focus-visible:after:ring-gold-deep focus-visible:after:ring-offset-2"
+          >
+            {locale === "en" ? product.nameEn : product.nameAr}
+          </Link>
         </h3>
         <p className="mt-1 line-clamp-2 text-[0.78rem] leading-6 text-muted">
           {locale === "en" ? product.nameEn : product.shortAr}

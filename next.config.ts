@@ -43,6 +43,7 @@ const nextConfig: NextConfig = {
           { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
           {
             key: "Permissions-Policy",
+            // Keep payment disabled until an online payment provider is enabled.
             value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
           },
           {
@@ -53,7 +54,7 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/images/(.*)",
-        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
       },
     ];
   },

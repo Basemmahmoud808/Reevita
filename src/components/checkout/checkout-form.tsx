@@ -118,6 +118,7 @@ export function CheckoutForm({
                   name="customerName"
                   required
                   autoComplete="name"
+                  defaultValue={state?.values?.customerName}
                   className="field"
                   placeholder="مثال: سارة أحمد"
                   aria-invalid={Boolean(errorFor("customerName"))}
@@ -141,6 +142,7 @@ export function CheckoutForm({
                   inputMode="tel"
                   required
                   autoComplete="tel"
+                  defaultValue={state?.values?.customerPhone}
                   dir="ltr"
                   className="field text-start"
                   placeholder="01XXXXXXXXX"
@@ -163,6 +165,7 @@ export function CheckoutForm({
                   name="customerEmail"
                   type="email"
                   autoComplete="email"
+                  defaultValue={state?.values?.customerEmail}
                   dir="ltr"
                   className="field text-start"
                   placeholder="name@example.com"
@@ -221,6 +224,7 @@ export function CheckoutForm({
                   name="city"
                   required
                   autoComplete="address-level2"
+                  defaultValue={state?.values?.city}
                   className="field"
                   placeholder="مثال: مدينة نصر"
                   aria-invalid={Boolean(errorFor("city"))}
@@ -239,6 +243,7 @@ export function CheckoutForm({
                   name="addressLine"
                   required
                   autoComplete="street-address"
+                  defaultValue={state?.values?.addressLine}
                   className="field"
                   placeholder="الشارع، رقم العمارة، رقم الشقة"
                   aria-invalid={Boolean(errorFor("addressLine"))}
@@ -255,6 +260,7 @@ export function CheckoutForm({
                 <input
                   id="landmark"
                   name="landmark"
+                  defaultValue={state?.values?.landmark}
                   className="field"
                   placeholder="بجوار مسجد / مدرسة…"
                 />
@@ -264,7 +270,7 @@ export function CheckoutForm({
                 <label htmlFor="orderNotes" className="label">
                   Order notes <span className="font-normal text-muted">(optional)</span>
                 </label>
-                <input id="orderNotes" name="orderNotes" className="field" placeholder="مثال: الاتصال قبل الوصول" />
+                <input id="orderNotes" name="orderNotes" defaultValue={state?.values?.orderNotes} className="field" placeholder="مثال: الاتصال قبل الوصول" />
               </div>
             </div>
 
@@ -299,6 +305,7 @@ export function CheckoutForm({
                 type="checkbox"
                 name="terms"
                 required
+                defaultChecked={state?.values?.terms === "on"}
                 className="mt-1 size-4 shrink-0 accent-[#3B0F24]"
                 aria-invalid={Boolean(errorFor("terms"))}
                 aria-describedby={errorFor("terms") ? "err-terms" : undefined}

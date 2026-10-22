@@ -21,7 +21,7 @@ const demoSubscribers = new Set<string>();
 export async function subscribeAction(_prev: NewsletterState | null, formData: FormData): Promise<NewsletterState> {
   const headerList = await headers();
   const ip = clientIp(headerList);
-  if (!rateLimit(`newsletter:${ip}`, 5, 10 * 60 * 1000).allowed) {
+  if (!(await rateLimit(`newsletter:${ip}`, 5, 10 * 60 * 1000)).allowed) {
     return { error: "عدد المحاولات كبير. يرجى المحاولة لاحقًا." };
   }
 

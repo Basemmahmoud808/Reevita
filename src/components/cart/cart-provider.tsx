@@ -6,7 +6,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -77,7 +76,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
   const [ready, setReady] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const hydrated = useRef(false);
 
   useEffect(() => {
     try {
@@ -89,18 +87,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch {
       // Corrupted storage — start clean rather than crash the storefront.
     }
-    hydrated.current = true;
     setReady(true);
   }, []);
 
   useEffect(() => {
-    if (!hydrated.current) return;
+    if (!ready) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(lines));
     } catch {
       // Storage can be full/blocked (private mode); the cart still works in-memory.
     }
-  }, [lines]);
+  }, [lines, ready]);
 
   useEffect(() => {
     const sync = (event: StorageEvent) => {

@@ -8,21 +8,21 @@ import type { Brand, Category, Faq, Fragrance, Product, StockStatus, Testimonial
  */
 const catalog = catalogJson;
 
-const suppliedProductImages = [
-  "/images/supplied/Gemini_Generated_Image_6q61gp6q61gp6q61.jfif",
-  "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jfif",
-  "/images/supplied/Gemini_Generated_Image_bp52xsbp52xsbp52.jfif",
-  "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jfif",
-  "/images/supplied/Gemini_Generated_Image_gyp61agyp61agyp6.jfif",
-  "/images/supplied/Gemini_Generated_Image_kj1ed5kj1ed5kj1e.jfif",
-  "/images/supplied/Gemini_Generated_Image_ko6hg2ko6hg2ko6h.jfif",
-  "/images/supplied/Gemini_Generated_Image_odogaoodogaoodog.jfif",
-  "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
-  "/images/supplied/Gemini_Generated_Image_rsfpt0rsfpt0rsfp.jfif",
-  "/images/supplied/Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jfif",
-  "/images/supplied/Gemini_Generated_Image_yow1joyow1joyow1.jfif",
-  "/images/supplied/Gemini_Generated_Image_z6nj55z6nj55z6nj.jfif",
-];
+const suppliedProductImages: Record<string, string> = {
+  "shampoo-aloe-vera": "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
+  "shampoo-blueberry": "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jfif",
+  "body-lotion-queen": "/images/supplied/Gemini_Generated_Image_gyp61agyp61agyp6.jfif",
+  "body-lotion-ruby-musk": "/images/supplied/Gemini_Generated_Image_odogaoodogaoodog.jfif",
+  "body-butter-sexy": "/images/supplied/Gemini_Generated_Image_yow1joyow1joyow1.jfif",
+  "body-butter-queen": "/images/supplied/Gemini_Generated_Image_bp52xsbp52xsbp52.jfif",
+  "body-butter-ruby-musk": "/images/supplied/Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jfif",
+  "body-splash-sexy": "/images/supplied/Gemini_Generated_Image_z6nj55z6nj55z6nj.jfif",
+  "body-splash-queen": "/images/supplied/Gemini_Generated_Image_ko6hg2ko6hg2ko6h.jfif",
+  "body-splash-ruby-musk": "/images/supplied/Gemini_Generated_Image_rsfpt0rsfpt0rsfp.jfif",
+  "hair-mist-sexy": "/images/supplied/Gemini_Generated_Image_kj1ed5kj1ed5kj1e.jfif",
+  "hair-mist-queen": "/images/supplied/Gemini_Generated_Image_6q61gp6q61gp6q61.jfif",
+  "hair-mist-ruby-musk": "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jfif",
+};
 
 export const brand = catalog.brand as Brand;
 export const categories = [...(catalog.categories as Category[])].sort(
@@ -65,7 +65,7 @@ function stockStatus(stock: number): StockStatus {
   return "in_stock";
 }
 
-function toProduct(raw: RawProduct, index: number): Product {
+function toProduct(raw: RawProduct): Product {
   const category = categories.find((item) => item.slug === raw.category);
   const fragrance = fragrances.find((item) => item.slug === raw.fragrance);
   return {
@@ -91,7 +91,7 @@ function toProduct(raw: RawProduct, index: number): Product {
     howToUseAr: raw.howToUseAr,
     images: [
       {
-        url: suppliedProductImages[index] ?? `/images/products/${raw.slug}.webp`,
+        url: suppliedProductImages[raw.slug] ?? `/images/products/${raw.slug}.webp`,
         alt: `${raw.nameEn} — ${brand.name}`,
       },
     ],

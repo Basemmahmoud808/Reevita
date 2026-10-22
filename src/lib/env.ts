@@ -22,6 +22,6 @@ export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:30
 export const onlinePaymentsEnabled =
   process.env.NEXT_PUBLIC_ENABLE_ONLINE_PAYMENTS === "true" && isSupabaseConfigured;
 
-export const supportPhone = process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+201551066402";
+export const supportPhone = process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+201157024375";
 
 export const isProduction = process.env.NODE_ENV === "production";

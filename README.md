@@ -45,7 +45,7 @@
 
 | الطبقة | التقنية المستخدمة | الغرض |
 |---|---|---|
-| **Frontend Framework** | **Next.js 16.4 (Turbopack, App Router)** | أداء فائق وتوليد صفحات ثابتة وديناميكية مع دعم React 19 |
+| **Frontend Framework** | **Next.js 16.4 (Turbopack, App Router)** | أداء فائق مع صفحات Server-rendered ديناميكية ودعم React 19 |
 | **Styling** | **Tailwind CSS 4 + PostCSS** | نظام تصميم فاخر مع فئات توكنات متناسقة وتحكم كامل بالاتجاه RTL |
 | **Icons** | **Lucide React** | أيقونات عصرية خفيفة وسلسة |
 | **Validation** | **Zod v4** | تحقق صارم من بيانات المدخلات والهواتف والمخططات |
@@ -173,6 +173,7 @@ npm run build
 
 5. **رؤوس الأمان (Content Security Policy):**
    - تطبيق CSP صارم يعتمد على الـ Nonce المشفر في كل استجابة عبر `proxy.ts`.
+   - لأن الـ Proxy يضيف CSP nonce لكل استجابة، تُعامل صفحات التطبيق كـ Server-rendered ديناميكيًا في الإنتاج؛ لا يعتمد النشر الحالي على prerendering ثابت للصفحات.
 
 ---
 

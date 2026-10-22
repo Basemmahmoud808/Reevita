@@ -6,24 +6,11 @@ import { ArrowRight, Heart, Search } from "lucide-react";
 import { ProductCard } from "@/components/product/product-card";
 import { SocialIconLinks } from "@/components/ui/social-icon";
 import { CartButton } from "@/components/cart/cart-button";
+import { blurForSlug } from "@/lib/images";
 import { useState } from "react";
 import type { Product } from "@/lib/types";
 
-const suppliedImages = [
-  "/images/supplied/Gemini_Generated_Image_6q61gp6q61gp6q61.jfif",
-  "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jfif",
-  "/images/supplied/Gemini_Generated_Image_bp52xsbp52xsbp52.jfif",
-  "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jfif",
-  "/images/supplied/Gemini_Generated_Image_gyp61agyp61agyp6.jfif",
-  "/images/supplied/Gemini_Generated_Image_kj1ed5kj1ed5kj1e.jfif",
-  "/images/supplied/Gemini_Generated_Image_ko6hg2ko6hg2ko6h.jfif",
-  "/images/supplied/Gemini_Generated_Image_odogaoodogaoodog.jfif",
-  "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
-  "/images/supplied/Gemini_Generated_Image_rsfpt0rsfpt0rsfp.jfif",
-  "/images/supplied/Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jfif",
-  "/images/supplied/Gemini_Generated_Image_yow1joyow1joyow1.jfif",
-  "/images/supplied/Gemini_Generated_Image_z6nj55z6nj55z6nj.jfif",
-];
+const storyImage = "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jfif";
 
 export function ReferenceHome({ products }: { products: Product[] }) {
   const [wishlist, setWishlist] = useState(false);
@@ -67,12 +54,9 @@ export function ReferenceHome({ products }: { products: Product[] }) {
             <a href="#collection" className="hidden items-center gap-2 text-[0.7rem] md:flex">Explore collection <ArrowRight className="size-3.5" /></a>
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
-            {products.slice(0, suppliedImages.length).map((product, index) => (
+            {products.map((product, index) => (
               <div key={product.id} className="reference-product-card">
-                <ProductCard
-                  product={{ ...product, images: [{ url: suppliedImages[index] ?? product.images[0]!.url, alt: product.nameEn }] }}
-                  priority={index < 4}
-                />
+                <ProductCard product={product} priority={index < 4} />
               </div>
             ))}
           </div>
@@ -80,7 +64,7 @@ export function ReferenceHome({ products }: { products: Product[] }) {
 
         <section id="story" className="reference-container scroll-mt-20 pb-12 md:pb-16">
           <div className="reference-story">
-            <Image src={suppliedImages[1]!} alt="REEVITA care products" fill quality={80} sizes="100vw" unoptimized placeholder="blur" className="object-cover" />
+            <Image src={storyImage} alt="REEVITA care products" fill quality={80} sizes="100vw" unoptimized placeholder="blur" blurDataURL={blurForSlug("story")} className="object-cover" />
             <div className="relative z-10 max-w-[330px] px-7 py-10 md:px-12">
               <p className="reference-kicker">OUR PHILOSOPHY</p>
               <h2 className="mt-3">Skincare<br />That Works</h2>

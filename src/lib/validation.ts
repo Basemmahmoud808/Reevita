@@ -20,7 +20,7 @@ export const checkoutSchema = z.object({
     .union([z.literal(""), z.string().trim().email({ message: "البريد الإلكتروني غير صحيح" })])
     .optional()
     .transform((value) => (value ? value : null)),
-  governorateId: z.string().uuid({ message: "اختاري المحافظة" }),
+  governorateId: z.string().guid({ message: "اختاري المحافظة" }),
   city: z.string().trim().min(2, { message: "المدينة / الحي مطلوب" }).max(80),
   addressLine: z
     .string()
@@ -32,7 +32,7 @@ export const checkoutSchema = z.object({
   items: z
     .array(
       z.object({
-        product_id: z.string().uuid(),
+        product_id: z.string().guid(),
         quantity: z.number().int().min(1).max(10),
       }),
     )
@@ -66,14 +66,14 @@ export const registerSchema = loginSchema.extend({
 export const addressSchema = z.object({
   recipientName: z.string().trim().min(2).max(80),
   phone: phoneSchema,
-  governorateId: z.string().uuid(),
+  governorateId: z.string().guid(),
   city: z.string().trim().min(2).max(80),
   addressLine: z.string().trim().min(5).max(240),
   landmark: z.string().trim().max(120).optional().nullable(),
 });
 
 export const adminStatusSchema = z.object({
-  orderId: z.string().uuid(),
+  orderId: z.string().guid(),
   newStatus: z.enum([
     "confirmed",
     "packed",
@@ -89,13 +89,13 @@ export const adminStatusSchema = z.object({
 });
 
 export const adminInventorySchema = z.object({
-  productId: z.string().uuid(),
+  productId: z.string().guid(),
   quantityAvailable: z.number().int().min(0).max(100000),
   lowStockThreshold: z.number().int().min(0).max(1000).optional(),
 });
 
 export const adminShippingSchema = z.object({
-  governorateId: z.string().uuid(),
+  governorateId: z.string().guid(),
   shippingCost: z.number().min(0).max(10000),
   freeShippingThreshold: z.number().min(0).max(100000),
 });
@@ -124,7 +124,7 @@ export const adminProductSchema = z.object({
 export const adminProductUpdateSchema = adminProductSchema
   .omit({ publish: true, quantityAvailable: true, lowStockThreshold: true, isFeatured: true })
   .extend({
-    productId: z.string().uuid(),
+    productId: z.string().guid(),
     isFeatured: z.boolean(),
     isActive: z.boolean(),
   });
