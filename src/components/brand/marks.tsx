@@ -74,3 +74,38 @@ export function FacebookIcon({ className }: { className?: string }) {
   );
 }
 
+export function TikTokIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M14 4v10.2a4.3 4.3 0 1 1-3.1-4.1" />
+      <path d="M14 4c.7 2.7 2.4 4.2 5 4.6" />
+    </svg>
+  );
+}
+
+export function WhatsAppIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M20.2 11.5a8.2 8.2 0 0 1-12.1 7.2L4 20l1.3-3.9a8.2 8.2 0 1 1 14.9-4.6Z" />
+      <path d="M9 8.2c.2-.4.5-.4.8-.4h.5c.2 0 .4.1.5.4l.7 1.6c.1.2.1.4-.1.6l-.5.6c.6 1.2 1.5 2 2.7 2.6l.5-.5c.2-.2.4-.2.6-.1l1.6.7c.3.1.4.3.3.6-.2.8-.8 1.4-1.6 1.5-1.1.1-2.8-.7-4.2-1.9-1.4-1.2-2.4-2.8-2.3-4 0-.6.3-1.3.5-1.7Z" />
+    </svg>
+  );
+}

@@ -12,7 +12,7 @@ const egpFormatter = new Intl.NumberFormat("en-EG", {
 
 /** Prices are stored in EGP; Egyptian storefronts commonly use Latin digits. */
 export function formatEGP(value: number): string {
-  return `${egpFormatter.format(Math.round(value))} ج.م`;
+  return `EGP ${egpFormatter.format(Math.round(value))}`;
 }
 
 export function formatNumber(value: number): string {

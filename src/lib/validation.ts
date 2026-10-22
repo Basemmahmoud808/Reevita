@@ -38,6 +38,7 @@ export const checkoutSchema = z.object({
     )
     .min(1, { message: "سلة المشتريات فارغة" })
     .max(20),
+  terms: z.literal(true, { error: "يجب الموافقة على الشروط وسياسة الاسترجاع." }),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
@@ -98,6 +99,35 @@ export const adminShippingSchema = z.object({
   shippingCost: z.number().min(0).max(10000),
   freeShippingThreshold: z.number().min(0).max(100000),
 });
+
+export const adminProductSchema = z.object({
+  name: z.string().trim().min(2, "اسم المنتج مطلوب").max(120),
+  nameAr: z.string().trim().min(2, "اسم المنتج بالعربية مطلوب").max(120),
+  slug: z
+    .string()
+    .trim()
+    .min(2, "الرابط المختصر مطلوب")
+    .max(80)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "الرابط المختصر يجب أن يكون بالإنجليزية وبشرطات فقط"),
+  categorySlug: z.string().trim().min(1, "التصنيف مطلوب").max(80),
+  shortDescriptionAr: z.string().trim().max(240).optional(),
+  description: z.string().trim().min(10, "وصف المنتج مطلوب").max(4000),
+  price: z.number().finite().min(0).max(1000000),
+  compareAtPrice: z.number().finite().min(0).max(1000000).nullable().optional(),
+  size: z.string().trim().max(80).optional(),
+  quantityAvailable: z.number().int().min(0).max(100000),
+  lowStockThreshold: z.number().int().min(0).max(1000),
+  isFeatured: z.boolean().default(false),
+  publish: z.boolean().default(false),
+});
+
+export const adminProductUpdateSchema = adminProductSchema
+  .omit({ publish: true, quantityAvailable: true, lowStockThreshold: true, isFeatured: true })
+  .extend({
+    productId: z.string().uuid(),
+    isFeatured: z.boolean(),
+    isActive: z.boolean(),
+  });
 
 export const contactSchema = z.object({
   name: z.string().trim().min(2).max(80),

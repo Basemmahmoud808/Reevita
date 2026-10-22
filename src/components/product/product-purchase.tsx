@@ -22,16 +22,16 @@ export function ProductPurchase({ product }: { product: AddableProduct }) {
     window.setTimeout(() => setAdded(false), 2200);
   }
 
-  const waMessage = `أهلًا ريفيتا 👋\nأريد طلب: ${product.nameAr} (${product.size}) × ${quantity}\nرابط المنتج: ${siteUrl}/products/${product.slug}`;
+  const waMessage = `Hello REEVITA,\nI would like to order: ${product.nameEn} (${product.size}) x ${quantity}\nProduct link: ${siteUrl}/products/${product.slug}`;
 
   return (
     <div className="space-y-5">
       <Price price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
 
       <div className="flex flex-wrap items-center gap-3">
-        <QuantityStepper value={quantity} onChange={setQuantity} max={10} label="كمية المنتج" />
+        <QuantityStepper value={quantity} onChange={setQuantity} max={10} label="Quantity" />
         <span className="text-xs text-muted">
-          {outOfStock ? "غير متوفر حاليًا" : product.stockStatus === "low_stock" ? "كمية محدودة" : "متوفر وجاهز للشحن"}
+          {outOfStock ? "Currently unavailable" : product.stockStatus === "low_stock" ? "Limited stock" : "In stock and ready to ship"}
         </span>
       </div>
 
@@ -43,7 +43,7 @@ export function ProductPurchase({ product }: { product: AddableProduct }) {
           className="btn btn-primary flex-1"
         >
           {added ? <Check className="size-4" aria-hidden /> : <ShoppingBag className="size-4" aria-hidden />}
-          {outOfStock ? "نفد المخزون مؤقتًا" : added ? "تمت الإضافة" : `أضيفي للسلة — ${formatEGP(product.price * quantity)}`}
+          {outOfStock ? "Temporarily out of stock" : added ? "Added to bag" : `Add to bag — ${formatEGP(product.price * quantity)}`}
         </button>
         <Link
           href={`https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(waMessage)}`}
@@ -52,7 +52,7 @@ export function ProductPurchase({ product }: { product: AddableProduct }) {
           className="btn btn-outline"
         >
           <MessageCircle className="size-4" aria-hidden />
-          اطلبي واتساب
+          Order on WhatsApp
         </Link>
       </div>
 
@@ -61,7 +61,7 @@ export function ProductPurchase({ product }: { product: AddableProduct }) {
         onClick={openCart}
         className="text-xs font-bold text-muted underline-offset-4 transition-colors hover:text-plum hover:underline"
       >
-        استعراض السلة الحالية
+        View your bag
       </button>
     </div>
   );

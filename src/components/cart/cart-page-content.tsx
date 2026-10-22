@@ -24,17 +24,17 @@ export function CartPageContent() {
         <span className="flex size-20 items-center justify-center rounded-full bg-cream">
           <ShoppingBag className="size-8 text-gold-deep" aria-hidden />
         </span>
-        <h1 className="display-xl mt-6">سلتك فارغة</h1>
+        <h1 className="display-xl mt-6">Your bag is empty</h1>
         <p className="lead mt-3 max-w-md">
-          لم تختاري منتجاتك بعد. تصفّحي مجموعات ريفيتا وابدئي طقس جمالك اليوم.
+          You have not added any products yet. Explore REEVITA and begin your daily ritual.
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
-          <Link href="/shop" className="btn btn-primary">
-            تسوّقي الآن
+          <Link href="/" className="btn btn-primary">
+            Shop now
             <ArrowLeft className="size-4" aria-hidden />
           </Link>
           <Link href="/collections" className="btn btn-outline">
-            اكتشفي العطور
+            Explore scents
           </Link>
         </div>
       </div>
@@ -48,11 +48,11 @@ export function CartPageContent() {
       <div className="mb-8 flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="eyebrow">YOUR RITUAL</p>
-          <h1 className="display-xl mt-3">سلة المشتريات</h1>
-          <p className="mt-2 text-sm text-muted">{count} منتج في سلتك</p>
+          <h1 className="display-xl mt-3">Shopping bag</h1>
+          <p className="mt-2 text-sm text-muted">{count} items in your bag</p>
         </div>
-        <Link href="/shop" className="text-sm font-bold text-plum transition-colors hover:text-gold-deep">
-          متابعة التسوق ←
+        <Link href="/" className="text-sm font-bold text-plum transition-colors hover:text-gold-deep">
+          Continue shopping →
         </Link>
       </div>
 
@@ -67,21 +67,21 @@ export function CartPageContent() {
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="rounded-2xl border border-line bg-white/80 p-6 shadow-card">
-            <h2 className="display-md text-xl">ملخص الطلب</h2>
+            <h2 className="display-md text-xl">Order summary</h2>
 
             <dl className="mt-5 space-y-3 text-sm">
               <div className="flex items-center justify-between">
-                <dt className="text-muted">الإجمالي الفرعي</dt>
+                <dt className="text-muted">Subtotal</dt>
                 <dd className="font-bold text-plum">{formatEGP(subtotal)}</dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-muted">الشحن</dt>
+                <dt className="text-muted">Shipping</dt>
                 <dd className="font-semibold text-plum">
-                  {freeShippingRemaining === 0 ? "مجاني" : "يُحسب حسب المحافظة"}
+                  {freeShippingRemaining === 0 ? "Free" : "Calculated at checkout"}
                 </dd>
               </div>
               <div className="flex items-center justify-between border-t border-line pt-3">
-                <dt className="font-bold text-plum">الإجمالي التقديري</dt>
+                <dt className="font-bold text-plum">Estimated total</dt>
                 <dd className="text-lg font-bold text-plum">{formatEGP(subtotal)}</dd>
               </div>
             </dl>
@@ -90,7 +90,7 @@ export function CartPageContent() {
               <div className="mt-5 rounded-xl bg-cream/70 p-3.5">
                 <p className="flex items-center gap-2 text-[0.72rem] font-bold text-plum">
                   <Truck className="size-4 text-gold-deep" aria-hidden />
-                  أضيفي {formatEGP(freeShippingRemaining)} للحصول على شحن مجاني
+                  Add {formatEGP(freeShippingRemaining)} for free shipping
                 </p>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-line">
                   <div className="h-full rounded-full bg-gold" style={{ width: `${progress}%` }} />
@@ -99,23 +99,23 @@ export function CartPageContent() {
             ) : (
               <p className="mt-5 flex items-center gap-2 rounded-xl bg-gold/10 p-3.5 text-[0.72rem] font-bold text-gold-deep">
                 <Truck className="size-4" aria-hidden />
-                طلبك مؤهل للشحن المجاني
+                Your order qualifies for free shipping
               </p>
             )}
 
             <Link href="/checkout" className="btn btn-primary mt-5 w-full">
-              إتمام الطلب
+              Checkout
               <ArrowLeft className="size-4" aria-hidden />
             </Link>
 
             <div className="mt-4 space-y-2.5 border-t border-line pt-4 text-[0.7rem] text-muted">
               <p className="flex items-center gap-2">
                 <ShieldCheck className="size-3.5 text-gold-deep" aria-hidden />
-                الدفع عند الاستلام — بدون أي دفع مقدم
+                Cash on delivery — no upfront payment
               </p>
               <p className="flex items-center gap-2">
                 <Truck className="size-3.5 text-gold-deep" aria-hidden />
-                شحن سريع لكل محافظات مصر
+                Fast shipping across Egypt
               </p>
             </div>
           </div>

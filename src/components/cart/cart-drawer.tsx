@@ -6,6 +6,7 @@ import { useCart } from "@/components/cart/cart-provider";
 import { CartLineItem } from "@/components/cart/cart-line-item";
 import { formatEGP } from "@/lib/format";
 import { cn } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 
 export function CartDrawer() {
   const {
@@ -20,6 +21,7 @@ export function CartDrawer() {
 
   const progress = Math.min(100, Math.round((subtotal / freeShippingThreshold) * 100));
   const qualified = freeShippingRemaining === 0;
+  const { t } = useI18n();
 
   return (
     <div
@@ -34,12 +36,12 @@ export function CartDrawer() {
           "absolute inset-0 h-full w-full bg-plum-deep/50 backdrop-blur-sm transition-opacity duration-500",
           isOpen ? "opacity-100" : "opacity-0",
         )}
-        aria-label="إغلاق سلة المشتريات"
+        aria-label={t("closeMenu")}
       />
       <aside
         role="dialog"
         aria-modal="true"
-        aria-label="سلة المشتريات"
+        aria-label={t("cart")}
         className={cn(
           "absolute inset-y-0 left-0 flex w-full max-w-[440px] flex-col bg-ivory shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
           isOpen ? "translate-x-0" : "-translate-x-full",
@@ -50,7 +52,7 @@ export function CartDrawer() {
             <p className="eyebrow-plain text-[0.6rem] text-gold-deep">YOUR RITUAL</p>
             <h2 className="display-md mt-1 flex items-center gap-2">
               <ShoppingBag className="size-5 text-gold-deep" aria-hidden />
-              سلة المشتريات
+              {t("cart")}
               <span className="text-sm font-normal text-muted">({count})</span>
             </h2>
           </div>
@@ -58,7 +60,7 @@ export function CartDrawer() {
             type="button"
             onClick={closeCart}
             className="rounded-full border border-line p-2 text-plum transition-colors hover:bg-cream"
-            aria-label="إغلاق السلة"
+            aria-label={t("closeMenu")}
             tabIndex={isOpen ? 0 : -1}
           >
             <X className="size-5" aria-hidden />
@@ -70,11 +72,11 @@ export function CartDrawer() {
             <div className="flex items-center gap-2 text-xs font-bold text-plum">
               <Truck className="size-4 text-gold-deep" aria-hidden />
               {qualified ? (
-                <span>مبروك! شحن مجاني على طلبك 🎉</span>
+                <span>Free shipping unlocked</span>
               ) : (
                 <span>
-                  أضيفي <span className="text-gold-deep">{formatEGP(freeShippingRemaining)}</span> للحصول على
-                  شحن مجاني
+                  Add <span className="text-gold-deep">{formatEGP(freeShippingRemaining)}</span> for free
+                  shipping
                 </span>
               )}
             </div>
@@ -93,12 +95,12 @@ export function CartDrawer() {
               <span className="flex size-16 items-center justify-center rounded-full bg-cream">
                 <ShoppingBag className="size-7 text-gold-deep" aria-hidden />
               </span>
-              <p className="display-md text-lg">سلتك فارغة حاليًا</p>
+              <p className="display-md text-lg">Your bag is empty</p>
               <p className="max-w-xs text-sm text-muted">
-                ابدئي طقس جمالك باختيار منتجك المفضل من مجموعة ريفيتا.
+                Start your ritual by choosing a favourite from the REEVITA collection.
               </p>
-              <Link href="/shop" onClick={closeCart} className="btn btn-primary mt-2">
-                تسوّقي الآن
+              <Link href="/" onClick={closeCart} className="btn btn-primary mt-2">
+                Back to home
               </Link>
             </div>
           ) : (
@@ -113,14 +115,14 @@ export function CartDrawer() {
         {lines.length > 0 && (
           <footer className="border-t border-line bg-white/70 px-5 py-5">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted">الإجمالي الفرعي</span>
+              <span className="text-muted">Subtotal</span>
               <span className="text-lg font-bold text-plum">{formatEGP(subtotal)}</span>
             </div>
             <p className="mt-1 text-[0.7rem] text-muted">
-              الشحن والدفع عند الاستلام يُحسبان في صفحة إتمام الطلب.
+              Shipping and cash on delivery are calculated at checkout.
             </p>
             <Link href="/checkout" onClick={closeCart} className="btn btn-primary mt-4 w-full">
-              إتمام الطلب
+              Checkout
               <ArrowLeft className="size-4" aria-hidden />
             </Link>
             <button
@@ -128,7 +130,7 @@ export function CartDrawer() {
               onClick={closeCart}
               className="mt-2 w-full py-2 text-center text-xs font-bold text-muted transition-colors hover:text-plum"
             >
-              متابعة التسوق
+              Continue shopping
             </button>
           </footer>
         )}

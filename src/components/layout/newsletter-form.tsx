@@ -4,17 +4,19 @@ import { useActionState } from "react";
 import { Loader2, Send } from "lucide-react";
 import { subscribeAction, type NewsletterState } from "@/lib/actions/newsletter";
 import { cn } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 
 export function NewsletterForm({ className, tone = "dark" }: { className?: string; tone?: "dark" | "light" }) {
   const [state, formAction, pending] = useActionState<NewsletterState | null, FormData>(
     subscribeAction,
     null,
   );
+  const { t } = useI18n();
 
   return (
     <form action={formAction} className={cn("w-full", className)}>
       <label htmlFor="newsletter-email" className="sr-only">
-        البريد الإلكتروني
+        Email address
       </label>
       <div
         className={cn(
@@ -28,7 +30,7 @@ export function NewsletterForm({ className, tone = "dark" }: { className?: strin
           type="email"
           required
           autoComplete="email"
-          placeholder="بريدك الإلكتروني"
+          placeholder="Your email address"
           aria-describedby="newsletter-help"
           className={cn(
             "min-w-0 flex-1 bg-transparent px-4 py-2 text-sm outline-none",
@@ -41,7 +43,7 @@ export function NewsletterForm({ className, tone = "dark" }: { className?: strin
           className={cn("btn shrink-0 px-5 py-2.5 text-xs", tone === "light" ? "btn-gold" : "btn-primary")}
         >
           {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : <Send className="size-3.5" aria-hidden />}
-          اشتراك
+          Subscribe
         </button>
       </div>
       <p
@@ -50,10 +52,10 @@ export function NewsletterForm({ className, tone = "dark" }: { className?: strin
         role={state?.error ? "alert" : undefined}
       >
         {state?.ok
-          ? "تم اشتراكك بنجاح — أول من يعرف عن الجديد والمكافآت."
+          ? "You are subscribed — watch your inbox for the latest."
           : state?.error
             ? state.error
-            : "اشتركي لتصلك العروض الحصرية وإطلاقات ريفيتا أولًا."}
+            : t("newsletter")}
       </p>
     </form>
   );

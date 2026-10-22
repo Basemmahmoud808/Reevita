@@ -2,7 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { AlertCircle, Check, ChevronDown, Loader2 } from "lucide-react";
-import { updateInventoryAction, updateProductAction, type AdminActionState } from "@/lib/actions/admin";
+import { updateInventoryAction, updateProductAction, replaceProductImageAction, archiveProductAction, deleteProductAction, type AdminActionState } from "@/lib/actions/admin";
+import { categories } from "@/lib/catalog";
 import type { InventoryItem } from "@/lib/data/admin";
 import { formatEGP } from "@/lib/format";
 
@@ -33,6 +34,9 @@ export function AdminInventoryRow({ item }: { item: InventoryItem }) {
     updateProductAction,
     null,
   );
+  const [imageState, imageAction, imagePending] = useActionState<AdminActionState | null, FormData>(replaceProductImageAction, null);
+  const [archiveState, archiveAction, archivePending] = useActionState<AdminActionState | null, FormData>(archiveProductAction, null);
+  const [deleteState, deleteAction, deletePending] = useActionState<AdminActionState | null, FormData>(deleteProductAction, null);
   const [expanded, setExpanded] = useState(false);
   const low = item.quantityAvailable <= item.lowStockThreshold;
 
@@ -111,11 +115,19 @@ export function AdminInventoryRow({ item }: { item: InventoryItem }) {
             <Feedback state={stockState} />
           </form>
 
-          <form action={productAction}>
+          <form action={productAction} className="md:col-span-2">
             <input type="hidden" name="productId" value={item.productId} />
-            <input type="hidden" name="slug" value={item.slug} />
             <p className="label">تعديل المنتج</p>
-            <div className="flex flex-wrap items-end gap-2">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <input name="name" required defaultValue={item.name} className="field py-2 text-xs" placeholder="English name" />
+              <input name="nameAr" required defaultValue={item.nameAr} className="field py-2 text-xs" placeholder="الاسم بالعربية" />
+              <input name="slug" required defaultValue={item.slug} className="field py-2 text-xs" placeholder="slug" dir="ltr" />
+              <select name="categorySlug" required defaultValue={item.categorySlug} className="field py-2 text-xs">
+                {categories.map((category) => <option key={category.slug} value={category.slug}>{category.nameAr}</option>)}
+              </select>
+              <textarea name="description" required defaultValue={item.description} className="field py-2 text-xs sm:col-span-2" rows={2} placeholder="الوصف" />
+              <input name="shortDescriptionAr" defaultValue={item.shortDescriptionAr} className="field py-2 text-xs" placeholder="وصف مختصر" />
+              <input name="size" defaultValue={item.size} className="field py-2 text-xs" placeholder="الحجم" />
               <div>
                 <label htmlFor={`price-${item.productId}`} className="sr-only">
                   السعر
@@ -130,6 +142,7 @@ export function AdminInventoryRow({ item }: { item: InventoryItem }) {
                   className="field w-24 py-2 text-xs"
                 />
               </div>
+              <input name="compareAtPrice" type="number" min={0} step="0.01" defaultValue={item.compareAtPrice ?? ""} className="field py-2 text-xs" placeholder="السعر قبل الخصم" />
               <label className="flex items-center gap-1.5 pb-2 text-[0.65rem] font-semibold text-plum">
                 <input type="checkbox" name="isActive" defaultChecked={item.isActive} className="size-3.5 accent-[#3B0F24]" />
                 معروض
@@ -145,6 +158,18 @@ export function AdminInventoryRow({ item }: { item: InventoryItem }) {
             </div>
             <Feedback state={productState} />
           </form>
+          <form action={imageAction} encType="multipart/form-data" className="flex flex-wrap items-end gap-2">
+            <input type="hidden" name="productId" value={item.productId} />
+            <input type="hidden" name="nameAr" value={item.nameAr} />
+            <div className="min-w-48 flex-1"><label className="label">استبدال الصورة</label><input name="image" type="file" accept="image/jpeg,image/png,image/webp" required className="field py-2 text-xs" /></div>
+            <button type="submit" disabled={imagePending} className="btn btn-outline px-4 py-2 text-xs">{imagePending ? <Loader2 className="size-3.5 animate-spin" /> : "رفع الصورة"}</button>
+            <Feedback state={imageState} />
+          </form>
+          <div className="flex flex-wrap items-center gap-2 border-t border-line pt-3 md:col-span-2">
+            <form action={archiveAction}><input type="hidden" name="productId" value={item.productId} /><button type="submit" disabled={archivePending} className="btn btn-outline px-3 py-2 text-xs">أرشفة وإخفاء</button></form>
+            {!item.isActive && <form action={deleteAction} onSubmit={(event) => { if (!window.confirm("سيُحذف المنتج نهائيًا إن لم يرتبط بطلبات. متابعة؟")) event.preventDefault(); }}><input type="hidden" name="productId" value={item.productId} /><button type="submit" disabled={deletePending} className="rounded-xl border border-danger/30 px-3 py-2 text-xs font-bold text-danger">حذف نهائي</button></form>}
+            <Feedback state={archiveState} /><Feedback state={deleteState} />
+          </div>
         </div>
       )}
     </div>

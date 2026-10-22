@@ -1,5 +1,8 @@
+"use client";
+
 import { Star } from "lucide-react";
 import { cn } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 
 interface RatingProps {
   rating: number;
@@ -10,6 +13,7 @@ interface RatingProps {
 
 export function Rating({ rating, reviews, className, size = "sm" }: RatingProps) {
   const rounded = Math.round(rating);
+  const { t } = useI18n();
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)}>
       <span className="flex items-center gap-0.5" aria-hidden>
@@ -29,7 +33,7 @@ export function Rating({ rating, reviews, className, size = "sm" }: RatingProps)
       {typeof reviews === "number" && (
         <span className="text-[0.7rem] text-muted">({reviews})</span>
       )}
-      <span className="sr-only">تقييم {rating.toFixed(1)} من 5</span>
+      <span className="sr-only">{t("rating")} {rating.toFixed(1)} out of 5</span>
     </span>
   );
 }

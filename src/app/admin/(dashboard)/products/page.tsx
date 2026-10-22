@@ -1,5 +1,6 @@
 import { getInventory } from "@/lib/data/admin";
 import { AdminInventoryRow } from "@/components/admin/admin-inventory-row";
+import { AdminProductForm } from "@/components/admin/admin-product-form";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +18,7 @@ export default async function AdminProductsPage() {
         </p>
       </div>
 
-      <p className="rounded-xl border border-line bg-white/70 px-4 py-3 text-[0.68rem] leading-6 text-muted">
-        تعديل المخزون يُسجَّل تلقائيًا في سجل الرقابة (audit_log) على Supabase. لإضافة منتجات جديدة
-        أو تغيير الصور، استخدمي Supabase Studio — الواجهة الحالية لإدارة المنتجات الحالية فقط.
-      </p>
+      <AdminProductForm />
 
       <div className="space-y-3">
         {inventory.map((item) => (

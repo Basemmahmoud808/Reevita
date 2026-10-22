@@ -17,6 +17,24 @@ import { OrderError, errorFromSupabase } from "@/lib/data/orders";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Governorate, OrderStatus } from "@/lib/types";
 
+export interface CreateAdminProductInput {
+  name: string;
+  nameAr: string;
+  slug: string;
+  categorySlug: string;
+  shortDescriptionAr?: string;
+  shortDescription?: string;
+  compareAtPrice?: number | null;
+  size?: string;
+  description: string;
+  price: number;
+  quantityAvailable: number;
+  lowStockThreshold: number;
+  isFeatured: boolean;
+  image: File;
+  publish: boolean;
+}
+
 export interface AdminOrderItem {
   productName: string;
   quantity: number;
@@ -290,6 +308,12 @@ export interface InventoryItem {
   isActive?: boolean;
   isFeatured?: boolean;
   image?: string;
+  categorySlug?: string;
+  shortDescription?: string;
+  shortDescriptionAr?: string;
+  description?: string;
+  compareAtPrice?: number | null;
+  size?: string;
 }
 
 export async function getInventory(): Promise<InventoryItem[]> {
@@ -297,7 +321,7 @@ export async function getInventory(): Promise<InventoryItem[]> {
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
   const [productsResult, inventoryResult] = await Promise.all([
-    supabase.from("products").select("id, name, name_ar, slug, price, is_active, is_featured, product_images(image_url, is_primary, display_order)").order("name_ar"),
+    supabase.from("products").select("id, name, name_ar, slug, short_description, short_description_ar, description, size, price, compare_at_price, is_active, is_featured, category:categories(slug), product_images(image_url, is_primary, display_order)").order("name_ar"),
     supabase.from("inventory").select("product_id, quantity_available, low_stock_threshold"),
   ]);
   const inventory = new Map<string, { quantity: number; threshold: number }>();
@@ -324,6 +348,12 @@ export async function getInventory(): Promise<InventoryItem[]> {
       isActive: Boolean(row.is_active),
       isFeatured: Boolean(row.is_featured),
       image: primary?.image_url ?? getStaticProduct(String(row.slug))?.images[0]?.url ?? "",
+      categorySlug: (Array.isArray(row.category) ? row.category[0]?.slug : (row.category as { slug?: string } | null)?.slug) ?? "",
+      shortDescription: String(row.short_description ?? ""),
+      shortDescriptionAr: String(row.short_description_ar ?? ""),
+      description: String(row.description ?? ""),
+      compareAtPrice: row.compare_at_price == null ? null : Number(row.compare_at_price),
+      size: String(row.size ?? ""),
     };
   });
 }
@@ -345,22 +375,145 @@ export async function updateInventory(productId: string, quantity: number, thres
 
 export async function updateProductFlags(
   productId: string,
-  patch: { price?: number; compareAtPrice?: number | null; isActive?: boolean; isFeatured?: boolean },
+  patch: { name?: string; nameAr?: string; slug?: string; categoryId?: string | null; shortDescription?: string | null; shortDescriptionAr?: string | null; description?: string; size?: string | null; price?: number; compareAtPrice?: number | null; isActive?: boolean; isFeatured?: boolean },
 ): Promise<void> {
   if (!isSupabaseConfigured) {
     const product = demoInventory().find((item) => item.productId === productId);
     if (!product) throw new OrderError("NOT_FOUND");
     return;
   }
+
   const supabase = await createSupabaseServerClient();
   if (!supabase) throw new OrderError("UNKNOWN");
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.price !== undefined) update.price = patch.price;
+  if (patch.name !== undefined) update.name = patch.name;
+  if (patch.nameAr !== undefined) update.name_ar = patch.nameAr;
+  if (patch.slug !== undefined) update.slug = patch.slug;
+  if (patch.categoryId !== undefined) update.category_id = patch.categoryId;
+  if (patch.shortDescription !== undefined) update.short_description = patch.shortDescription;
+  if (patch.shortDescriptionAr !== undefined) update.short_description_ar = patch.shortDescriptionAr;
+  if (patch.description !== undefined) update.description = patch.description;
+  if (patch.size !== undefined) update.size = patch.size;
   if (patch.compareAtPrice !== undefined) update.compare_at_price = patch.compareAtPrice;
   if (patch.isActive !== undefined) update.is_active = patch.isActive;
   if (patch.isFeatured !== undefined) update.is_featured = patch.isFeatured;
   const { error } = await supabase.from("products").update(update).eq("id", productId);
   if (error) throw errorFromSupabase(error.message);
+}
+
+export async function replaceProductImage(productId: string, image: File, altText: string): Promise<void> {
+  if (!isSupabaseConfigured) throw new OrderError("UNKNOWN");
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new OrderError("UNKNOWN");
+  const { data: oldImages } = await supabase.from("product_images").select("id, image_url").eq("product_id", productId);
+  const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
+  const objectPath = `products/${productId}/${crypto.randomUUID()}.${extension}`;
+  const { error: uploadError } = await supabase.storage.from("product-images").upload(objectPath, image, { contentType: image.type, upsert: false });
+  if (uploadError) throw errorFromSupabase(uploadError.message);
+  const { data: publicUrl } = supabase.storage.from("product-images").getPublicUrl(objectPath);
+  const { error: imageError } = await supabase.from("product_images").insert({ product_id: productId, image_url: publicUrl.publicUrl, alt_text: altText, display_order: 0, is_primary: true });
+  if (imageError) {
+    await supabase.storage.from("product-images").remove([objectPath]);
+    throw errorFromSupabase(imageError.message);
+  }
+  const oldIds = (oldImages ?? []).map((row) => row.id);
+  if (oldIds.length) await supabase.from("product_images").delete().in("id", oldIds);
+  const oldPaths = (oldImages ?? []).flatMap((row) => {
+    const path = String(row.image_url).split("/product-images/")[1];
+    return path ? [path] : [];
+  });
+  if (oldPaths.length) await supabase.storage.from("product-images").remove(oldPaths);
+}
+
+export async function archiveProduct(productId: string): Promise<void> {
+  return updateProductFlags(productId, { isActive: false });
+}
+
+export async function deleteProduct(productId: string): Promise<void> {
+  if (!isSupabaseConfigured) throw new OrderError("UNKNOWN");
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new OrderError("UNKNOWN");
+  const { count, error: countError } = await supabase.from("order_items").select("id", { count: "exact", head: true }).eq("product_id", productId);
+  if (countError) throw errorFromSupabase(countError.message);
+  if ((count ?? 0) > 0) throw new OrderError("CONFLICT");
+  const { data: images } = await supabase.from("product_images").select("image_url").eq("product_id", productId);
+  const { error } = await supabase.from("products").delete().eq("id", productId);
+  if (error) throw errorFromSupabase(error.message);
+  const paths = (images ?? []).flatMap((row) => {
+    const path = String(row.image_url).split("/product-images/")[1];
+    return path ? [path] : [];
+  });
+  if (paths.length) await supabase.storage.from("product-images").remove(paths);
+}
+
+export async function createAdminProduct(input: CreateAdminProductInput): Promise<void> {
+  if (!isSupabaseConfigured) throw new OrderError("UNKNOWN");
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new OrderError("UNKNOWN");
+
+  const { data: category, error: categoryError } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("slug", input.categorySlug)
+    .maybeSingle();
+  if (categoryError || !category) throw new OrderError("NOT_FOUND");
+
+  const { data: product, error: productError } = await supabase
+    .from("products")
+    .insert({
+      category_id: category.id,
+      slug: input.slug,
+      name: input.name,
+      name_ar: input.nameAr,
+      short_description_ar: input.shortDescriptionAr || null,
+      description: input.description,
+      price: input.price,
+      compare_at_price: input.compareAtPrice ?? null,
+      size: input.size || null,
+      is_featured: input.isFeatured,
+      is_active: input.publish,
+    })
+    .select("id")
+    .single();
+  if (productError || !product) throw errorFromSupabase(productError?.message ?? "PRODUCT_CREATE_FAILED");
+
+  const productId = String(product.id);
+  const extension = input.image.type === "image/png" ? "png" : input.image.type === "image/webp" ? "webp" : "jpg";
+  const objectPath = `products/${productId}/${crypto.randomUUID()}.${extension}`;
+  const { error: uploadError } = await supabase.storage.from("product-images").upload(objectPath, input.image, {
+    contentType: input.image.type,
+    upsert: false,
+  });
+  if (uploadError) {
+    await supabase.from("products").delete().eq("id", productId);
+    throw errorFromSupabase(uploadError.message);
+  }
+
+  const { data: publicUrl } = supabase.storage.from("product-images").getPublicUrl(objectPath);
+  const { error: imageError } = await supabase.from("product_images").insert({
+    product_id: productId,
+    image_url: publicUrl.publicUrl,
+    alt_text: input.nameAr,
+    display_order: 0,
+    is_primary: true,
+  });
+  if (imageError) {
+    await supabase.storage.from("product-images").remove([objectPath]);
+    await supabase.from("products").delete().eq("id", productId);
+    throw errorFromSupabase(imageError.message);
+  }
+
+  const { error: inventoryError } = await supabase.from("inventory").insert({
+    product_id: productId,
+    quantity_available: input.quantityAvailable,
+    low_stock_threshold: input.lowStockThreshold,
+  });
+  if (inventoryError) {
+    await supabase.storage.from("product-images").remove([objectPath]);
+    await supabase.from("products").delete().eq("id", productId);
+    throw errorFromSupabase(inventoryError.message);
+  }
 }
 
 export async function getShippingRates(): Promise<Governorate[]> {

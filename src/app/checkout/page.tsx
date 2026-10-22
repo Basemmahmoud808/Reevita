@@ -4,8 +4,8 @@ import { isDemoMode } from "@/lib/env";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 
 export const metadata: Metadata = {
-  title: "إتمام الطلب — الدفع عند الاستلام",
-  description: "أكملي طلبك من ريفيتا بالدفع عند الاستلام مع شحن لكل محافظات مصر.",
+  title: "Checkout — Cash on delivery",
+  description: "Complete your REEVITA order with cash on delivery across Egypt.",
   robots: { index: false, follow: false },
 };
 

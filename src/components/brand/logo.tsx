@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { cn } from "@/lib/format";
-import { CrownIcon } from "@/components/brand/marks";
 
 interface LogoProps {
   className?: string;
@@ -22,14 +21,7 @@ export function Logo({ className, variant = "dark", size = "md", withTagline = t
 
   const content = (
     <span className={cn("inline-flex flex-col items-center leading-none", className)}>
-      <span className="flex items-center gap-1.5">
-        <CrownIcon
-          className={cn(
-            "shrink-0 translate-y-[-2px]",
-            size === "sm" ? "h-2.5 w-3.5" : size === "md" ? "h-3 w-4" : "h-4 w-5",
-            "text-gold",
-          )}
-        />
+      <span className="flex items-center">
         <span className={cn("latin font-medium tracking-[0.015em]", sizes[size].word, palette)}>
           Reevita
         </span>
@@ -50,7 +42,7 @@ export function Logo({ className, variant = "dark", size = "md", withTagline = t
 
   if (!href) return content;
   return (
-    <Link href={href} aria-label="ريفيتا — الصفحة الرئيسية" className="inline-flex">
+    <Link href={href} aria-label="REEVITA — Home" className="inline-flex">
       {content}
     </Link>
   );

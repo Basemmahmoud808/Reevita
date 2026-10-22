@@ -21,6 +21,7 @@ export function CheckoutForm({
     null,
   );
   const [governorateId, setGovernorateId] = useState("");
+  const [governorateErrorCleared, setGovernorateErrorCleared] = useState(false);
 
   const governorate = useMemo(
     () => governorates.find((item) => item.id === governorateId),
@@ -57,10 +58,10 @@ export function CheckoutForm({
   if (lines.length === 0) {
     return (
       <div className="container-luxe flex flex-col items-center py-20 text-center">
-        <h1 className="display-xl">لا يمكن إتمام الطلب</h1>
-        <p className="lead mt-3">سلتك فارغة حاليًا. أضيفي منتجات أولًا.</p>
-        <Link href="/shop" className="btn btn-primary mt-7">
-          تسوّقي الآن
+        <h1 className="display-xl">Checkout unavailable</h1>
+        <p className="lead mt-3">Your bag is empty. Add products before checking out.</p>
+        <Link href="/" className="btn btn-primary mt-7">
+          Back to home
         </Link>
       </div>
     );
@@ -69,10 +70,10 @@ export function CheckoutForm({
   return (
     <div className="container-luxe py-10 md:py-14">
       <div className="mb-8">
-        <p className="eyebrow">CHECKOUT · الدفع عند الاستلام</p>
-        <h1 className="display-xl mt-3">إتمام الطلب</h1>
+        <p className="eyebrow">CHECKOUT · CASH ON DELIVERY</p>
+        <h1 className="display-xl mt-3">Complete your order</h1>
         <p className="mt-2 max-w-xl text-sm leading-7 text-muted">
-          املئي بيانات التوصيل وسنتواصل معك لتأكيد الطلب قبل الشحن. لا حاجة لأي دفع مقدم.
+          Enter your delivery details and we will confirm your order before shipping. No upfront payment required.
         </p>
       </div>
 
@@ -80,8 +81,8 @@ export function CheckoutForm({
         <div className="mb-6 flex items-start gap-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-[0.78rem] leading-6 text-plum">
           <AlertCircle className="mt-0.5 size-4 shrink-0 text-gold-deep" aria-hidden />
           <span>
-            <strong>وضع العرض التجريبي:</strong> الطلب سيُحفظ محليًا على السيرفر للتجربة فقط ولن يتم
-            شحنه. أضيفي مفاتيح Supabase في <code dir="ltr">.env.local</code> لتشغيل الطلبات الحقيقية.
+            <strong>Demo mode:</strong> orders are saved locally for testing and are not shipped. Add Supabase
+            keys to <code dir="ltr">.env.local</code> to enable live orders.
           </span>
         </div>
       ) : null}
@@ -104,13 +105,13 @@ export function CheckoutForm({
           <section className="rounded-2xl border border-line bg-white/70 p-5 sm:p-7">
             <h2 className="display-md flex items-center gap-2 text-lg">
               <span className="flex size-7 items-center justify-center rounded-full bg-plum text-xs font-bold text-ivory">1</span>
-              بيانات المستلمة
+              Recipient details
             </h2>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label htmlFor="customerName" className="label">
-                  الاسم بالكامل *
+                  Full name *
                 </label>
                 <input
                   id="customerName"
@@ -155,7 +156,7 @@ export function CheckoutForm({
 
               <div>
                 <label htmlFor="customerEmail" className="label">
-                  البريد الإلكتروني <span className="font-normal text-muted">(اختياري)</span>
+                  Email <span className="font-normal text-muted">(optional)</span>
                 </label>
                 <input
                   id="customerEmail"
@@ -176,38 +177,44 @@ export function CheckoutForm({
           <section className="rounded-2xl border border-line bg-white/70 p-5 sm:p-7">
             <h2 className="display-md flex items-center gap-2 text-lg">
               <span className="flex size-7 items-center justify-center rounded-full bg-plum text-xs font-bold text-ivory">2</span>
-              عنوان التوصيل
+              Delivery address
             </h2>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="governorateId" className="label">
-                  المحافظة *
+                  Governorate *
                 </label>
+                <input type="hidden" name="governorateId" value={governorateId} />
                 <select
                   id="governorateId"
-                  name="governorateId"
                   required
                   value={governorateId}
-                  onChange={(event) => setGovernorateId(event.target.value)}
+                  onChange={(event) => {
+                    const nextGovernorateId = event.target.value.trim();
+                    setGovernorateId(nextGovernorateId);
+                    setGovernorateErrorCleared(Boolean(nextGovernorateId));
+                  }}
                   className="field"
-                  aria-invalid={Boolean(errorFor("governorateId"))}
+                  aria-invalid={Boolean(errorFor("governorateId") && !governorateErrorCleared)}
                 >
-                  <option value="">اختاري المحافظة</option>
+                  <option value="" disabled>
+                    Select governorate
+                  </option>
                   {governorates.map((item) => (
                     <option key={item.id} value={item.id}>
                       {item.nameAr} — {formatEGP(item.shippingCost)}
                     </option>
                   ))}
                 </select>
-                {errorFor("governorateId") && (
+                {errorFor("governorateId") && !governorateErrorCleared && (
                   <p className="mt-1.5 text-xs font-semibold text-danger">{errorFor("governorateId")}</p>
                 )}
               </div>
 
               <div>
                 <label htmlFor="city" className="label">
-                  المدينة / الحي *
+                  City / district *
                 </label>
                 <input
                   id="city"
@@ -225,7 +232,7 @@ export function CheckoutForm({
 
               <div className="sm:col-span-2">
                 <label htmlFor="addressLine" className="label">
-                  العنوان التفصيلي *
+                  Full address *
                 </label>
                 <input
                   id="addressLine"
@@ -243,7 +250,7 @@ export function CheckoutForm({
 
               <div>
                 <label htmlFor="landmark" className="label">
-                  علامة مميزة <span className="font-normal text-muted">(اختياري)</span>
+                  Landmark <span className="font-normal text-muted">(optional)</span>
                 </label>
                 <input
                   id="landmark"
@@ -255,7 +262,7 @@ export function CheckoutForm({
 
               <div>
                 <label htmlFor="orderNotes" className="label">
-                  ملاحظات للطلب <span className="font-normal text-muted">(اختياري)</span>
+                  Order notes <span className="font-normal text-muted">(optional)</span>
                 </label>
                 <input id="orderNotes" name="orderNotes" className="field" placeholder="مثال: الاتصال قبل الوصول" />
               </div>
@@ -279,7 +286,7 @@ export function CheckoutForm({
             <div className="mt-4 flex items-start gap-3 rounded-xl border border-gold/50 bg-gold/5 p-4">
               <ShieldCheck className="mt-0.5 size-5 shrink-0 text-gold-deep" aria-hidden />
               <div>
-                <p className="text-sm font-bold text-plum">الدفع عند الاستلام (COD)</p>
+                <p className="text-sm font-bold text-plum">Cash on delivery (COD)</p>
                 <p className="mt-1 text-[0.75rem] leading-6 text-muted">
                   ادفعي نقدًا للمندوب عند استلام الشحنة. لا يتم تحصيل أي مبلغ مقدم، ولن نطلب بيانات أي
                   بطاقة بنكية.
@@ -293,19 +300,18 @@ export function CheckoutForm({
                 name="terms"
                 required
                 className="mt-1 size-4 shrink-0 accent-[#3B0F24]"
+                aria-invalid={Boolean(errorFor("terms"))}
+                aria-describedby={errorFor("terms") ? "err-terms" : undefined}
               />
               <span>
-                أوافق على{" "}
-                <Link href="/policies/terms" className="font-bold text-gold-deep hover:underline" target="_blank">
-                  الشروط والأحكام
-                </Link>{" "}
-                و{" "}
-                <Link href="/policies/returns" className="font-bold text-gold-deep hover:underline" target="_blank">
-                  سياسة الاسترجاع
-                </Link>
-                .
+                أوافق على الشروط والأحكام وسياسة الاسترجاع.
               </span>
             </label>
+            {errorFor("terms") && (
+              <p id="err-terms" className="mt-1.5 text-xs font-semibold text-danger">
+                {errorFor("terms")}
+              </p>
+            )}
           </section>
 
           {state?.error && (
@@ -322,7 +328,7 @@ export function CheckoutForm({
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="rounded-2xl border border-line bg-white/80 p-6 shadow-card">
-            <h2 className="display-md text-xl">طلبك</h2>
+            <h2 className="display-md text-xl">Your order</h2>
             <ul className="mt-4 divide-y divide-line">
               {lines.map((line) => (
                 <li key={line.productId} className="flex items-start justify-between gap-3 py-3">
@@ -341,17 +347,17 @@ export function CheckoutForm({
 
             <dl className="mt-4 space-y-2.5 border-t border-line pt-4 text-sm">
               <div className="flex items-center justify-between">
-                <dt className="text-muted">الإجمالي الفرعي</dt>
+                <dt className="text-muted">Subtotal</dt>
                 <dd className="font-semibold text-plum">{formatEGP(subtotal)}</dd>
               </div>
               <div className="flex items-center justify-between">
-                <dt className="text-muted">الشحن</dt>
+                <dt className="text-muted">Shipping</dt>
                 <dd className="font-semibold text-plum">
                   {governorate ? (shippingFee === 0 ? "مجاني" : formatEGP(shippingFee)) : "—"}
                 </dd>
               </div>
               <div className="flex items-center justify-between border-t border-line pt-3">
-                <dt className="font-bold text-plum">الإجمالي</dt>
+                <dt className="font-bold text-plum">Total</dt>
                 <dd className="text-xl font-bold text-plum">{formatEGP(total)}</dd>
               </div>
             </dl>
@@ -364,7 +370,7 @@ export function CheckoutForm({
                 </>
               ) : (
                 <>
-                  تأكيد الطلب
+                  Confirm order
                   <ArrowLeft className="size-4" aria-hidden />
                 </>
               )}

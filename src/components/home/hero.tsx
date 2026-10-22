@@ -1,32 +1,35 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ShieldCheck, Sparkles, Truck } from "lucide-react";
 import { Rating } from "@/components/ui/rating";
 import { blurForSlug } from "@/lib/images";
 import { formatEGP } from "@/lib/format";
-import { brand } from "@/lib/catalog";
+import { useI18n } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
 
 export function Hero({ product }: { product: Product }) {
   const image = product.images[0];
+  const { t, locale } = useI18n();
 
   return (
-    <section className="relative overflow-hidden bg-ivory grain">
+    <section className="relative overflow-hidden bg-ivory">
       <div
-        className="pointer-events-none absolute -top-32 start-1/2 size-[520px] -translate-x-1/2 rounded-full bg-blush/70 blur-[110px] md:start-[62%]"
+        className="pointer-events-none absolute -top-32 start-1/2 size-[520px] -translate-x-1/2 rounded-full bg-sand/40 blur-[110px] md:start-[62%]"
         aria-hidden
       />
-      <div className="pointer-events-none absolute bottom-0 end-0 size-[320px] rounded-full bg-gold/10 blur-[90px]" aria-hidden />
+      <div className="pointer-events-none absolute bottom-0 end-0 size-[320px] rounded-full bg-blush/35 blur-[90px]" aria-hidden />
 
       <div className="container-luxe relative grid items-center gap-12 pb-14 pt-10 md:grid-cols-[1.05fr_1fr] md:gap-8 md:pb-24 md:pt-16">
         <div className="relative z-10 order-2 text-center md:order-1 md:text-start">
-          <p className="eyebrow justify-center md:justify-start">REEVITA · CRAFTED IN EGYPT</p>
+          <p className="eyebrow justify-center md:justify-start">REEVITA · {t("craftedInEgypt")}</p>
 
           <h1 className="display-hero mt-5">
-            طقوس جمالك
+            Your daily beauty
             <br />
             <span className="relative inline-block">
-              تبدأ من هنا
+              ritual starts here
               <svg
                 className="absolute -bottom-2 start-0 h-3 w-full text-gold/70"
                 viewBox="0 0 240 12"
@@ -40,34 +43,34 @@ export function Hero({ product }: { product: Product }) {
           </h1>
 
           <p className="lead mx-auto mt-6 max-w-md md:mx-0">
-            لوشن وزبدة جسم وسبراي ومعطر شعر، بتركيبات نباتية لطيفة وروائح تحكي قصتك. جمالٌ فاخر
-            يُصنع في مصر — ويوصل لبابك.
+            Gentle body and hair care, refined scents, and thoughtful formulas made in Egypt and
+            delivered to your door.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row md:justify-start">
             <Link href="/shop" className="btn btn-primary w-full sm:w-auto">
-              تسوّقي المجموعة
+              {t("shopNow")}
               <ArrowLeft className="size-4" aria-hidden />
             </Link>
             <Link href="/collections" className="btn btn-outline w-full sm:w-auto">
-              اكتشفي العطور
+              {t("collections")}
             </Link>
           </div>
 
           <div className="mt-9 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 md:justify-start">
             <div className="flex items-center gap-2">
               <Rating rating={4.9} reviews={1200} />
-              <span className="text-[0.7rem] text-muted">تقييم عميلاتنا</span>
+              <span className="text-[0.7rem] text-muted">{t("rating")} 4.9/5</span>
             </div>
             <span className="hidden h-4 w-px bg-line sm:block" aria-hidden />
             <div className="flex items-center gap-4 text-[0.7rem] font-semibold text-muted">
               <span className="flex items-center gap-1.5">
                 <Truck className="size-3.5 text-gold-deep" aria-hidden />
-                شحن لكل مصر
+                {t("delivery")}
               </span>
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="size-3.5 text-gold-deep" aria-hidden />
-                دفع عند الاستلام
+                {t("cashOnDelivery")}
               </span>
             </div>
           </div>
@@ -80,7 +83,7 @@ export function Hero({ product }: { product: Product }) {
               {image && (
                 <Image
                   src={image.url}
-                  alt={`${product.nameAr} من ريفيتا`}
+                  alt={`${locale === "en" ? product.nameEn : product.nameAr} — REEVITA`}
                   fill
                   priority
                   sizes="(max-width: 768px) 88vw, 40vw"
@@ -94,14 +97,14 @@ export function Hero({ product }: { product: Product }) {
 
             <div className="absolute -bottom-5 -start-2 rounded-2xl border border-line bg-ivory/95 px-4 py-3 shadow-card backdrop-blur sm:-start-6">
               <p className="eyebrow-plain text-[0.52rem] text-gold-deep">BESTSELLER</p>
-              <p className="mt-1 text-xs font-bold text-plum">{product.nameAr}</p>
+              <p className="mt-1 text-xs font-bold text-plum">{locale === "en" ? product.nameEn : product.nameAr}</p>
               <p className="text-[0.7rem] font-semibold text-berry">{formatEGP(product.price)}</p>
             </div>
 
             <div className="absolute -top-3 -end-2 flex items-center gap-2 rounded-full border border-gold/40 bg-ivory/95 px-3.5 py-2 shadow-card sm:-end-5">
               <Sparkles className="size-3.5 text-gold-deep" aria-hidden />
               <span className="text-[0.62rem] font-bold text-plum">
-                شحن مجاني فوق {formatEGP(brand.freeShippingThreshold)}
+                {t("freeShipping")}
               </span>
             </div>
           </div>
@@ -110,13 +113,13 @@ export function Hero({ product }: { product: Product }) {
 
       <div className="border-y border-line/70 bg-cream/50">
         <div className="container-luxe flex h-11 items-center justify-center gap-6 overflow-x-auto text-[0.62rem] font-bold tracking-[0.28em] text-plum/70 uppercase sm:gap-10">
-          <span>سلفات فري</span>
-          <span className="text-gold" aria-hidden>✦</span>
-          <span>مكونات نباتية</span>
-          <span className="text-gold" aria-hidden>✦</span>
-          <span>صُنع في مصر</span>
-          <span className="text-gold" aria-hidden>✦</span>
-          <span>غير مختبر على الحيوانات</span>
+          <span>Sulfate free</span>
+          <span className="text-gold" aria-hidden><span className="sr-only">•</span></span>
+          <span>Botanical formulas</span>
+          <span className="text-gold" aria-hidden><span className="sr-only">•</span></span>
+          <span>Made in Egypt</span>
+          <span className="text-gold" aria-hidden><span className="sr-only">•</span></span>
+          <span>Cruelty free</span>
         </div>
       </div>
     </section>

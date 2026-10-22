@@ -7,9 +7,11 @@ import { Logo } from "@/components/brand/logo";
 import { NavLinks } from "@/components/layout/nav-links";
 import { categories } from "@/lib/catalog";
 import { cn } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
+  const { t } = useI18n();
 
   function closeOnLinkClick(event: React.MouseEvent<HTMLDivElement>) {
     if ((event.target as HTMLElement).closest("a")) setOpen(false);
@@ -35,7 +37,7 @@ export function MobileMenu() {
         type="button"
         onClick={() => setOpen(true)}
         className="flex size-10 items-center justify-center rounded-full text-plum transition-colors hover:bg-cream lg:hidden"
-        aria-label="فتح القائمة"
+        aria-label={t("openMenu")}
         aria-expanded={open}
         aria-controls="mobile-menu"
       >
@@ -58,7 +60,7 @@ export function MobileMenu() {
             "absolute inset-0 h-full w-full bg-plum-deep/50 backdrop-blur-sm transition-opacity duration-400",
             open ? "opacity-100" : "opacity-0",
           )}
-          aria-label="إغلاق القائمة"
+          aria-label={t("closeMenu")}
         />
         <div
           onClick={closeOnLinkClick}
@@ -73,7 +75,7 @@ export function MobileMenu() {
               type="button"
               onClick={() => setOpen(false)}
               className="rounded-full border border-line p-2 text-plum transition-colors hover:bg-cream"
-              aria-label="إغلاق القائمة"
+              aria-label={t("closeMenu")}
               tabIndex={open ? 0 : -1}
             >
               <X className="size-5" aria-hidden />
@@ -85,7 +87,7 @@ export function MobileMenu() {
 
             <div className="my-6 gold-rule" />
 
-            <p className="eyebrow-plain mb-3 text-[0.6rem] text-gold-deep">تسوّقي حسب النوع</p>
+            <p className="eyebrow-plain mb-3 text-[0.6rem] text-gold-deep">{t("menuShopByType")}</p>
             <ul className="space-y-2">
               {categories.map((category) => (
                 <li key={category.slug}>
@@ -94,7 +96,7 @@ export function MobileMenu() {
                     onClick={() => setOpen(false)}
                     className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-cream"
                   >
-                    {category.nameAr}
+                    {category.nameEn}
                     <ArrowLeft className="size-3.5 text-gold-deep" aria-hidden />
                   </Link>
                 </li>
@@ -106,28 +108,28 @@ export function MobileMenu() {
             <ul className="space-y-2 text-sm font-semibold">
               <li>
                 <Link href="/account" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 hover:bg-cream">
-                  حسابي
+                  {t("account")}
                 </Link>
               </li>
               <li>
                 <Link href="/faq" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 hover:bg-cream">
-                  الأسئلة الشائعة
+                  FAQ
                 </Link>
               </li>
               <li>
                 <Link href="/contact" onClick={() => setOpen(false)} className="block rounded-xl px-3 py-2.5 hover:bg-cream">
-                  تواصلي معنا
+                  {t("contact")}
                 </Link>
               </li>
             </ul>
           </div>
 
           <div className="border-t border-line bg-cream/60 px-5 py-5">
-            <Link href="/shop" onClick={() => setOpen(false)} className="btn btn-primary w-full">
-              تسوّقي الآن
+            <Link href="/#collection" onClick={() => setOpen(false)} className="btn btn-primary w-full">
+              {t("shopNow")}
               <ArrowLeft className="size-4" aria-hidden />
             </Link>
-            <p className="mt-3 text-center text-[0.7rem] text-muted">الدفع عند الاستلام · شحن لكل مصر</p>
+            <p className="mt-3 text-center text-[0.7rem] text-muted">{t("noRisk")} · {t("delivery")}</p>
           </div>
         </div>
       </div>

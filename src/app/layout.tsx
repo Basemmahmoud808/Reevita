@@ -1,57 +1,42 @@
 import type { Metadata, Viewport } from "next";
-import { Almarai, Amiri, Cormorant_Garamond } from "next/font/google";
+import { Almarai, Manrope } from "next/font/google";
 import { brand } from "@/lib/catalog";
 import { siteUrl } from "@/lib/env";
 import { Providers } from "@/components/providers";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import { SiteChrome } from "@/components/layout/site-chrome";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { JsonLd } from "@/components/ui/json-ld";
 import "./globals.css";
 
-const amiri = Amiri({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "700"],
-  variable: "--font-amiri",
-  display: "swap",
-});
-
 const almarai = Almarai({
   subsets: ["arabic", "latin"],
-  weight: ["300", "400", "700", "800"],
+  weight: ["400", "700"],
   variable: "--font-almarai",
   display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
-  subsets: ["latin", "latin-ext"],
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-cormorant",
+const manrope = Manrope({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-manrope",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "ريفيتا REEVITA | جمال · عناية · تجدُّد — العناية الفاخرة بالجسم والشعر",
+    default: "REEVITA | Beauty, care and renewal",
     template: "%s | REEVITA",
   },
   description:
-    "ريفيتا — علامة مصرية للعناية الفاخرة بالجسم والشعر. لوشن، زبدة جسم، معطر شعر، وسبراي بروائح سيكسي وكوين وروبي مسك. الدفع عند الاستلام وشحن لكل محافظات مصر.",
+    "REEVITA is an Egyptian body and hair care house creating gentle formulas and refined scents.",
   applicationName: "REEVITA",
   keywords: [
-    "ريفيتا",
     "Reevita",
-    "مستحضرات تجميل",
-    "لوشن جسم",
-    "زبدة جسم",
-    "معطر شعر",
-    "سبراي جسم",
-    "شامبو",
-    "العناية بالبشرة",
-    "مصر",
-    "الدفع عند الاستلام",
+    "body care",
+    "hair care",
+    "beauty products",
+    "Egypt",
   ],
   authors: [{ name: "REEVITA Cosmetics" }],
   creator: "REEVITA Cosmetics",
@@ -59,12 +44,11 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    locale: "ar_EG",
+    locale: "en_US",
     url: siteUrl,
     siteName: "REEVITA",
-    title: "ريفيتا REEVITA — طقوس جمال فاخرة، صُنعت في مصر",
-    description:
-      "لوشن وزبدة جسم وسبراي ومعطر شعر بروائح سيكسي وكوين وروبي مسك. الدفع عند الاستلام وشحن لكل محافظات مصر.",
+    title: "REEVITA — Beauty, care and renewal",
+    description: "Premium body and hair care, crafted in Egypt.",
     images: [
       {
         url: "/images/og/reevita-og.jpg",
@@ -76,8 +60,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ريفيتا REEVITA — طقوس جمال فاخرة",
-    description: "عناية فاخرة بالجسم والشعر بروائح استثنائية. الدفع عند الاستلام في مصر.",
+    title: "REEVITA — Beauty, care and renewal",
+    description: "Premium body and hair care, crafted in Egypt.",
     images: ["/images/og/reevita-og.jpg"],
   },
   robots: {
@@ -99,7 +83,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#3B0F24",
+  themeColor: "#29382D",
   colorScheme: "light",
 };
 
@@ -107,17 +91,16 @@ const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
   name: "REEVITA Cosmetics",
-  alternateName: "ريفيتا",
   url: siteUrl,
   logo: `${siteUrl}/images/brand/icon-512.png`,
-  description: brand.descriptionAr,
+  description: brand.descriptionEn,
   sameAs: [brand.instagram, brand.tiktok, brand.facebook],
   contactPoint: {
     "@type": "ContactPoint",
     telephone: brand.supportPhone,
     contactType: "customer service",
     areaServed: "EG",
-    availableLanguage: ["ar", "en"],
+    availableLanguage: ["en"],
   },
 };
 
@@ -126,7 +109,7 @@ const websiteJsonLd = {
   "@type": "WebSite",
   name: "REEVITA",
   url: siteUrl,
-  inLanguage: "ar-EG",
+  inLanguage: "en",
   potentialAction: {
     "@type": "SearchAction",
     target: `${siteUrl}/shop?search={search_term_string}`,
@@ -134,24 +117,24 @@ const websiteJsonLd = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="ar"
-      dir="rtl"
-      className={`${amiri.variable} ${almarai.variable} ${cormorant.variable}`}
+      lang="en"
+      dir="ltr"
+      className={`${almarai.variable} ${manrope.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-dvh bg-ivory text-ink">
         <a href="#main" className="skip-link">
-          تخطي إلى المحتوى الرئيسي
+          Skip to main content
         </a>
-        <Providers>
-          <Header />
-          <main id="main" className="min-h-[60vh]">
+        <Providers initialLocale="en">
+          <SiteChrome part="header" />
+          <main id="main" className="site-page min-h-[60vh]">
             {children}
           </main>
-          <Footer />
+          <SiteChrome part="footer" />
           <CartDrawer />
         </Providers>
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />

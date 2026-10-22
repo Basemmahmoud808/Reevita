@@ -12,11 +12,12 @@ const supabaseHost = (() => {
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  devIndicators: false,
   reactStrictMode: true,
   compress: true,
   images: {
     formats: ["image/avif", "image/webp"],
-    qualities: [70, 75, 80, 85],
+    qualities: [70, 75, 80, 85, 100],
     deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920],
     remotePatterns: supabaseHost
       ? [

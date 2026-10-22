@@ -4,12 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 
 export function SearchOverlay() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { t } = useI18n();
 
   useEffect(() => {
     if (!open) return;
@@ -34,8 +36,8 @@ export function SearchOverlay() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex size-10 items-center justify-center rounded-full text-plum transition-colors hover:bg-cream"
-        aria-label="البحث في المتجر"
+        className="search-trigger reference-header-icon"
+        aria-label={t("searchStore")}
       >
         <Search className="size-5" aria-hidden />
       </button>
@@ -52,16 +54,16 @@ export function SearchOverlay() {
           tabIndex={open ? 0 : -1}
           className="absolute inset-0 h-full w-full bg-plum-deep/60 backdrop-blur-md"
           onClick={() => setOpen(false)}
-          aria-label="إغلاق البحث"
+          aria-label={t("closeSearch")}
         />
         <div className="relative w-full max-w-xl rounded-3xl border border-gold/30 bg-ivory p-6 shadow-luxe">
           <div className="flex items-center justify-between">
-            <p className="eyebrow-plain text-[0.62rem] text-gold-deep">SEARCH REEVITA</p>
+            <p className="eyebrow-plain text-[0.62rem] text-gold-deep">{t("searchReevita")}</p>
             <button
               type="button"
               onClick={() => setOpen(false)}
               className="rounded-full p-1.5 text-muted hover:bg-cream hover:text-plum"
-              aria-label="إغلاق البحث"
+              aria-label={t("closeSearch")}
               tabIndex={open ? 0 : -1}
             >
               <X className="size-5" aria-hidden />
@@ -69,7 +71,7 @@ export function SearchOverlay() {
           </div>
           <form onSubmit={submit} className="mt-4">
             <label htmlFor="site-search" className="sr-only">
-              ابحثي عن منتج
+              {t("search")}
             </label>
             <div className="flex items-center gap-3 rounded-full border border-line bg-white px-5 py-3">
               <Search className="size-5 text-gold-deep" aria-hidden />
@@ -79,17 +81,17 @@ export function SearchOverlay() {
                 type="search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="ابحثي عن لوشن، شامبو، عطر…"
+                placeholder={t("searchPlaceholder")}
                 className="w-full border-0 bg-transparent text-sm outline-none placeholder:text-muted/70"
                 tabIndex={open ? 0 : -1}
               />
               <button type="submit" className="btn btn-primary px-4 py-2 text-xs" tabIndex={open ? 0 : -1}>
-                بحث
+                {t("search")}
               </button>
             </div>
           </form>
           <div className="mt-4 flex flex-wrap gap-2 text-xs">
-            {["لوشن كوين", "شامبو ألوفيرا", "معطر شعر", "زبدة جسم"].map((term) => (
+            {["Queen Lotion", "Aloe Vera Shampoo", "Hair Mist", "Body Butter"].map((term) => (
               <button
                 key={term}
                 type="button"

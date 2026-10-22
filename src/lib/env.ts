@@ -14,14 +14,14 @@ export const supabaseAnonKey = rawAnonKey;
 export const isSupabaseConfigured =
   /^https?:\/\//.test(rawUrl) && rawAnonKey.length > 20 && !rawAnonKey.startsWith("your-");
 
-/** Demo mode = static catalogue + in-memory orders + cookie sessions (no real data). */
-export const isDemoMode = !isSupabaseConfigured;
+/** Demo mode is local-only; production must use Supabase-backed sessions. */
+export const isDemoMode = !isSupabaseConfigured && process.env.NODE_ENV !== "production";
 
 export const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
 
 export const onlinePaymentsEnabled =
   process.env.NEXT_PUBLIC_ENABLE_ONLINE_PAYMENTS === "true" && isSupabaseConfigured;
 
-export const supportPhone = process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+201000000000";
+export const supportPhone = process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+201551066402";
 
 export const isProduction = process.env.NODE_ENV === "production";

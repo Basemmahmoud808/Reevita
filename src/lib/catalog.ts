@@ -8,6 +8,22 @@ import type { Brand, Category, Faq, Fragrance, Product, StockStatus, Testimonial
  */
 const catalog = catalogJson;
 
+const suppliedProductImages = [
+  "/images/supplied/Gemini_Generated_Image_6q61gp6q61gp6q61.jfif",
+  "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jfif",
+  "/images/supplied/Gemini_Generated_Image_bp52xsbp52xsbp52.jfif",
+  "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jfif",
+  "/images/supplied/Gemini_Generated_Image_gyp61agyp61agyp6.jfif",
+  "/images/supplied/Gemini_Generated_Image_kj1ed5kj1ed5kj1e.jfif",
+  "/images/supplied/Gemini_Generated_Image_ko6hg2ko6hg2ko6h.jfif",
+  "/images/supplied/Gemini_Generated_Image_odogaoodogaoodog.jfif",
+  "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
+  "/images/supplied/Gemini_Generated_Image_rsfpt0rsfpt0rsfp.jfif",
+  "/images/supplied/Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jfif",
+  "/images/supplied/Gemini_Generated_Image_yow1joyow1joyow1.jfif",
+  "/images/supplied/Gemini_Generated_Image_z6nj55z6nj55z6nj.jfif",
+];
+
 export const brand = catalog.brand as Brand;
 export const categories = [...(catalog.categories as Category[])].sort(
   (a, b) => a.displayOrder - b.displayOrder,
@@ -49,7 +65,7 @@ function stockStatus(stock: number): StockStatus {
   return "in_stock";
 }
 
-function toProduct(raw: RawProduct): Product {
+function toProduct(raw: RawProduct, index: number): Product {
   const category = categories.find((item) => item.slug === raw.category);
   const fragrance = fragrances.find((item) => item.slug === raw.fragrance);
   return {
@@ -74,8 +90,10 @@ function toProduct(raw: RawProduct): Product {
     ingredientsAr: raw.ingredientsAr,
     howToUseAr: raw.howToUseAr,
     images: [
-      { url: `/images/products/${raw.slug}.webp`, alt: `${raw.nameAr} — ${brand.name}` },
-      { url: `/images/products/${raw.slug}-detail.webp`, alt: `تفاصيل عبوة ${raw.nameAr}` },
+      {
+        url: suppliedProductImages[index] ?? `/images/products/${raw.slug}.webp`,
+        alt: `${raw.nameEn} — ${brand.name}`,
+      },
     ],
     rating: raw.rating,
     reviews: raw.reviews,

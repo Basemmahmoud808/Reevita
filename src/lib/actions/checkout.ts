@@ -61,19 +61,22 @@ export async function placeOrderAction(
     customerName: formData.get("customerName"),
     customerPhone: formData.get("customerPhone"),
     customerEmail: formData.get("customerEmail") ?? "",
-    governorateId: formData.get("governorateId"),
+    governorateId: String(formData.get("governorateId") ?? "").trim(),
     city: formData.get("city"),
     addressLine: formData.get("addressLine"),
     landmark: formData.get("landmark") ?? "",
     orderNotes: formData.get("orderNotes") ?? "",
     items,
+    terms: formData.get("terms") === "on",
   });
 
   if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors as Record<string, string[]>;
+    const firstError = Object.values(fieldErrors).flat()[0];
     return {
-      error: "يرجى مراجعة البيانات المطلوبة",
+      error: firstError ?? "يرجى مراجعة بيانات الطلب.",
       code: "VALIDATION",
-      fieldErrors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
+      fieldErrors,
     };
   }
 

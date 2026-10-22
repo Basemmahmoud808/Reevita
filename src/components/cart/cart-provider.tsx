@@ -22,6 +22,7 @@ export type AddableProduct = Pick<
   | "id"
   | "slug"
   | "nameAr"
+  | "nameEn"
   | "price"
   | "compareAtPrice"
   | "size"
