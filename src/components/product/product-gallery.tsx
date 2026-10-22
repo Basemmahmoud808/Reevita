@@ -40,7 +40,7 @@ export function ProductGallery({
               src={image.url}
               alt=""
               fill
-              quality={100}
+              quality={60}
               sizes="96px"
               placeholder="blur"
               blurDataURL={blurForSlug(slug)}
@@ -59,7 +59,7 @@ export function ProductGallery({
               alt={current.alt || name}
               fill
               priority={priority}
-              quality={100}
+              quality={85}
               sizes="(max-width: 1024px) 100vw, 45vw"
               placeholder="blur"
               blurDataURL={blurForSlug(slug)}

@@ -23,6 +23,7 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
           src={line.image}
           alt={line.nameAr}
           fill
+          quality={70}
           sizes="80px"
           placeholder="blur"
           blurDataURL={blurForSlug(line.slug)}

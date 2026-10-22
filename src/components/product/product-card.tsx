@@ -36,10 +36,9 @@ export function ProductCard({
               src={imageSrc}
               alt={image?.alt ?? product.nameEn}
               fill
-              quality={100}
+              quality={80}
               sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               priority={priority}
-              unoptimized={imageSrc.startsWith("/")}
               placeholder="blur"
               blurDataURL={blurForSlug(product.slug)}
               className="object-contain transition-transform duration-500 ease-out group-hover:scale-[1.02]"

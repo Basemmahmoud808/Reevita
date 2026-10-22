@@ -45,7 +45,7 @@ export function ReferenceHome({ products }: { products: Product[] }) {
       <main>
         <section className="reference-hero">
           <div className="reference-container relative flex min-h-[480px] items-center py-12 md:min-h-[520px] md:py-0">
-            <div className="relative z-10 max-w-lg translate-y-4 md:translate-y-7">
+            <div className="reference-hero-copy relative z-10 max-w-lg translate-y-4 md:translate-y-7">
               <p className="reference-kicker">SKINCARE · HAIRCARE · BEAUTY</p>
               <h1>Natural Beauty<br />for a Healthier You</h1>
               <p className="mt-4 max-w-sm text-sm leading-6 text-[#67665d]">
@@ -54,7 +54,7 @@ export function ReferenceHome({ products }: { products: Product[] }) {
               <a href="#collection" className="reference-button mt-6">Shop The Collection <ArrowRight className="size-4" /></a>
               <a href="#story" className="reference-outline-button ms-2 mt-6">Learn More</a>
             </div>
-            <p className="absolute bottom-7 end-5 max-w-[120px] font-serif text-base italic leading-5 text-[#33423a] md:bottom-10 md:end-8">Real Care.<br />Lasting Beauty.</p>
+            <p className="reference-hero-slogan absolute bottom-7 end-5 max-w-[120px] font-serif text-base italic leading-5 text-[#33423a] md:bottom-10 md:end-8">Real Care.<br />Lasting Beauty.</p>
           </div>
         </section>
 
@@ -69,7 +69,10 @@ export function ReferenceHome({ products }: { products: Product[] }) {
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             {products.slice(0, suppliedImages.length).map((product, index) => (
               <div key={product.id} className="reference-product-card">
-                <ProductCard product={{ ...product, images: [{ url: suppliedImages[index] ?? product.images[0]!.url, alt: product.nameEn }] }} />
+                <ProductCard
+                  product={{ ...product, images: [{ url: suppliedImages[index] ?? product.images[0]!.url, alt: product.nameEn }] }}
+                  priority={index < 4}
+                />
               </div>
             ))}
           </div>
