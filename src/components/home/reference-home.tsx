@@ -20,7 +20,7 @@ export function ReferenceHome({ products }: { products: Product[] }) {
         <div className="reference-container flex h-[74px] items-center justify-between">
           <Link href="/" className="reference-wordmark">REEVITA</Link>
           <div className="flex items-center gap-4">
-            <a href="#collection" aria-label="Search products" className="reference-header-icon hidden sm:inline-flex"><Search className="size-[17px]" /></a>
+            <Link href="/shop" aria-label="Browse all products" className="reference-header-icon hidden sm:inline-flex"><Search className="size-[17px]" /></Link>
             <button type="button" aria-label="Wishlist" aria-pressed={wishlist} onClick={() => setWishlist((value) => !value)} className="reference-header-icon hidden sm:inline-flex">
               <Heart className={`size-[17px] ${wishlist ? "fill-current" : ""}`} />
             </button>
@@ -38,7 +38,7 @@ export function ReferenceHome({ products }: { products: Product[] }) {
               <p className="mt-4 max-w-sm text-sm leading-6 text-[#67665d]">
                 Premium skincare and haircare products crafted with nature&apos;s finest ingredients.
               </p>
-              <a href="#collection" className="reference-button mt-6">Shop The Collection <ArrowRight className="size-4" /></a>
+              <Link href="/shop" className="reference-button mt-6">Shop The Collection <ArrowRight className="size-4" /></Link>
               <a href="#story" className="reference-outline-button ms-2 mt-6">Learn More</a>
             </div>
             <p className="reference-hero-slogan absolute bottom-7 end-5 max-w-[120px] font-serif text-base italic leading-5 text-[#33423a] md:bottom-10 md:end-8">Real Care.<br />Lasting Beauty.</p>
@@ -51,7 +51,7 @@ export function ReferenceHome({ products }: { products: Product[] }) {
               <p className="reference-kicker">OUR COLLECTION</p>
               <h2>Best Sellers</h2>
             </div>
-            <a href="#collection" className="hidden items-center gap-2 text-[0.7rem] md:flex">Explore collection <ArrowRight className="size-3.5" /></a>
+            <Link href="/shop" className="hidden items-center gap-2 text-[0.7rem] md:flex">Explore collection <ArrowRight className="size-3.5" /></Link>
           </div>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             {products.map((product, index) => (

@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("homepage renders and its primary CTA opens the shop", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle(/REEVITA/i);
-  await page.getByRole("link", { name: /تسوّقي الآن|Shop now/i }).first().click();
+  await page.getByRole("link", { name: "Shop The Collection" }).click();
   await expect(page).toHaveURL(/\/shop$/);
   await expect(page.getByRole("heading", { name: "المتجر" })).toBeVisible();
 });

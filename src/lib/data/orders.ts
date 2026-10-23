@@ -51,6 +51,7 @@ export async function placeOrder(
         landmark: payload.landmark,
         orderNotes: payload.orderNotes,
         items: payload.items,
+        idempotencyKey,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";

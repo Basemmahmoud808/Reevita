@@ -7,6 +7,10 @@ const eslintConfig = [
   {
     ignores: [
       ".next/**",
+      ".cline-home/**",
+      "playwright-report/**",
+      "test-results/**",
+      "blob-report/**",
       "node_modules/**",
       "public/**",
       "scripts/**",

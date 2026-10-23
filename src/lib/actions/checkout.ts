@@ -1,8 +1,10 @@
 "use server";
 
+import { createHash } from "node:crypto";
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { checkoutSchema, trackOrderSchema } from "@/lib/validation";
+import { normalizeEgyptianPhone } from "@/lib/phone";
 import { clientIp, rateLimit } from "@/lib/security/rate-limit";
 import { ORDER_ERROR_MESSAGES, OrderError, placeOrder, trackOrder } from "@/lib/data/orders";
 import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
@@ -37,7 +39,9 @@ export async function placeOrderAction(
   const values = checkoutValues(formData);
   const headerList = await headers();
   const ip = clientIp(headerList);
-  const limited = await rateLimit(`checkout:${ip}`, 5, 10 * 60 * 1000);
+  // 20 attempts / 10 min per IP: strict enough to stop scripting, generous enough for
+  // Egyptian carrier-grade NAT where several real customers can share one public IP.
+  const limited = await rateLimit(`checkout:${ip}`, 20, 10 * 60 * 1000);
   if (!limited.allowed) {
     return {
       error: "عدد محاولات الطلب كبير. يرجى المحاولة بعد قليل.",
@@ -99,6 +103,21 @@ export async function placeOrderAction(
       fieldErrors,
       values,
     };
+  }
+
+  // Per-customer-number guard (hashed so no phone number is stored in the limiter).
+  // Protects against order spam that rotates IPs while allowing retries after a fix.
+  const normalizedPhone = normalizeEgyptianPhone(parsed.data.customerPhone);
+  if (normalizedPhone) {
+    const phoneKey = createHash("sha256").update(normalizedPhone).digest("hex").slice(0, 32);
+    const phoneLimited = await rateLimit(`checkout-phone:${phoneKey}`, 5, 60 * 60 * 1000);
+    if (!phoneLimited.allowed) {
+      return {
+        error: "تم استقبال عدة طلبات من هذا الرقم. يرجى التواصل مع خدمة العملاء لطلب مساعدة.",
+        code: "RATE_LIMITED",
+        values,
+      };
+    }
   }
 
   try {

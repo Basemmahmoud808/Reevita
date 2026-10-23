@@ -360,6 +360,9 @@ const orders: DemoOrder[] = [
 
 let orderSequence = orders.length;
 
+/** Mirrors the production idempotency key so a retried demo submission is not duplicated. */
+const idempotentDemoOrders = new Map<string, PlacedOrder>();
+
 export function demoOrders(): DemoOrder[] {
   return [...orders].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
@@ -374,7 +377,14 @@ export function demoPlaceOrder(input: {
   landmark?: string | null;
   orderNotes?: string | null;
   items: { product_id: string; quantity: number }[];
+  idempotencyKey?: string;
 }): PlacedOrder {
+  const replayKey = input.idempotencyKey?.trim();
+  if (replayKey) {
+    const replay = idempotentDemoOrders.get(replayKey);
+    if (replay) return replay;
+  }
+
   const governorate = demoGovernorates().find((gov) => gov.id === input.governorateId);
   if (!governorate) throw new Error("INVALID_LOCATION: Selected governorate is invalid");
 
@@ -440,7 +450,9 @@ export function demoPlaceOrder(input: {
   });
 
   orders.push(order);
-  return toPlacedOrder(order);
+  const placed = toPlacedOrder(order);
+  if (replayKey) idempotentDemoOrders.set(replayKey, placed);
+  return placed;
 }
 
 export function toPlacedOrder(order: DemoOrder): PlacedOrder {

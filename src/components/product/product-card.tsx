@@ -66,11 +66,11 @@ export function ProductCard({
       </div>
 
       <div className="flex flex-1 flex-col px-0.5 pt-4">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-[0.58rem] font-bold tracking-[0.16em] text-muted uppercase">
+        <div className="flex min-w-0 items-center justify-between gap-2">
+          <p className="min-w-0 truncate text-[0.58rem] font-bold tracking-[0.16em] text-muted uppercase">
             {product.categoryNameEn}
           </p>
-          <Rating rating={product.rating} reviews={product.reviews} />
+          <Rating rating={product.rating} reviews={product.reviews} className="shrink-0" />
         </div>
         <h3 className="mt-2 text-[0.98rem] font-bold leading-7 text-plum">
           <Link
