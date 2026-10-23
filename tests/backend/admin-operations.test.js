@@ -105,3 +105,13 @@ test('Admin Operations: Order listing, KPI metrics, inventory updates, and audit
 
   await db.close();
 });
+
+test('product-images bucket restricts size and MIME types', async () => {
+  const db = await createTestDatabase();
+  const res = await db.query(
+    "SELECT file_size_limit, allowed_mime_types FROM storage.buckets WHERE id = 'product-images';",
+  );
+  assert.equal(res.rows.length, 1);
+  assert.equal(Number(res.rows[0].file_size_limit), 5242880);
+  assert.deepEqual([...res.rows[0].allowed_mime_types].sort(), ['image/jpeg', 'image/png', 'image/webp']);
+});

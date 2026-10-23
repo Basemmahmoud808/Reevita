@@ -1,13 +1,23 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { isDemoMode, siteUrl } from "@/lib/env";
+import { clientIp, rateLimit } from "@/lib/security/rate-limit";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loginSchema, registerSchema } from "@/lib/validation";
 import { DEMO_ADMIN_COOKIE, DEMO_USER_COOKIE } from "@/lib/auth/session";
 import { normalizeEgyptianPhone } from "@/lib/phone";
+
+const RATE_LIMITED_MESSAGE = "عدد المحاولات كبير. يرجى الانتظار قليلًا ثم المحاولة مرة أخرى.";
+
+/** Brute-force guard for credential endpoints (per IP + scope). */
+async function authRateLimited(scope: string, limit = 10, windowMs = 10 * 60 * 1000) {
+  const headerList = await headers();
+  const result = await rateLimit(`auth:${scope}:${clientIp(headerList)}`, limit, windowMs);
+  return result.allowed ? null : RATE_LIMITED_MESSAGE;
+}
 
 export interface AuthFormState {
   error?: string;
@@ -27,6 +37,9 @@ function demoUserCookie(email: string, fullName: string, phone: string | null) {
 }
 
 export async function signInAction(_prev: AuthFormState | null, formData: FormData): Promise<AuthFormState> {
+  const limited = await authRateLimited("signin");
+  if (limited) return { error: limited };
+
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
     password: formData.get("password"),
@@ -59,6 +72,9 @@ export async function signInAction(_prev: AuthFormState | null, formData: FormDa
 }
 
 export async function signUpAction(_prev: AuthFormState | null, formData: FormData): Promise<AuthFormState> {
+  const limited = await authRateLimited("signup", 5);
+  if (limited) return { error: limited };
+
   const parsed = registerSchema.safeParse({
     fullName: formData.get("fullName"),
     phone: formData.get("phone"),
@@ -139,6 +155,10 @@ export async function adminSignInAction(_prev: AuthFormState | null, formData: F
   if (isDemoMode) {
     await demoAdminSignInAction();
   }
+
+  // Stricter limit for the privileged login endpoint.
+  const limited = await authRateLimited("admin-signin", 6);
+  if (limited) return { error: limited };
 
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
