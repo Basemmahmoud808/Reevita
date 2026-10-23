@@ -34,7 +34,11 @@ export function errorFromSupabase(message: string): OrderError {
   return new OrderError(code);
 }
 
-export async function placeOrder(payload: CheckoutPayload, ipAddress: string | null): Promise<PlacedOrder> {
+export async function placeOrder(
+  payload: CheckoutPayload,
+  ipAddress: string | null,
+  idempotencyKey?: string,
+): Promise<PlacedOrder> {
   if (!isSupabaseConfigured) {
     try {
       return demoPlaceOrder({
@@ -68,6 +72,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     p_order_notes: payload.orderNotes ?? null,
     p_items: payload.items,
     p_ip_address: ipAddress,
+    p_idempotency_key: idempotencyKey ?? null,
   });
 
   if (error) throw errorFromSupabase(error.message);
@@ -84,6 +89,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     total: number;
     currency: string;
     created_at: string;
+    items?: Array<{ product_name: string; quantity: number; unit_price: number; total_price: number }>;
   };
 
   return {
@@ -98,6 +104,12 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     total: Number(result.total),
     currency: result.currency,
     createdAt: result.created_at,
+    items: (result.items ?? []).map((item) => ({
+      productName: String(item.product_name),
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.unit_price),
+      totalPrice: Number(item.total_price),
+    })),
   };
 }
 

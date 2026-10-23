@@ -74,6 +74,9 @@ export async function placeOrderAction(
       })
     : [];
 
+  const rawKey = String(formData.get("idempotencyKey") ?? "").trim();
+  const idempotencyKey = /^[A-Za-z0-9-]{8,64}$/.test(rawKey) ? rawKey : undefined;
+
   const parsed = checkoutSchema.safeParse({
     customerName: formData.get("customerName"),
     customerPhone: formData.get("customerPhone"),
@@ -112,6 +115,7 @@ export async function placeOrderAction(
         items: parsed.data.items,
       },
       ip,
+      idempotencyKey,
     );
 
     const cookieStore = await cookies();

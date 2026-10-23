@@ -21,6 +21,12 @@ export function CheckoutForm({
     null,
   );
   const [governorateId, setGovernorateId] = useState("");
+  // Stable per-page-load key: guards against double submits and back-button retries.
+  const [idempotencyKey] = useState(() =>
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+  );
   const [governorateErrorCleared, setGovernorateErrorCleared] = useState(false);
 
   const governorate = useMemo(
@@ -89,6 +95,7 @@ export function CheckoutForm({
 
       <form action={formAction} className="grid gap-8 lg:grid-cols-[1.35fr_1fr]">
         <input type="hidden" name="items" value={itemsJson} />
+        <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <input
           type="hidden"
           name="cartSnapshot"
