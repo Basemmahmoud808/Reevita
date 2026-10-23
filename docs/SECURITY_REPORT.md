@@ -154,3 +154,51 @@ Next dev server). Screenshots/traces from the runs were inspected on failure onl
 ## Header/CSP re-checked in the browser
 CSP (nonce + `strict-dynamic`), HSTS, `X-Frame-Options: DENY`, `nosniff`, Referrer-Policy and
 Permissions-Policy are present on rendered pages, not just `curl` responses.
+
+---
+
+# Round 3 — release-gate findings
+
+## A01/A08 — Cross-customer disclosure through the idempotency key (FIXED)
+* **Finding (High):** migration 000008 returned the stored order — name, phone, subtotal, total,
+  items — to **any** caller presenting a valid key. Keys are random UUIDs, but a leaked key (shared
+  device, log, screenshot) would have disclosed another customer’s order.
+* **Fix:** migration `20261023000011_idempotency_owner_binding.sql` normalises the incoming phone
+  **before** the lookup and returns a replay only when the phone matches the stored order, or when
+  the authenticated session owns it (`auth.uid() = orders.user_id`). Otherwise it raises `FORBIDDEN`.
+* **Evidence:** `an idempotency key never discloses an order to a different phone number` and
+  `the same customer replays with a differently formatted phone number` → PASS (20/20 backend).
+
+## A04/A07 — Auth cookie hardening (FIXED, with one residual)
+* **Finding:** `@supabase/ssr` defaults are `httpOnly: false`, no `secure`, `maxAge` **400 days**.
+* **What was true of this app:** the browser Supabase client (`src/lib/supabase/client.ts`) was
+  **never imported anywhere** — every auth operation already runs server-side.
+* **Fix:** deleted the unused browser client; server client + middleware now pass shared
+  `cookieOptions` (`src/lib/supabase/cookie-options.ts`): `httpOnly: true`, `sameSite: 'lax'`,
+  `secure` in production, `path: '/'`, `maxAge` 60 days.
+* **Residual:** `httpOnly: true` is only correct while no browser Supabase client exists. The file
+  comment and `docs/MONITORING.md` state this invariant; re-adding a browser client requires
+  revisiting the flag.
+* **Verification status:** typecheck/lint/build + 13/13 E2E (demo mode) pass. Cookie attributes
+  against a **live** Supabase login — **NOT TESTED** (no project access).
+
+## A06 — Rate limiting validated (code-level)
+* **VERIFIED:** `tests/unit/rate-limit-local.test.ts` — limit enforcement, per-key isolation,
+  window reset.
+* **VERIFIED (mocked):** `tests/unit/rate-limit-upstash.test.ts` — shared counter blocks across
+  instances, `INCR`+`EXPIRE` are sent with the bearer token, and a Redis outage **degrades to the
+  local limiter** (logged) instead of failing open.
+* **BLOCKED:** behaviour against a real Upstash database (no credentials).
+
+## A09 — Monitoring
+* **NOT CONFIGURED.** Plan, hooks, alert ideas and PII-scrubbing rules are in `docs/MONITORING.md`.
+
+## A10 — Migration repeatability / exceptional conditions
+* **VERIFIED:** `tests/backend/migration-repeatability.test.js` re-applies 000008–000011 twice and
+  asserts a single `place_order` signature, the unique index, bucket limits and storage RLS.
+* **VERIFIED:** 000009/000010 no longer abort a migration run when the storage tables are not owned
+  by the migration role — they emit `WARNING` plus a verification hint instead.
+
+## Still not verified
+Live Supabase Auth/Storage/PostgREST, live cookie attributes, live Upstash, staging COD order,
+monitoring — all **BLOCKED/NOT TESTED** (no credentials, no staging project access).

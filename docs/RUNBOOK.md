@@ -58,3 +58,15 @@ npx supabase db seed
 - **في حالة الشك بوجود سبام على الـ COD:**
   - فحص أرقام الهواتف المتكررة وعناوين الـ IP.
   - تفعيل حماية Cloudflare Turnstile CAPTCHA.
+
+---
+
+## 5. مراجع التشغيل المضافة (Release references)
+
+* `docs/STAGING_MIGRATION_PLAN.md` — خطة تطبيق migrations 000008→000011 على بيئة staging،
+  استعلامات التحقق، خطة الرجوع (rollback)، وقائمة الفحص.
+* `docs/MONITORING.md` — حالة المراقبة (غير مُفعّلة حاليًا) وخطوات تفعيل Sentry/Vercel Log Drain.
+* `docs/POLICY_REVIEW.md` — ما تدعمه البيانات الفعلية في صفحات السياسات وما يحتاج موافقة المالك.
+
+> **مهم:** طبّق الـ migrations **قبل** نشر الواجهة التي ترسل `p_idempotency_key`، وإلا سيفشل الطلب
+> برسالة `function place_order(...) does not exist`.

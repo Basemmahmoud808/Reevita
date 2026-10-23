@@ -80,3 +80,35 @@ and rollback notes below. No deployment was performed and none is claimed.
 * `ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;` — idempotent, no data change.
 * Rollback: `ALTER TABLE storage.objects DISABLE ROW LEVEL SECURITY;` (do **not** do this in
   production — Supabase enables it by default and the policies depend on it).
+
+---
+
+# Round 3 — Release gate preparation
+
+| Item | Change | Files |
+| --- | --- | --- |
+| Idempotency replay disclosure (High) | Replay bound to phone / order owner; `FORBIDDEN` otherwise | `supabase/migrations/20261023000011_idempotency_owner_binding.sql` |
+| Storage migrations could abort on hosted Supabase | Wrapped `ALTER TABLE storage.*` / bucket UPDATE in `DO` blocks that emit `WARNING` + verification hint instead of failing | `…000009_storage_bucket_hardening.sql`, `…000010_storage_objects_rls.sql` |
+| Weak auth cookie defaults | `httpOnly`, `sameSite=lax`, `secure` in prod, 60-day maxAge; unused browser client deleted | `src/lib/supabase/cookie-options.ts`, `server.ts`, `middleware.ts`, removal of `client.ts` |
+| Rate limiting evidence | Local limiter + Upstash multi-instance + Redis-outage fallback tested | `tests/unit/rate-limit-*.test.ts` |
+| Migration repeatability | Re-apply 000008–000011 twice; assert single signature & constraints | `tests/backend/migration-repeatability.test.js` |
+| Policy claims trimmed | Removed unverifiable tax/health assertions | `src/lib/policies.ts`, `docs/POLICY_REVIEW.md` |
+| Release docs | Staging migration plan, monitoring plan, policy review, runbook/checklist links | `docs/STAGING_MIGRATION_PLAN.md`, `docs/MONITORING.md`, `docs/POLICY_REVIEW.md`, `RUNBOOK.md`, `LAUNCH_CHECKLIST.md` |
+
+## Migration state after Round 3
+
+```
+000008  orders.idempotency_key + partial unique index + 11-arg place_order (validated items)
+000009  product-images limits (ownership-safe)
+000010  storage.objects RLS (ownership-safe)
+000011  place_order replay bound to phone/owner  ← supersedes 000008's function body
+```
+
+All four are **unapplied** outside the PGlite harness. Apply in this order on staging, then
+production, using `docs/STAGING_MIGRATION_PLAN.md`.
+
+## What is explicitly NOT done
+
+* No migration was applied to any Supabase project.
+* No deployment, no monitoring activation, no CI run on GitHub.
+* No policy text was invented; commercial/legal statements are flagged for approval.

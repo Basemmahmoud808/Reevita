@@ -200,3 +200,43 @@ git add .github/workflows/ci.yml && git commit -m "ci: add pipeline" && git push
 ```
 
 The workflow has **not** been executed on GitHub — NOT TESTED.
+
+---
+
+# Round 3 — release-gate validation
+
+## Local automated tests (all executed in this environment)
+
+| Command | Result | Status |
+| --- | --- | --- |
+| `npm run typecheck` | 0 errors | PASS |
+| `npm run lint` | 0 problems | PASS |
+| `npm run test:unit` | **15/15** | PASS |
+| `npm run test:backend` | **20/20** | PASS |
+| `npm run test:e2e` | **13/13** (re-run after cookie change) | PASS |
+| `npm run build` | success | PASS |
+| `npm audit --omit=dev` | 0 vulnerabilities | PASS |
+| CI pipeline simulation (`typecheck → lint → unit → backend → build`) | `== ALL GREEN` | PASS |
+| `docs/CI_WORKFLOW_TEMPLATE.yml` YAML parse (`js-yaml`) | jobs `verify`, `e2e` | PASS |
+
+New this round: rate-limit local (3), rate-limit Upstash/fallback (2), idempotency owner binding (2),
+migration repeatability (1).
+
+## Staging integration tests
+
+**BLOCKED** — no Supabase credentials or staging project are available in this environment.
+Prepared instead: `docs/STAGING_MIGRATION_PLAN.md` with applied-state queries, apply order,
+verification SQL, an 11-row functional matrix, rollback per migration and a checklist.
+
+## Production verification
+
+**NOT TESTED.** No deployment, no domain/HTTPS check, no monitoring, no real COD order.
+
+## Owner approvals still required
+
+1. Apply `000008` → `000011` to staging (then production) with a backup.
+2. Run the §6 functional matrix with synthetic data.
+3. Approval of the cookie change against a live login (httpOnly depends on keeping auth server-side).
+4. Set Upstash credentials to enable the distributed limiter.
+5. Legal approval of `/policies/*` (`docs/POLICY_REVIEW.md`).
+6. Enable monitoring (`docs/MONITORING.md`) and install the CI workflow.

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/env";
+import { authCookieOptions } from "@/lib/supabase/cookie-options";
 
 /**
  * Refreshes the Supabase auth cookies on navigation and applies a strict
@@ -36,6 +37,7 @@ export async function updateSession(request: NextRequest) {
 
   if (isSupabaseConfigured) {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookieOptions: authCookieOptions,
       cookies: {
         getAll() {
           return request.cookies.getAll();
