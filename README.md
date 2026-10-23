@@ -147,12 +147,32 @@ npm run typecheck
 # فحص جودة وتنسيق الكود عبر ESLint
 npm run lint
 
-# اختبارات الـ Backend (8 اختبارات تغطي RLS، التزامن، والـ State Machine)
+# اختبارات الـ Backend (17 اختبارًا تغطي RLS، التزامن، الـ State Machine، التكرار، والصلاحيات)
 npm run test:backend
 
-# بناء النسخة الإنتاجية والتأكد من سلامة الـ 29 مساراً
+# اختبارات الوحدة (التحقق من البيانات، فلترة المتجر، وسلوك وضع العرض)
+npm run test:unit
+
+# بناء النسخة الإنتاجية
 npm run build
 ```
+
+### اختبارات E2E (Playwright)
+
+```bash
+npx playwright install --with-deps chromium   # على جهاز عمل أو CI
+npm run test:e2e
+```
+
+على بيئات بلا صلاحيات root (حاويات مقيّدة) يمكن تجهيز المكتبات المطلوبة محليًا دون root:
+
+```bash
+eval "$(python3 scripts/e2e_bootstrap.py --print-env)"
+npx playwright install chromium
+npm run test:e2e
+```
+
+جميع الاختبارات تعمل في وضع العرض التجريبي ببيانات وهمية ولا تُنشئ طلبات حقيقية.
 
 ---
 

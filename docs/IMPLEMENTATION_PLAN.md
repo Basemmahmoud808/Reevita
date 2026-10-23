@@ -58,3 +58,25 @@ and rollback notes below. No deployment was performed and none is claimed.
 * No redesign, no framework/provider migration, no new runtime dependency.
 * No invented legal policy pages, no fabricated testimonials or ratings.
 * No online payment integration (out of scope; COD only).
+
+---
+
+# Round 2 Change Log
+
+| ID | Change | Files |
+| --- | --- | --- |
+| AUD-11 | Homepage CTAs link to `/shop` | `src/components/home/reference-home.tsx` |
+| AUD-12 | Mobile overflow in product card | `src/components/product/product-card.tsx` |
+| AUD-13 | Checkout limits: 20/IP/10min + 5/phone/hour (hashed) | `src/lib/actions/checkout.ts` |
+| AUD-14 | `ENABLE ROW LEVEL SECURITY` on `storage.objects` | `supabase/migrations/20261023000010_storage_objects_rls.sql` |
+| AUD-15 | Policy pages from configured facts + checkout/footer links | `src/lib/policies.ts`, `src/app/policies/[slug]/page.tsx`, `checkout-form.tsx`, `footer.tsx` |
+| AUD-16 | Rootless E2E bootstrap + CI | `scripts/e2e_bootstrap.py`, `.github/workflows/ci.yml` |
+| AUD-17 | Demo idempotency, deterministic E2E server | `src/lib/demo/store.ts`, `playwright.config.ts` |
+| — | Tests: rollback/replay, privilege escalation, storage authz, cart/admin/duplicate-order E2E | `tests/backend/*`, `tests/unit/demo-idempotency.test.ts`, `tests/e2e/cart-and-admin.spec.ts` |
+| — | Test harness now mirrors Supabase storage grants | `tests/backend/setup-db.js` |
+| — | Docs + README testing section | `README.md`, `docs/*` |
+
+## Migration 000010
+* `ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;` — idempotent, no data change.
+* Rollback: `ALTER TABLE storage.objects DISABLE ROW LEVEL SECURITY;` (do **not** do this in
+  production — Supabase enables it by default and the policies depend on it).

@@ -103,3 +103,54 @@ Statuses: **Verified**, **Partially verified**, **Not tested**, **Blocked**.
 ## Not claimed
 This document does **not** assert OWASP compliance. It records what was inspected and tested in
 this environment, and what remains unverified (live CORS, monitoring, reset emails, CI permissions).
+
+---
+
+# Round 2 — additional evidence (browser + new tests)
+
+Everything below was executed in this environment (Playwright Chromium 156, PGlite PostgreSQL,
+Next dev server). Screenshots/traces from the runs were inspected on failure only.
+
+## A01 Broken Access Control — strengthened
+* **VERIFIED**: new test `privilege-escalation.test.js`
+  * a customer cannot set `profiles.role = 'admin'` or clear `is_blacklisted` (value re-read as superuser);
+  * a customer cannot edit another customer’s profile;
+  * `UPDATE products / inventory` from a customer affects 0 rows (RLS hides them), value verified unchanged;
+  * `INSERT audit_log` from a customer raises an RLS violation.
+* **VERIFIED**: `storage.objects` INSERT as customer is now rejected after migration `000010`
+  (previously enforced only by a Supabase platform default). Admin INSERT succeeds.
+* **VERIFIED (browser)**: `/admin`, `/admin/orders`, `/admin/products`, `/admin/shipping` all redirect
+  anonymous visitors to `/admin/login`; the demo admin can reach the dashboard.
+
+## A04/A07 Authentication — limits
+* **VERIFIED (code + suite)**: sign-in 10/10 min, sign-up 5/10 min, admin sign-in 6/10 min, checkout
+  20/10 min per IP and 5/hour per hashed phone, tracking 12/min, newsletter 5/10 min.
+* **NOT TESTED**: exhausting a limit from a real browser and observing the Retry guidance
+  (limiters are in-process; the messages are user-facing Arabic strings).
+
+## A06 Insecure Design — business logic
+* **VERIFIED**: duplicate submission with the same idempotency key creates exactly one order and does
+  not re-reserve stock (`a replayed key returns the original order…`, `place_order is idempotent…`).
+* **VERIFIED**: a replayed key returns the **original** order even when the payload differs.
+* **VERIFIED**: a failing line (unknown product) rolls back the whole order — 0 orders, 0 items and
+  unchanged inventory (`a failed order leaves no partial order…`).
+* **VERIFIED (browser)**: double-clicking “Confirm order” produces one confirmation and the next order
+  number does not exist when tracked.
+
+## A08 Integrity — checkout inputs
+* **VERIFIED**: checkout validates on the server with Zod; the RPC recomputes prices; the confirmation
+  page renders `items` returned by the RPC (not the `cartSnapshot`).
+
+## A09 Logging
+* **VERIFIED**: admin RPCs write `audit_log` rows (`Admin Operations…` test); failures log `[reevita] …`
+  without payloads.
+* **REMAINING GAP**: no external monitoring/alerting. `docs/RUNBOOK.md` lists the hook-up points.
+
+## A10 Exceptional conditions — new evidence
+* **VERIFIED**: empty cart → “Checkout unavailable”, no order created.
+* **VERIFIED**: invalid phone → inline error, values preserved, no navigation.
+* **VERIFIED**: unknown order number on `/track` → “لم نجد طلبًا مطابقًا” (no internal detail leaked).
+
+## Header/CSP re-checked in the browser
+CSP (nonce + `strict-dynamic`), HSTS, `X-Frame-Options: DENY`, `nosniff`, Referrer-Policy and
+Permissions-Policy are present on rendered pages, not just `curl` responses.

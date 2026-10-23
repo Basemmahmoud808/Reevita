@@ -321,6 +321,15 @@ export function CheckoutForm({
                 أوافق على الشروط والأحكام وسياسة الاسترجاع.
               </span>
             </label>
+            <p className="ms-6 mt-1 text-[0.68rem] text-muted">
+              <Link href="/policies/terms" className="font-bold text-gold-deep hover:underline" target="_blank" rel="noopener noreferrer">
+                الشروط والأحكام
+              </Link>
+              <span aria-hidden> · </span>
+              <Link href="/policies/returns" className="font-bold text-gold-deep hover:underline" target="_blank" rel="noopener noreferrer">
+                سياسة الاسترجاع
+              </Link>
+            </p>
             {errorFor("terms") && (
               <p id="err-terms" className="mt-1.5 text-xs font-semibold text-danger">
                 {errorFor("terms")}

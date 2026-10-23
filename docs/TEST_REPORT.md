@@ -122,3 +122,67 @@ Scenarios covered by the committed specs (execution **Not tested** here):
 * Rate-limit exhaustion (7 failed admin logins) — **Not tested** (limiter is in-process; would need a driven UI).
 * Password reset / email verification emails — **Blocked**: no mailbox.
 * Deployment, domain, TLS, preview isolation — **Not tested**: no Vercel access.
+
+---
+
+# Round 2 — results after E2E became executable
+
+## Environment
+Playwright Chromium **now runs in this sandbox** without root. Two supported setups:
+
+1. Normal machine / CI runner: `npx playwright install --with-deps chromium`.
+2. Rootless container: `eval "$(python3 scripts/e2e_bootstrap.py --print-env)"` then
+   `npx playwright install chromium`.
+
+Root cause of the earlier block: missing `libglib-2.0.so.0` **and** no fontconfig-visible font — Skia
+aborted with `SkFontMgr_FontConfigInterface.cpp:163 Not implemented`, which surfaced as
+“Target page, context or browser has been closed”. Both are fixed by the bootstrap script.
+
+## Commands and results
+
+| Command | Result | Status |
+| --- | --- | --- |
+| `npm run typecheck` | 0 errors | PASS |
+| `npm run lint` | 0 errors, 0 warnings | PASS |
+| `npm run test:unit` | 10/10 | PASS |
+| `npm run test:backend` | 17/17 | PASS |
+| `npm run test:e2e` | 13/13 (twice consecutively) | PASS |
+| `npm run build` | success, 26 routes | PASS |
+| `npm audit --omit=dev` | 0 vulnerabilities | PASS |
+
+## Unit tests (10)
+Existing 3 (image mapping, checkout schema accepted/rejected) plus:
+* `filterProducts` category filter + unknown category
+* `filterProducts` Arabic/English search + empty result
+* `filterProducts` price sort, no input mutation
+* `SORTS` whitelist
+* demo idempotency replay, distinct keys, unsupported governorate
+
+## Backend tests (17)
+Existing 8 plus:
+* idempotent replay (one order, stock unchanged)
+* server-validated items and prices
+* failed order leaves no partial order/items/stock
+* replayed key returns original order for a changed payload
+* invalid idempotency key is ignored, not blocking
+* bucket size + MIME limits
+* customer cannot escalate role / unblacklist / edit others
+* customer cannot modify products, inventory, audit log
+* storage objects: admin-only writes
+
+## E2E tests (13)
+`tests/e2e/checkout.spec.ts` (2): valid COD checkout redirects to confirmation; invalid phone keeps
+values.
+`tests/e2e/storefront.spec.ts` (6): homepage → shop; shop listing/filter/empty state; unknown slug 404;
+track form prefill; account+admin redirects; no horizontal overflow at 360 px on `/`, `/shop`,
+`/checkout`.
+`tests/e2e/cart-and-admin.spec.ts` (5): cart add/quantity/remove; empty cart cannot checkout;
+double submit creates no second order (verified via tracking the next number); demo admin dashboard;
+anonymous admin sub-pages redirect.
+
+## Still not tested / blocked
+* Live Supabase project (Auth, Storage API, PostgREST) — **BLOCKED** (no credentials).
+* Rate-limit exhaustion UI behaviour — **NOT TESTED**.
+* Password reset / verification e-mails — **BLOCKED** (no mailbox).
+* Deployment, domain, preview isolation, monitoring — **NOT TESTED** (no provider access).
+* CI workflow itself has not been executed on GitHub — **NOT TESTED** (written and reviewed only).

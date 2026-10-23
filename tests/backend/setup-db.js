@@ -38,13 +38,25 @@ export async function createTestDatabase() {
     await db.exec(sql);
   }
 
-  // Grant permissions to standard roles
+  // Grant permissions to standard roles (mirrors Supabase's default grants).
   await db.exec(`
     GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
     GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
     GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
     GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
   `);
+
+  // Supabase exposes the storage schema to the API roles and relies on RLS for
+  // authorisation, so the harness must grant the same access to test the policies.
+  const hasStorage = await db.query(
+    `SELECT 1 FROM pg_namespace WHERE nspname = 'storage';`,
+  );
+  if (hasStorage.rows.length > 0) {
+    await db.exec(`
+      GRANT USAGE ON SCHEMA storage TO anon, authenticated, service_role;
+      GRANT ALL ON ALL TABLES IN SCHEMA storage TO anon, authenticated, service_role;
+    `);
+  }
 
   // 2. Read seed
   const seedPath = path.join(ROOT_DIR, 'supabase', 'seed.sql');

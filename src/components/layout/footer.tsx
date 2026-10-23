@@ -7,11 +7,18 @@ import { SocialIconLinks } from "@/components/ui/social-icon";
 
 const links = [
   { href: "/", label: "Home" },
+  { href: "/shop", label: "Shop" },
   { href: "/checkout", label: "Checkout" },
 ];
 
 const careLinks = [
-  { href: "/checkout", label: "Complete your order" },
+  { href: "/track", label: "Track your order" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/contact", label: "Contact us" },
+  { href: "/policies/shipping", label: "Shipping" },
+  { href: "/policies/returns", label: "Returns" },
+  { href: "/policies/terms", label: "Terms" },
+  { href: "/policies/privacy", label: "Privacy" },
 ];
 
 export function Footer() {

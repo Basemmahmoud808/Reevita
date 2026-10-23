@@ -12,7 +12,9 @@ export default defineConfig({
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1 --port 3100",
     url: "http://127.0.0.1:3100",
-    reuseExistingServer: true,
+    // Demo mode keeps orders/stock/rate-limit counters in memory, so every run must
+    // start from a clean server to stay deterministic.
+    reuseExistingServer: false,
     timeout: 120_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

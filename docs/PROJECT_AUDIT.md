@@ -138,3 +138,73 @@ checked in the release checklist (`docs/LAUNCH_CHECKLIST.md`).
   Verified from live response headers.
 * **Secrets**: no service-role key or JWT in source; `.env.example` contains names only.
 * **Type safety**: `tsc --noEmit` clean, no `any` added by this work.
+
+---
+
+# Round 2 Audit (2026-10-23, second pass)
+
+Method: re-read every previously changed file, re-ran all suites, and drove the app in a real
+browser (Playwright Chromium) instead of only `curl`. Findings below were **not** known after
+Round 1.
+
+## AUD-11 — High (fixed) — Homepage never linked to the shop
+*Affected*: `src/components/home/reference-home.tsx` (the component the `/` route actually renders).
+*Evidence*: Playwright test “homepage renders and its primary CTA opens the shop” timed out clicking a
+shop CTA. Grep of `reference-home.tsx` found only `href="#collection"`, `href="#story"`, `href="/"` and
+`href="/checkout"`. (Round 1 fixed `hero.tsx`, which `/` does not render.)
+*Impact*: from the landing page there was no path to the catalogue except the product cards; the
+“Shop The Collection” button only scrolled — a dead end for a storefront.
+*Fix*: hero CTA + “Explore collection” + header search icon now point to `/shop` (design untouched).
+*Verification*: `tests/e2e/storefront.spec.ts` → PASS.
+
+## AUD-12 — High (fixed) — Product card overflowed a 360 px viewport
+*Affected*: `src/components/product/product-card.tsx`.
+*Evidence*: Playwright mobile test reported `horizontal overflow on /shop` (scrollWidth 377 vs 360).
+DOM probe identified the row holding the category label and `<Rating>`: neither could shrink.
+*Impact*: horizontal scroll/jitter on small phones across every grid (home + shop).
+*Fix*: `min-w-0` + `truncate` on the category, `shrink-0` on the rating.
+*Verification*: mobile overflow test now PASS on `/`, `/shop`, `/checkout`.
+
+## AUD-13 — Medium (fixed) — Checkout rate limit was too tight for Egyptian CGNAT
+*Affected*: `src/lib/actions/checkout.ts`.
+*Evidence*: the E2E suite failed at the sixth submission from one IP (limit was 5 / 10 min).
+Mobile carriers in Egypt put many customers behind one public IP, so real households could be blocked.
+*Fix*: IP limit raised to 20 / 10 min **plus** a new per-phone limit (5 / hour) keyed on a SHA-256 of
+the normalised number, so the limiter never stores a phone number.
+*Verification*: 13/13 E2E pass; backend order tests unaffected.
+
+## AUD-14 — Medium (fixed) — `storage.objects` RLS relied on a Supabase default
+*Affected*: `supabase/migrations/20261022000007_admin_product_management.sql` (policies) — no
+`ENABLE ROW LEVEL SECURITY` anywhere.
+*Evidence*: new test `storage objects: only admins may write product images` **failed**: a customer
+INSERT into `storage.objects` succeeded in the harness. Supabase normally enables RLS there, so this
+was an implicit dependency rather than a live hole, but an explicit statement is required.
+*Fix*: migration `20261023000010_storage_objects_rls.sql` enables RLS on `storage.objects`.
+*Verification*: test now PASS (customer rejected, admin allowed).
+
+## AUD-15 — Medium (fixed) — Terms checkbox referenced policies that did not exist
+*Affected*: `src/components/checkout/checkout-form.tsx`, footer.
+*Evidence*: the label asked customers to accept “الشروط والأحكام وسياسة الاسترجاع” with no link and no
+such page in the route tree.
+*Fix*: `/policies/[slug]` for `shipping`, `returns`, `terms`, `privacy`, built **only** from configured
+values (`codFee`, `deliveryEstimateAr`, `freeShippingThreshold`, `returnWindowDays`, support contacts)
+with a visible note that the copy is operational and pending legal review. Links added under the
+checkbox and in the footer. Pages are `noindex` and excluded from the sitemap.
+*Residual*: **the owner must approve/replace this copy**; it is not legal advice.
+
+## AUD-16 — Medium (fixed) — E2E could not run (was “blocked”)
+*Evidence*: Chromium aborted with `FATAL:SkFontMgr_FontConfigInterface.cpp:163 Not implemented` plus
+missing `libglib-2.0.so.0`; no root for `install-deps`.
+*Fix*: committed `scripts/e2e_bootstrap.py` (rootless Debian package + font extraction) and
+`.github/workflows/ci.yml` (`npx playwright install --with-deps chromium`).
+*Verification*: 13/13 E2E pass, twice consecutively, from a cold cache.
+
+## AUD-17 — Low (fixed) — Demo mode had no idempotency and tests were order-dependent
+*Affected*: `src/lib/demo/store.ts`, `playwright.config.ts`.
+*Evidence*: `demoPlaceOrder` ignored the idempotency key; `reuseExistingServer: true` let demo
+stock/rate-limit state leak between runs, which produced flaky checkout failures.
+*Fix*: demo replay map keyed by the same idempotency key; `reuseExistingServer: false`.
+*Verification*: new unit tests + two consecutive clean E2E runs.
+
+## AUD-18 — Informational — Lint picked up downloaded browser bundles
+ESLint scanned `.cline-home/**` Playwright artefacts (195 warnings). Fixed with explicit ignores.
