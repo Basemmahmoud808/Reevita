@@ -186,3 +186,17 @@ anonymous admin sub-pages redirect.
 * Password reset / verification e-mails — **BLOCKED** (no mailbox).
 * Deployment, domain, preview isolation, monitoring — **NOT TESTED** (no provider access).
 * CI workflow itself has not been executed on GitHub — **NOT TESTED** (written and reviewed only).
+
+## CI status
+`.github/workflows/ci.yml` could **not** be pushed from this environment: the GitHub App token
+does not have the `workflows` permission (`refusing to allow a GitHub App to create or update
+workflow .github/workflows/ci.yml without workflows permission`). The exact workflow is committed as
+`docs/CI_WORKFLOW_TEMPLATE.yml`; the owner must copy it to `.github/workflows/ci.yml` (or push with a
+token that has `workflows` scope).
+
+```bash
+mkdir -p .github/workflows && cp docs/CI_WORKFLOW_TEMPLATE.yml .github/workflows/ci.yml
+git add .github/workflows/ci.yml && git commit -m "ci: add pipeline" && git push
+```
+
+The workflow has **not** been executed on GitHub — NOT TESTED.
