@@ -382,7 +382,7 @@ export function demoPlaceOrder(input: {
   const replayKey = input.idempotencyKey?.trim();
   if (replayKey) {
     const replay = idempotentDemoOrders.get(replayKey);
-    if (replay) return replay;
+    if (replay) return { ...replay, replayed: true };
   }
 
   const governorate = demoGovernorates().find((gov) => gov.id === input.governorateId);

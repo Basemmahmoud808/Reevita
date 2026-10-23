@@ -138,11 +138,13 @@ export interface CheckoutPayload {
 }
 
 export interface PlacedOrder {
-  orderId: string;
+  /** Internal id; deliberately absent from a limited (non-owner) idempotent replay. */
+  orderId?: string;
   orderNumber: string;
   status: string;
-  customerName: string;
-  customerPhone: string;
+  /** Absent on a limited replay — see migration 000012. */
+  customerName?: string;
+  customerPhone?: string;
   subtotal: number;
   shippingFee: number;
   codFee: number;
@@ -151,6 +153,10 @@ export interface PlacedOrder {
   createdAt: string;
   items?: { productName: string; quantity: number; unitPrice: number; totalPrice: number }[];
   governorateAr?: string;
+  /** True when the RPC returned the original order for a repeated idempotency key. */
+  replayed?: boolean;
+  /** True when the replay was reduced to non-personal order data. */
+  limited?: boolean;
 }
 
 export type OrderStatus =

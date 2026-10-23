@@ -202,3 +202,97 @@ Permissions-Policy are present on rendered pages, not just `curl` responses.
 ## Still not verified
 Live Supabase Auth/Storage/PostgREST, live cookie attributes, live Upstash, staging COD order,
 monitoring — all **BLOCKED/NOT TESTED** (no credentials, no staging project access).
+
+---
+
+# Round 4 — adversarial review of the release candidates
+
+Scope: migration `000011`, storage migrations `000009`/`000010`, the cookie change, and the release
+ordering. Everything below was reasoned from the code and then **executed** against PostgreSQL
+(PGlite) and Chromium; live Supabase remains BLOCKED.
+
+## S1. Idempotency replay disclosed personal data (CONFIRMED VULNERABILITY, FIXED)
+
+**Attack (rejected after 000012, successful before it).**
+
+1. Obtain an idempotency key (it travels in the checkout form body; a screenshot of dev-tools, a
+   shared device, or any future client-side log would expose it).
+2. Call `POST /rest/v1/rpc/place_order` directly with the anon key, the stolen key and the victim’s
+   phone number (phone numbers are semi-public: deliveries, WhatsApp, business cards).
+3. Before 000012 the function answered with `customer_name`, `customer_phone`, `total` and the
+   `items` array. The phone number was therefore treated as an authenticator — it is not one.
+
+**Fix — `000012_replay_minimisation.sql`.** The replay is now split by *proven* identity only:
+
+* `auth.uid() = orders.user_id` → full payload (authenticated owner).
+* everyone else (anonymous, another customer, or the original guest in a new browser) → non-personal
+  summary: `order_number`, `status`, `created_at`, `subtotal`, `shipping_fee`, `cod_fee`, `total`,
+  `currency`. **No** name, phone, e-mail, address, `order_id` or items.
+* Guests keep their full confirmation through the `httpOnly` `rv_last_order` cookie written by the
+  request that created the order; the action never overwrites a richer cookie with a limited replay
+  and never attaches this browser’s cart snapshot to somebody else’s order number.
+
+**Answers to the review questions (code-level):**
+
+| Question | Answer |
+| --- | --- |
+| Is the phone client-supplied? | **Yes.** `p_customer_phone` comes from the form; the DB validates the *format* only. |
+| Can an unauthenticated caller retrieve an order with key + same phone? | **Before 000012: yes (full record). After 000012: only the non-personal summary.** |
+| Does the replay expose name/phone/address/items/totals? | **After 000012:** no name/phone/address/items/internal id. Money totals are still returned (deliberate, low sensitivity) so the confirmation page can render. |
+| Can key or details leak via logs/URLs/analytics/storage? | Key lives only in the server-action POST body and the `orders.idempotency_key` column (no index on it besides the unique index; never logged, never in a URL). Order details are not in any URL. `localStorage` holds only cart display data. Analytics: none installed. |
+| Is guest vs authenticated ownership distinguished? | **Yes**, by `auth.uid()` only. No browser-supplied user id or role claim is read anywhere in the function. |
+
+**Security guarantee (guest checkout):** an attacker needs the 122-bit key **and** gains only
+“an order of value X exists under number Y”. They cannot read or modify customer data. They cannot
+cancel, re-address or re-pay anything (no such RPC).
+
+**Residual risk (accepted, documented):**
+
+* A guest who clears cookies loses the rich confirmation view and must use `/track` (order number +
+  phone). This is a deliberate privacy/UX trade-off in favour of not disclosing PII.
+* An attacker holding the key learns order existence, status and totals. Eliminating that fully would
+  break safe retries; it is bounded to non-personal data.
+* The key is long-lived in the row (needed for retries). If a database dump leaks, keys leak — but a
+  dump already contains the orders themselves.
+
+## S2. Storage migrations could “succeed” without applying the control (FIXED at the gate)
+
+* `000009`/`000010` now emit `WARNING` instead of aborting when the migration role does not own the
+  storage tables. That keeps `db push` green — and that is exactly why a **separate executable gate**
+  is required.
+* `supabase/verification/release_security_checks.sql` raises an exception (non-zero exit with
+  `ON_ERROR_STOP`) if the bucket limits, MIME list, `storage.objects` RLS, any of the 4 policies, the
+  single hardened `place_order`, or public-table RLS are missing.
+* **Proved both ways:** `tests/backend/release-checks.test.js` — passes on a correct database; fails
+  when bucket limits, a MIME type, storage RLS, a policy, or the 000012 function body are removed.
+* API-level storage authorisation (customer denied / admin allowed / MIME rejected / read / delete):
+  `scripts/verify-storage-api.mjs` — **NOT TESTED** (needs staging credentials); its `BLOCKED` path
+  was executed and exits non-zero.
+
+## S3. Cookies and authentication
+
+| Property | Evidence | Status |
+| --- | --- | --- |
+| `httpOnly` on Supabase auth cookies | `cookie-options.ts` + unit test spawning `NODE_ENV=production` | **VERIFIED** (library level) |
+| `httpOnly` in a real browser | E2E asserts `rv_demo_user.httpOnly === true` | **VERIFIED** (demo session) |
+| `secure` in production only | unit test: `true` in production, `false` in development | **VERIFIED** |
+| `sameSite=lax` | unit test + E2E (`sameSite === "Lax"`) | **VERIFIED** |
+| No browser code reads the Supabase session cookie | browser client deleted; only `document.cookie` use is the locale preference | **VERIFIED** (grep) |
+| Session refresh | middleware calls `supabase.auth.getUser()` on every matched request | **PARTIALLY VERIFIED** (code only) |
+| Login / logout / redirects | E2E: demo sign-in → `/account` → sign-out → `/` → `/account` redirects to login | **VERIFIED** (demo mode) |
+| Live Supabase login, refresh, recovery e-mail | no project access | **BLOCKED** |
+
+Residual: `httpOnly: true` is only safe while **all** Supabase usage stays server-side. The file
+comment states this; re-introducing a browser client requires revisiting the flag.
+
+## S4. Release ordering and rollout compatibility
+
+| Combination | Result | Status |
+| --- | --- | --- |
+| DB with 000008–000012 + old frontend (no key) | works; `p_idempotency_key` defaults to `NULL`, no replay path | **VERIFIED** by SQL reasoning + call with 10 args in the suite |
+| New frontend (sends key) + DB **before** 000008 | `function place_order(...) does not exist` → checkout error | **NOT TESTED** (would need a live DB); derived from the signature |
+| 000008–000011 applied but **000012 not** | replay still unlocks on phone → the vulnerability of S1 is present | **VERIFIED** by `release-checks.test.js` (gate fails) |
+
+Therefore: apply **through 000012** and run the gate before deploying. No step in the sequence is
+destructive; the rollback for 000012 is re-applying 000011, which restores the weaker behaviour and
+must only be used to unblock an emergency — re-run the gate afterwards.

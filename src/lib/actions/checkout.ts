@@ -138,22 +138,44 @@ export async function placeOrderAction(
     );
 
     const cookieStore = await cookies();
-    cookieStore.set(
-      LAST_ORDER_COOKIE,
-      encodeURIComponent(
-        JSON.stringify({
-          ...order,
-          items: order.items && order.items.length > 0 ? order.items : displayItems,
-        }),
-      ),
-      {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 30,
-        secure: process.env.NODE_ENV === "production",
-      },
-    );
+    // A limited replay (someone other than the authenticated owner, e.g. a guest retry in
+    // another browser) carries no personal data. Keep an existing, richer cookie for the
+    // same order instead of degrading it, and never attach this browser's cart snapshot to
+    // an order this request did not create.
+    const existingRaw = cookieStore.get(LAST_ORDER_COOKIE)?.value;
+    let keepExisting = false;
+    if (order.limited) {
+      try {
+        const parsedCookie = JSON.parse(decodeURIComponent(existingRaw ?? "")) as { orderNumber?: string };
+        keepExisting = parsedCookie.orderNumber === order.orderNumber;
+      } catch {
+        keepExisting = false;
+      }
+    }
+
+    if (!keepExisting) {
+      cookieStore.set(
+        LAST_ORDER_COOKIE,
+        encodeURIComponent(
+          JSON.stringify({
+            ...order,
+            items:
+              order.items && order.items.length > 0
+                ? order.items
+                : order.replayed
+                  ? []
+                  : displayItems,
+          }),
+        ),
+        {
+          httpOnly: true,
+          sameSite: "lax",
+          path: "/",
+          maxAge: 60 * 30,
+          secure: process.env.NODE_ENV === "production",
+        },
+      );
+    }
 
     redirect(`/order/${order.orderNumber}`);
   } catch (error) {

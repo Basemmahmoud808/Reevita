@@ -90,6 +90,8 @@ export async function placeOrder(
     total: number;
     currency: string;
     created_at: string;
+    replayed?: boolean;
+    limited?: boolean;
     items?: Array<{ product_name: string; quantity: number; unit_price: number; total_price: number }>;
   };
 
@@ -99,6 +101,8 @@ export async function placeOrder(
     status: result.status,
     customerName: result.customer_name,
     customerPhone: result.customer_phone,
+    replayed: result.replayed === true,
+    limited: result.limited === true,
     subtotal: Number(result.subtotal),
     shippingFee: Number(result.shipping_fee),
     codFee: Number(result.cod_fee),

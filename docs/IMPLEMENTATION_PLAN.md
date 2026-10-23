@@ -112,3 +112,29 @@ production, using `docs/STAGING_MIGRATION_PLAN.md`.
 * No migration was applied to any Supabase project.
 * No deployment, no monitoring activation, no CI run on GitHub.
 * No policy text was invented; commercial/legal statements are flagged for approval.
+
+---
+
+# Round 4 — adversarial hardening
+
+| Item | Change | Files |
+| --- | --- | --- |
+| Replay disclosed PII when the caller knew the phone | Replay minimised: full payload only for `auth.uid() = orders.user_id`; everyone else gets number/status/totals only | `supabase/migrations/20261023000012_replay_minimisation.sql` |
+| Confirmation page assumed name/phone/items | Conditional rendering + explanatory note; limited replays no longer overwrite a richer cookie or borrow the browser’s cart snapshot | `src/app/order/[orderNumber]/page.tsx`, `src/lib/actions/checkout.ts`, `src/lib/data/orders.ts`, `src/lib/types.ts` |
+| “Green `db push`” ≠ “Storage secured” | Executable gate that exits non-zero on any missing control | `supabase/verification/release_security_checks.sql` |
+| Storage authorisation only testable by hand | Scripted API checks (customer denied, admin allowed, MIME rejected, read, delete) | `scripts/verify-storage-api.mjs` |
+| Cookie claims unproven | Unit test across environments + E2E browser assertion | `tests/unit/cookie-options.test.ts`, `tests/e2e/account.spec.ts` |
+| Adversarial coverage | 8 replay scenarios + 6 gate scenarios | `tests/backend/replay-disclosure.test.js`, `tests/backend/release-checks.test.js` |
+
+## Final migration set
+
+```
+000008  idempotency key + partial unique index + 11-arg place_order
+000009  bucket limits (ownership-safe, WARNING)
+000010  storage.objects RLS (ownership-safe, WARNING)
+000011  replay bound to phone/owner            ← superseded
+000012  replay minimised to non-personal data ← REQUIRED; 000011 alone leaves S1 open
+```
+
+**Apply through 000012**, then run `supabase/verification/release_security_checks.sql` before deploying
+any frontend that sends `p_idempotency_key`.

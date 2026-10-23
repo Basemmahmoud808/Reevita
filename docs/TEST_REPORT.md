@@ -240,3 +240,39 @@ verification SQL, an 11-row functional matrix, rollback per migration and a chec
 4. Set Upstash credentials to enable the distributed limiter.
 5. Legal approval of `/policies/*` (`docs/POLICY_REVIEW.md`).
 6. Enable monitoring (`docs/MONITORING.md`) and install the CI workflow.
+
+---
+
+# Round 4 — adversarial test results
+
+## Local automated tests (executed)
+
+| Command | Result | Status |
+| --- | --- | --- |
+| `npm run typecheck` | 0 errors | PASS |
+| `npm run lint` | 0 problems | PASS |
+| `npm run test:unit` | **17/17** | PASS |
+| `npm run test:backend` | **33/33** | PASS |
+| `npm run test:e2e` | **14/14** | PASS |
+| `npm run build` | success | PASS |
+| `node scripts/verify-storage-api.mjs` (no creds) | prints `BLOCKED`, exit 1 | PASS (expected) |
+
+New this round:
+
+* `tests/backend/replay-disclosure.test.js` — 8 adversarial scenarios: owner full replay; different
+  phone; **same phone unauthenticated**; anonymous; another authenticated customer; 5 repeated
+  retries (one order, one unit of stock); payload/log leakage scan; owner resolved from `auth.uid()`.
+* `tests/backend/release-checks.test.js` — 6 tests: the release gate passes on a clean database and
+  fails when bucket limits, a MIME type, storage RLS, a policy, or the hardened `place_order` body
+  are missing.
+* `tests/unit/cookie-options.test.ts` — httpOnly/sameSite/path/maxAge in dev+prod, `secure` production only.
+* `tests/e2e/account.spec.ts` — demo sign-in → account → `httpOnly` cookie assertion → sign-out → redirect.
+
+## Staging integration tests
+
+**BLOCKED** — no Supabase credentials. Ready to run: `supabase/verification/release_security_checks.sql`
+and `scripts/verify-storage-api.mjs` (both documented in `docs/STAGING_MIGRATION_PLAN.md` §9).
+
+## Production verification
+
+**NOT TESTED.** No deployment, no live cookie inspection, no live RLS/Storage checks, no real COD order.

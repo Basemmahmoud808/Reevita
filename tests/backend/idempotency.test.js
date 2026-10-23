@@ -116,32 +116,6 @@ test('an invalid idempotency key is ignored instead of blocking the order', asyn
   assert.equal(result.replayed, undefined);
 });
 
-test('an idempotency key never discloses an order to a different phone number', async () => {
-  const db = await createTestDatabase();
-  const key = 'owner-binding-key-001';
-  const first = await place(db, [null, key]);
-  assert.equal(first.success, true);
-
-  // Same key, different customer number: must fail instead of leaking the order.
-  await assert.rejects(
-    () => db.query(
-      `SELECT public.place_order(
-         $1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10, $11
-       );`,
-      [
-        'مهاجم', '01099999999', 'attacker@example.com', CAIRO_GOV_ID,
-        'مدينة نصر', 'شارع النصر، عمارة 15، شقة 3', '', '',
-        JSON.stringify([{ product_id: SHAMPOO_ID, quantity: 1 }]), null, key,
-      ],
-    ),
-    /FORBIDDEN/,
-  );
-
-  // No extra order was created by the rejected attempt.
-  const orders = await db.query('SELECT count(*)::int AS n FROM public.orders;');
-  assert.equal(orders.rows[0].n, 1);
-});
-
 test('the same customer replays with a differently formatted phone number', async () => {
   const db = await createTestDatabase();
   const key = 'owner-binding-key-002';

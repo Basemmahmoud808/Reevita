@@ -154,3 +154,47 @@ the most likely regression, so test it explicitly through the Storage API.
 - [ ] §6 executed with synthetic data
 - [ ] Frontend deployed to staging **after** the migrations
 - [ ] One COD order placed through the UI, visible in the admin dashboard
+
+---
+
+## 9. Post-migration gate (executable) — added in the adversarial review
+
+A successful `supabase db push` is **not** evidence that Storage is protected: migrations 000009/000010
+downgrade to `WARNING` when the storage tables are not owned by the migration role.
+
+Run the assertion script with `ON_ERROR_STOP`; any failed assertion aborts with a non-zero exit code:
+
+```bash
+psql "$STAGING_DB_URL" -v ON_ERROR_STOP=1 -f supabase/verification/release_security_checks.sql
+```
+
+It asserts, and fails the run when untrue:
+
+| Assertion | Failure message |
+| --- | --- |
+| `product-images` exists, `public = true` | `FAIL: bucket … missing` / `must be public-read` |
+| `file_size_limit = 5242880` | `FAIL: … file_size_limit is NULL` |
+| `allowed_mime_types` = exactly jpeg/png/webp | `FAIL: … allowed_mime_types is …` |
+| RLS enabled on `storage.objects` | `FAIL: RLS is not enabled on storage.objects` |
+| 4 product-image policies present | `FAIL: expected 4 … policies, found N` |
+| exactly one `place_order`, SECURITY DEFINER, `search_path=public` | `FAIL: … signature / SECURITY DEFINER / search_path` |
+| function body contains the minimise-replay logic | `FAIL: … apply migration 000012` |
+| partial unique index on `idempotency_key` | `FAIL: idx_orders_idempotency_key …` |
+| RLS enabled on every `public` table | `FAIL: RLS disabled on public tables: …` |
+
+The gate is itself tested: `tests/backend/release-checks.test.js` proves it **passes** on a correctly
+migrated database and **fails** when the bucket limits, a MIME type, storage RLS, a policy, or the
+hardened `place_order` body are missing.
+
+### Storage authorisation through the real API (owner, staging)
+
+```bash
+SUPABASE_URL=… SUPABASE_ANON_KEY=… \
+STAGING_CUSTOMER_EMAIL=… STAGING_CUSTOMER_PASSWORD=… \
+STAGING_ADMIN_EMAIL=… STAGING_ADMIN_PASSWORD=… \
+node scripts/verify-storage-api.mjs
+```
+
+Checks: customer upload denied · admin upload succeeds · public read works · `text/plain` rejected by
+the bucket · customer delete denied · admin delete succeeds. Exits non-zero on the first failure and
+prints `BLOCKED` when credentials are absent (that path was executed here).

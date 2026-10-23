@@ -68,7 +68,9 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
           <p className="eyebrow mt-6 justify-center">ORDER CONFIRMED</p>
           <h1 className="display-xl mt-4">تم استلام طلبك بنجاح</h1>
           <p className="lead mt-3">
-            شكرًا {order.customerName}! سنتواصل معك على {order.customerPhone} لتأكيد الطلب قبل الشحن.
+            {order.customerName && order.customerPhone
+              ? `شكرًا ${order.customerName}! سنتواصل معك على ${order.customerPhone} لتأكيد الطلب قبل الشحن.`
+              : "سنتواصل معك على رقم الهاتف المسجل لتأكيد الطلب قبل الشحن."}
           </p>
           <div className="mx-auto mt-6 inline-flex flex-col items-center gap-1 rounded-2xl border border-gold/40 bg-ivory px-8 py-4">
             <span className="text-[0.65rem] font-bold tracking-[0.2em] text-gold-deep uppercase">
@@ -86,9 +88,11 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
             <span className="rounded-full bg-gold/15 px-3 py-1 text-[0.68rem] font-bold text-gold-deep">
               الدفع عند الاستلام
             </span>
-            <span className="rounded-full bg-white px-3 py-1 text-[0.68rem] font-bold text-plum">
-              {order.governorateAr ?? ""}
-            </span>
+            {order.governorateAr ? (
+              <span className="rounded-full bg-white px-3 py-1 text-[0.68rem] font-bold text-plum">
+                {order.governorateAr}
+              </span>
+            ) : null}
           </div>
         </div>
       </section>
@@ -97,6 +101,12 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
         <div className="space-y-5">
           <div className="rounded-2xl border border-line bg-white/70 p-6">
             <h2 className="display-md text-lg">تفاصيل الطلب</h2>
+            {(order.items ?? []).length === 0 ? (
+              <p className="mt-3 text-xs leading-6 text-muted">
+                تفاصيل المنتجات متاحة في الطلب الأصلي على هذا المتصفح. يمكنك تتبّع الطلب برقمه
+                ورقم الهاتف من صفحة تتبّع الطلب.
+              </p>
+            ) : null}
             <ul className="mt-4 divide-y divide-line">
               {(order.items ?? []).map((item, index) => (
                 <li key={`${item.productName}-${index}`} className="flex items-center justify-between gap-3 py-3 text-sm">
