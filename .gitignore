@@ -11,10 +11,13 @@ next-env.d.ts
 # production
 /build
 
+
 # local env files (never commit credentials)
 .env
 .env*.local
 .env.production
+.env.*
+!.env.example
 
 # misc
 .DS_Store
