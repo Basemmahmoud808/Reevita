@@ -867,3 +867,10 @@
     animation: none !important;
   }
 }
+/* Mobile hero adjustments */
+@media (max-width: 640px) {
+  .reference-hero {
+    min-height: 560px;
+    background-position: 65% center;
+  }
+}

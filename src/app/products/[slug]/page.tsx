@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -16,7 +17,9 @@ type ProductPageProps = {
   params: Promise<{ slug: string }>;
 };
 
-export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: ProductPageProps): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
 
@@ -36,7 +39,14 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
       description: product.shortAr,
       url: `${siteUrl}/products/${product.slug}`,
       type: "website",
-      images: product.images[0]?.url ? [{ url: product.images[0].url, alt: product.images[0].alt }] : undefined,
+      images: product.images[0]?.url
+        ? [
+            {
+              url: product.images[0].url,
+              alt: product.images[0].alt,
+            },
+          ]
+        : undefined,
     },
   };
 }
@@ -54,38 +64,64 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const accordionItems: AccordionItem[] = [
     {
       title: "Description",
-      content: <p dir="rtl" lang="ar" className="text-start">{product.descriptionAr}</p>,
+      content: (
+        <p dir="rtl" lang="ar" className="text-start leading-7">
+          {product.descriptionAr}
+        </p>
+      ),
     },
     {
       title: "Benefits",
-      content: (
+      content:
         product.benefits.length > 0 ? (
-          <ul dir="rtl" lang="ar" className="list-disc space-y-1 pe-5 text-start">
-            {product.benefits.map((benefit) => <li key={benefit}>{benefit}</li>)}
+          <ul
+            dir="rtl"
+            lang="ar"
+            className="list-disc space-y-2 pe-5 text-start leading-7"
+          >
+            {product.benefits.map((benefit) => (
+              <li key={benefit}>{benefit}</li>
+            ))}
           </ul>
-        ) : <p>No product benefits are available for this item.</p>
-      ),
+        ) : (
+          <p>No product benefits are available for this item.</p>
+        ),
     },
     {
       title: "Ingredients",
       content: product.ingredientsAr ? (
-        <p dir="rtl" lang="ar" className="text-start">{product.ingredientsAr}</p>
-      ) : <p>Ingredient information is not available for this item.</p>,
+        <p dir="rtl" lang="ar" className="text-start leading-7">
+          {product.ingredientsAr}
+        </p>
+      ) : (
+        <p>Ingredient information is not available for this item.</p>
+      ),
     },
     {
       title: "How to use",
       content: product.howToUseAr ? (
-        <p dir="rtl" lang="ar" className="text-start">{product.howToUseAr}</p>
-      ) : <p>Usage information is not available for this item.</p>,
+        <p dir="rtl" lang="ar" className="text-start leading-7">
+          {product.howToUseAr}
+        </p>
+      ) : (
+        <p>Usage information is not available for this item.</p>
+      ),
     },
     {
       title: "Customer reviews",
-      content: product.reviews > 0 ? (
-        <div className="flex items-center gap-3">
-          <Rating rating={product.rating} reviews={product.reviews} size="md" />
-          <span>Based on verified catalogue review data.</span>
-        </div>
-      ) : <p>No customer reviews are available for this item yet.</p>,
+      content:
+        product.reviews > 0 ? (
+          <div className="flex flex-wrap items-center gap-3">
+            <Rating
+              rating={product.rating}
+              reviews={product.reviews}
+              size="md"
+            />
+            <span>Based on verified catalogue review data.</span>
+          </div>
+        ) : (
+          <p>No customer reviews are available for this item yet.</p>
+        ),
     },
   ];
 
@@ -102,80 +138,207 @@ export default async function ProductPage({ params }: ProductPageProps) {
       url: `${siteUrl}/products/${product.slug}`,
       priceCurrency: "EGP",
       price: product.price.toFixed(2),
-      availability: product.stockStatus === "out_of_stock"
-        ? "https://schema.org/OutOfStock"
-        : "https://schema.org/InStock",
+      availability:
+        product.stockStatus === "out_of_stock"
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
     },
-    aggregateRating: product.reviews > 0
-      ? { "@type": "AggregateRating", ratingValue: product.rating, reviewCount: product.reviews }
-      : undefined,
+    aggregateRating:
+      product.reviews > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: product.rating,
+            reviewCount: product.reviews,
+          }
+        : undefined,
   };
 
   return (
     <>
       <JsonLd data={productJsonLd} />
-      <main className="container-luxe py-10 md:py-14">
-        <nav aria-label="Breadcrumb" className="mb-8 text-xs text-muted">
-          <ol className="flex flex-wrap items-center gap-2">
-            <li><Link href="/" className="transition-colors hover:text-gold-deep">Home</Link></li>
-            <li aria-hidden>/</li>
-            <li><Link href="/#collection" className="transition-colors hover:text-gold-deep">{product.categoryNameEn}</Link></li>
-            <li aria-hidden>/</li>
-            <li className="max-w-full truncate text-plum" aria-current="page">{product.nameEn}</li>
+
+      <main className="container-luxe w-full min-w-0 overflow-x-clip px-4 py-6 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
+        <nav
+          aria-label="Breadcrumb"
+          className="mb-6 min-w-0 text-xs text-muted sm:mb-8"
+        >
+          <ol className="flex min-w-0 flex-wrap items-center gap-2">
+            <li className="shrink-0">
+              <Link
+                href="/"
+                className="transition-colors hover:text-gold-deep"
+              >
+                Home
+              </Link>
+            </li>
+
+            <li aria-hidden className="shrink-0">
+              /
+            </li>
+
+            <li className="min-w-0 max-w-full">
+              <Link
+                href="/#collection"
+                className="break-words transition-colors hover:text-gold-deep"
+              >
+                {product.categoryNameEn}
+              </Link>
+            </li>
+
+            <li aria-hidden className="shrink-0">
+              /
+            </li>
+
+            <li
+              className="min-w-0 max-w-full break-words text-plum"
+              aria-current="page"
+            >
+              {product.nameEn}
+            </li>
           </ol>
         </nav>
 
-        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-16">
-          <ProductGallery images={product.images} name={product.nameEn} slug={product.slug} />
+        {/* Product image and information */}
+        <div className="grid w-full min-w-0 grid-cols-1 items-start gap-7 sm:gap-9 md:gap-10 lg:grid-cols-2 lg:gap-12 xl:gap-16">
+          <div className="w-full min-w-0">
+            <ProductGallery
+              images={product.images}
+              name={product.nameEn}
+              slug={product.slug}
+            />
+          </div>
 
-          <section className="lg:pt-5">
+          <section className="w-full min-w-0 lg:pt-2 xl:pt-5">
             <p className="eyebrow">{product.categoryNameEn}</p>
-            <h1 className="display-xl mt-3">{product.nameEn}</h1>
-            <div className="mt-3 flex items-center gap-3">
-              <Rating rating={product.rating} reviews={product.reviews} />
-              <span className="text-sm text-muted">{product.size}</span>
+
+            <h1 className="display-xl mt-3 break-words text-2xl leading-tight sm:text-3xl lg:text-4xl xl:text-5xl">
+              {product.nameEn}
+            </h1>
+
+            <div className="mt-4 flex min-w-0 flex-wrap items-center gap-3 sm:mt-3">
+              <Rating
+                rating={product.rating}
+                reviews={product.reviews}
+              />
+
+              <span className="break-words text-sm text-muted">
+                {product.size}
+              </span>
             </div>
-            <p dir="rtl" lang="ar" className="mt-6 text-sm leading-8 text-muted">{product.descriptionAr}</p>
-            <div className="mt-7">
+
+            <p
+              dir="rtl"
+              lang="ar"
+              className="mt-4 break-words text-sm leading-7 text-muted sm:mt-6 sm:text-base sm:leading-8"
+            >
+              {product.descriptionAr}
+            </p>
+
+            <div className="mt-6 w-full min-w-0 sm:mt-7">
               <ProductPurchase product={product} />
             </div>
-            <div className="mt-9">
+
+            <div className="mt-8 min-w-0 sm:mt-9">
               <Accordion items={accordionItems} />
             </div>
           </section>
         </div>
 
+        {/* Product benefits */}
         {product.benefits.length > 0 && (
-          <section aria-label="Product benefits" className="mt-14 grid gap-3 border-y border-line py-6 sm:grid-cols-2 lg:grid-cols-3">
+          <section
+            aria-label="Product benefits"
+            className="mt-10 grid min-w-0 grid-cols-1 gap-4 border-y border-line py-6 sm:mt-14 sm:grid-cols-2 lg:grid-cols-3"
+          >
             {product.benefits.slice(0, 3).map((benefit) => (
-              <div key={benefit} className="flex items-start gap-3 px-2">
-                <Check className="mt-0.5 size-4 shrink-0 text-gold-deep" aria-hidden />
-                <p dir="rtl" lang="ar" className="text-sm leading-6 text-muted">{benefit}</p>
+              <div
+                key={benefit}
+                className="flex min-w-0 items-start gap-3 px-1 sm:px-2"
+              >
+                <Check
+                  className="mt-1 size-4 shrink-0 text-gold-deep"
+                  aria-hidden
+                />
+
+                <p
+                  dir="rtl"
+                  lang="ar"
+                  className="min-w-0 break-words text-sm leading-7 text-muted"
+                >
+                  {benefit}
+                </p>
               </div>
             ))}
           </section>
         )}
 
-        <section aria-label="REEVITA services" className="mt-10 grid gap-5 rounded-2xl border border-line bg-cream p-6 sm:grid-cols-3">
-          <div className="flex gap-3">
-            <Truck className="size-5 shrink-0 text-gold-deep" aria-hidden />
-            <div><h2 className="text-sm font-bold text-plum">Shipping</h2><p className="mt-1 text-xs leading-5 text-muted">{brand.deliveryEstimateAr}</p></div>
+        {/* Store services */}
+        <section
+          aria-label="REEVITA services"
+          className="mt-8 grid min-w-0 grid-cols-1 gap-5 rounded-2xl border border-line bg-cream p-4 sm:mt-10 sm:grid-cols-2 sm:p-6 lg:grid-cols-3"
+        >
+          <div className="flex min-w-0 items-start gap-3">
+            <Truck
+              className="mt-0.5 size-5 shrink-0 text-gold-deep"
+              aria-hidden
+            />
+
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-plum">Shipping</h2>
+              <p className="mt-1 break-words text-xs leading-6 text-muted">
+                {brand.deliveryEstimateAr}
+              </p>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <ShieldCheck className="size-5 shrink-0 text-gold-deep" aria-hidden />
-            <div><h2 className="text-sm font-bold text-plum">Cash on delivery</h2><p className="mt-1 text-xs leading-5 text-muted">Pay when your order arrives.</p></div>
+
+          <div className="flex min-w-0 items-start gap-3">
+            <ShieldCheck
+              className="mt-0.5 size-5 shrink-0 text-gold-deep"
+              aria-hidden
+            />
+
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-plum">
+                Cash on delivery
+              </h2>
+              <p className="mt-1 text-xs leading-6 text-muted">
+                Pay when your order arrives.
+              </p>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <Headphones className="size-5 shrink-0 text-gold-deep" aria-hidden />
-            <div><h2 className="text-sm font-bold text-plum">Customer support</h2><p className="mt-1 text-xs leading-5 text-muted">{brand.supportPhoneDisplay}</p></div>
+
+          <div className="flex min-w-0 items-start gap-3">
+            <Headphones
+              className="mt-0.5 size-5 shrink-0 text-gold-deep"
+              aria-hidden
+            />
+
+            <div className="min-w-0">
+              <h2 className="text-sm font-bold text-plum">
+                Customer support
+              </h2>
+              <p className="mt-1 break-words text-xs leading-6 text-muted">
+                {brand.supportPhoneDisplay}
+              </p>
+            </div>
           </div>
         </section>
 
+        {/* Related products */}
         {relatedProducts.length > 0 && (
-          <section className="mt-16 border-t border-line pt-10 md:mt-24 md:pt-14">
+          <section className="mt-12 min-w-0 border-t border-line pt-8 sm:mt-16 sm:pt-10 md:mt-24 md:pt-14">
             <p className="eyebrow">YOU MAY ALSO LIKE</p>
-            <h2 className="display-md mt-3">Complete your ritual</h2>
-            <ProductGrid products={relatedProducts} className="mt-8" prioritizeFirst columns={4} />
+
+            <h2 className="display-md mt-3">
+              Complete your ritual
+            </h2>
+
+            <ProductGrid
+              products={relatedProducts}
+              className="mt-6 sm:mt-8"
+              prioritizeFirst
+              columns={4}
+            />
           </section>
         )}
       </main>
