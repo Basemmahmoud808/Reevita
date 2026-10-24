@@ -276,3 +276,36 @@ and `scripts/verify-storage-api.mjs` (both documented in `docs/STAGING_MIGRATION
 ## Production verification
 
 **NOT TESTED.** No deployment, no live cookie inspection, no live RLS/Storage checks, no real COD order.
+
+---
+
+# Round 5 — staging gate run
+
+## Executed in this environment
+
+| Check | Result | Status |
+| --- | --- |
+| Git state | `d9f532b`, clean tree | VERIFIED |
+| Credentials present | none of the required variables set | FAILED (prerequisite) |
+| Staging gate guards (5 unsafe inputs) | refused with codes 2/3/4/5; dry-run 0 | VERIFIED |
+| `npm run test:backend` (with 000012 added to repeatability) | **33/33** | PASS |
+| `npm run test:unit` | **17/17** | PASS |
+| `npm run test:e2e` | **14/14** | PASS |
+| `npm run verify` | exit 0 | PASS |
+
+## Not executed (BLOCKED)
+
+| Step | Reason |
+| --- | --- |
+| Apply 000008–000012 to staging | no credentials/authorization; target cannot be proven staging |
+| `release_security_checks.sql` on live staging | same |
+| Real anon/customer/admin authorization tests | same |
+| Staging COD checkout, concurrency, rollback on live DB | same |
+| Live login/session/logout/recovery | same |
+| Upstash distributed limits | no Redis credentials |
+| Production verification | out of scope by instruction |
+
+## Exact owner command sequence
+
+See `docs/STAGING_MIGRATION_PLAN.md` §11 (`npm run gate:staging -- --dry-run`, then
+`npm run gate:staging`, then `npm run verify:storage`).

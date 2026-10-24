@@ -198,3 +198,74 @@ node scripts/verify-storage-api.mjs
 Checks: customer upload denied · admin upload succeeds · public read works · `text/plain` rejected by
 the bucket · customer delete denied · admin delete succeeds. Exits non-zero on the first failure and
 prints `BLOCKED` when credentials are absent (that path was executed here).
+
+---
+
+## 10. Execution status of the staging gate (this environment)
+
+**Result: BLOCKED — no live operation was attempted.**
+
+| Requirement | Actual state |
+| --- | --- |
+| Supabase credentials (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_ACCESS_TOKEN`, `STAGING_DB_URL`, `STAGING_PROJECT_REF`) | **absent** (checked individually; all unset) |
+| `.env*` files / linked project (`.supabase`, `supabase/.temp`, `~/.supabase`) | **none** |
+| `supabase` CLI | **not installed** |
+| `psql` / `pg_dump` | **not installed** |
+| Network to `api.supabase.com` | reachable, returns **401** (unauthenticated — confirms no session) |
+| Authorization to modify a staging project | **not granted in this environment** |
+
+Because Step 1 of the procedure (“confirm the target is staging, not production”) cannot be satisfied
+without credentials, Steps 2–5 were **not** executed. Nothing was migrated, deployed or modified.
+
+## 11. Owner procedure (copy/paste)
+
+```bash
+# 0. one-time tooling
+git checkout cline/xxmgawat
+npm ci && npm --prefix tests/backend ci
+sudo apt-get install -y postgresql-client        # psql + pg_dump (or use the Supabase CLI image)
+
+# 1. export staging identity (never commit these)
+export STAGING_PROJECT_REF=<20-char staging ref>
+export PRODUCTION_PROJECT_REF=<20-char production ref>   # optional but recommended
+export STAGING_DB_URL="postgresql://postgres:<password>@db.$STAGING_PROJECT_REF.supabase.co:5432/postgres"
+export STAGING_CONFIRM="I-UNDERSTAND-THIS-IS-STAGING"
+
+# 2. see the plan without touching anything
+npm run gate:staging -- --dry-run
+
+# 3. backup -> preflight -> apply 000008..000012 -> security gate
+npm run gate:staging
+
+# 4. Storage API authorisation (customer denied / admin allowed / MIME rejected)
+export SUPABASE_URL="https://$STAGING_PROJECT_REF.supabase.co"
+export SUPABASE_ANON_KEY=<staging anon key>
+export STAGING_CUSTOMER_EMAIL=... STAGING_CUSTOMER_PASSWORD=...
+export STAGING_ADMIN_EMAIL=...    STAGING_ADMIN_PASSWORD=...
+npm run verify:storage
+```
+
+The runner refuses to continue unless: the confirmation token matches, the project ref is present, the
+ref is **not** the production ref, and the DB URL actually contains the staging ref. Exit codes:
+`2` identity/token · `3` staging==production · `4` DB URL mismatch · `5` missing tool/migration ·
+`6` backup failed · `7` migration or security gate failed · `8` Storage API checks failed.
+
+**Guard evidence (executed here, no credentials used):** missing token → `2`; wrong token → `2`;
+staging ref equal to production ref → `3`; DB URL pointing at another project → `4`; valid identity
+but `psql` absent → `5` (it stops **before** any connection); `--dry-run` → `0` and lists
+000008→000012 in dependency order.
+
+Two defects in the runner itself were found and fixed by that matrix: an unset `HOME` aborted it before
+the guards ran, and the migration matcher treated the ID as a filename prefix (so `000008` never
+matched `20261023000008_*.sql`).
+
+## 12. What still has to be done after the gate passes
+
+§6 of this document (11-row functional matrix) and the COD checkout below remain **manual or scripted
+by the owner**, because they need authenticated sessions:
+
+1. Login/session-refresh/logout and cookie attributes in a real browser.
+2. One synthetic COD order end-to-end, plus a repeated submission (one order, one stock unit).
+3. Cross-customer order isolation with two real customer JWTs.
+4. A deliberate failure (invalid product) to confirm rollback.
+5. Admin status transition + audit row.

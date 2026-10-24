@@ -12,6 +12,7 @@ const REPEATABLE = [
   '20261023000009_storage_bucket_hardening.sql',
   '20261023000010_storage_objects_rls.sql',
   '20261023000011_idempotency_owner_binding.sql',
+  '20261023000012_replay_minimisation.sql',
 ];
 
 test('the release migrations can be re-applied without breaking the schema', async () => {

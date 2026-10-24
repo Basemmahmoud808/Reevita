@@ -296,3 +296,59 @@ comment states this; re-introducing a browser client requires revisiting the fla
 Therefore: apply **through 000012** and run the gate before deploying. No step in the sequence is
 destructive; the rollback for 000012 is re-applying 000011, which restores the weaker behaviour and
 must only be used to unblock an emergency — re-run the gate afterwards.
+
+---
+
+# Round 5 — staging release gate attempt
+
+## Environment verification (Step 1) — BLOCKED, nothing executed
+
+| Check | Command | Result |
+| --- | --- | --- |
+| HEAD / branch | `git rev-parse --short HEAD`, `git status --short` | `d9f532b`, clean, `cline/xxmgawat` tracking `origin` |
+| Supabase credentials | loop over `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_DB_URL`, `DATABASE_URL`, `SUPABASE_ACCESS_TOKEN`, `STAGING_*` | **all unset** |
+| Secret files | `ls -a | grep '\.env'` | only `.env.example` |
+| Linked project | `.supabase`, `supabase/.temp`, `~/.supabase` | none |
+| Tooling | `command -v supabase / psql / pg_dump` | none installed |
+| API session | `curl https://api.supabase.com/v1/projects` | **401** (no session) |
+
+Conclusion: the target cannot be proven to be staging, so **no migration, deployment or data change
+was performed**. Steps 2–5 are BLOCKED, not “skipped quietly”.
+
+## What the release gate now enforces (built and executed locally)
+
+`scripts/staging-gate.sh` performs: identity guards → dry-run plan → tool check → `pg_dump` schema+data
+backup → read-only preflight (`supabase/verification/staging_preflight.sql`) → apply `000008…000012`
+with `ON_ERROR_STOP` → `release_security_checks.sql` (fail-fast) → Storage API checks
+(`scripts/verify-storage-api.mjs`, or an explicit BLOCKED line).
+
+**Fail-closed evidence** (5 cases executed, no credentials used):
+
+| Input | Exit | Message |
+| --- | --- | --- |
+| no env | 2 | confirmation token required |
+| wrong token (`yes`) | 2 | confirmation token required |
+| staging ref == production ref | 3 | refusing to continue |
+| DB URL references another project | 4 | refusing to continue |
+| valid identity, `psql` missing | 5 | stops **before** any connection |
+| `--dry-run` | 0 | lists 000008→000012, modifies nothing |
+
+Two runner defects were found by this matrix and fixed: `HOME` was required under `set -u`, and the
+migration matcher used the ID as a filename prefix so `000008` never matched `20261023000008_*.sql`.
+
+## Security properties: verified locally vs live
+
+| Property | Local evidence | Live Supabase |
+| --- | --- | --- |
+| RLS on 15 public tables + `storage.objects` | PGlite (33/33) + release gate | **BLOCKED** |
+| Cross-customer isolation | `rls.test.js`, `privilege-escalation.test.js` | **BLOCKED** |
+| Replay minimisation (no PII to non-owners) | `replay-disclosure.test.js` (8 scenarios) | **BLOCKED** |
+| Stock concurrency / rollback | `concurrency.test.js`, `idempotency.test.js` | **BLOCKED** |
+| Storage policy semantics | PGlite policies + `release-checks.test.js` | **BLOCKED** (needs Storage API) |
+| Bucket limits / MIME | SQL assertions | **BLOCKED** |
+| Cookie attributes | unit test across envs + Chromium E2E | **BLOCKED** (live login) |
+| Rate limiting | unit tests incl. Upstash mock + outage fallback | **BLOCKED** (no Redis) |
+| Monitoring | — | **NOT CONFIGURED** |
+| CI on GitHub | template parses; pipeline simulated | **NOT TESTED** |
+
+No claim in this report extends beyond the local column.

@@ -16,7 +16,9 @@
     "test:unit": "tsx --test tests/unit/*.test.ts",
     "test:e2e": "playwright test",
     "images:prepare": "python scripts/prepare-images.py",
-    "verify": "npm run typecheck && npm run lint && npm run test:backend && npm run build"
+    "verify": "npm run typecheck && npm run lint && npm run test:backend && npm run build",
+    "gate:staging": "bash scripts/staging-gate.sh",
+    "verify:storage": "node scripts/verify-storage-api.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
