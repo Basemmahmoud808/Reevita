@@ -69,13 +69,6 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
   },
-  icons: {
-    icon: [
-      { url: "/images/brand/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/images/brand/icon-512.png", sizes: "512x512", type: "image/png" },
-    ],
-    apple: [{ url: "/images/brand/apple-touch-icon.png", sizes: "180x180" }],
-  },
   manifest: "/manifest.webmanifest",
   category: "shopping",
 };
