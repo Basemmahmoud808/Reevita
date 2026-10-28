@@ -7,11 +7,6 @@ import { getFragrance } from "@/lib/catalog";
 import { getProductsByFragrance } from "@/lib/data/catalog";
 import { siteUrl } from "@/lib/env";
 
-export const metadata: Metadata = {
-  title: "كولكشن عطري — REEVITA",
-  robots: { index: false, follow: true },
-};
-
 type CollectionPageProps = {
   params: Promise<{ slug: string }>;
 };

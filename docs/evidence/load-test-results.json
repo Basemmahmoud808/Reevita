@@ -1,0 +1,121 @@
+{
+  "generatedAt": "2026-10-28T09:46:07.874Z",
+  "target": "http://127.0.0.1:3200",
+  "node": "v24.22.1",
+  "platform": "linux/x64",
+  "requestsPerUser": 6,
+  "results": [
+    {
+      "concurrency": 5,
+      "totalRequests": 30,
+      "wallMs": 193,
+      "throughputRps": 155.65,
+      "latencyMs": {
+        "min": 5.98,
+        "median": 32,
+        "p95": 42.63,
+        "p99": 42.79,
+        "max": 42.79
+      },
+      "statusDistribution": {
+        "200": 30
+      },
+      "errors": {},
+      "errorRate": 0,
+      "endpointDistribution": {
+        "shop-filter": 7,
+        "home": 7,
+        "shop": 3,
+        "product": 2,
+        "collection": 2,
+        "checkout-page": 6,
+        "track-page": 2,
+        "sitemap": 1
+      }
+    },
+    {
+      "concurrency": 10,
+      "totalRequests": 60,
+      "wallMs": 376,
+      "throughputRps": 159.6,
+      "latencyMs": {
+        "min": 3.45,
+        "median": 71.32,
+        "p95": 81.02,
+        "p99": 104.43,
+        "max": 104.43
+      },
+      "statusDistribution": {
+        "200": 60
+      },
+      "errors": {},
+      "errorRate": 0,
+      "endpointDistribution": {
+        "sitemap": 6,
+        "shop-filter": 4,
+        "checkout-page": 8,
+        "product": 5,
+        "home": 18,
+        "collection": 1,
+        "shop": 13,
+        "track-page": 5
+      }
+    },
+    {
+      "concurrency": 25,
+      "totalRequests": 150,
+      "wallMs": 801,
+      "throughputRps": 187.19,
+      "latencyMs": {
+        "min": 22.38,
+        "median": 139.24,
+        "p95": 162.26,
+        "p99": 163.98,
+        "max": 164.15
+      },
+      "statusDistribution": {
+        "200": 150
+      },
+      "errors": {},
+      "errorRate": 0,
+      "endpointDistribution": {
+        "sitemap": 11,
+        "shop-filter": 14,
+        "home": 42,
+        "checkout-page": 22,
+        "collection": 9,
+        "product": 16,
+        "track-page": 14,
+        "shop": 22
+      }
+    },
+    {
+      "concurrency": 50,
+      "totalRequests": 300,
+      "wallMs": 1498,
+      "throughputRps": 200.26,
+      "latencyMs": {
+        "min": 28.46,
+        "median": 257.42,
+        "p95": 274.33,
+        "p99": 278.02,
+        "max": 278.59
+      },
+      "statusDistribution": {
+        "200": 300
+      },
+      "errors": {},
+      "errorRate": 0,
+      "endpointDistribution": {
+        "sitemap": 16,
+        "home": 66,
+        "track-page": 17,
+        "shop-filter": 39,
+        "checkout-page": 26,
+        "product": 56,
+        "collection": 14,
+        "shop": 66
+      }
+    }
+  ]
+}
