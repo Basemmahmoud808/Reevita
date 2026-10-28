@@ -121,20 +121,18 @@
     max-width: 88rem;
   }
 
-  .reference-header-icon,
-  .reference-header button {
+  .reference-header-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 2.5rem;
+    height: 2.5rem;
     border-radius: 0.35rem;
     color: #344238;
     transition: background-color 180ms ease, color 180ms ease;
   }
 
-  .reference-header-icon:hover,
-  .reference-header button:hover {
+  .reference-header-icon:hover {
     background: #ebe4d8;
     color: #24362d;
   }
@@ -147,14 +145,10 @@
     gap: 0;
   }
 
-  .reference-header .reference-header-logo > span > span:first-child {
-    display: none;
-  }
-
   .reference-header .reference-header-logo .latin {
     font-size: 1.45rem;
-    letter-spacing: 0.16em;
-    font-weight: 500;
+    letter-spacing: 0.08em;
+    font-weight: 600;
   }
 
   .reference-header .search-trigger {
@@ -173,7 +167,19 @@
     transition: color 180ms ease;
   }
 
+  .reference-header nav button {
+    color: #4c514c;
+    transition: color 180ms ease;
+  }
+
+  .reference-header nav a,
+  .reference-header nav button,
+  .reference-header .reference-language-toggle {
+    white-space: nowrap;
+  }
+
   .reference-header nav a:hover,
+  .reference-header nav button:hover,
   .reference-nav-active {
     color: #344238;
   }

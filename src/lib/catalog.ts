@@ -4,7 +4,7 @@ import { canonicalProductNames } from "@/lib/product-names";
 
 /**
  * The static brand catalogue is the single source of truth for merchandising
- * metadata (names, copy, fragrance families, ratings) and powers the demo mode.
+ * metadata (names, copy, fragrance families) and powers demo mode.
  * Prices, stock and availability are re-read from Supabase when configured.
  */
 const catalog = catalogJson;
@@ -35,14 +35,14 @@ export const fragrances = [...(catalog.fragrances as Fragrance[])].sort(
 export const testimonials = catalog.testimonials as Testimonial[];
 export const faqs = catalog.faqs as Faq[];
 
-/** Product descriptions supplied by the brand, shared by each product family. */
+/** Neutral category copy avoids unverified ingredient or performance claims. */
 export const categoryDescriptionsAr: Record<string, string> = {
-  "body-butter": "زبدة جسم غنية بقوام كريمي ناعم يذوب على بشرتك ليمنحها ترطيبًا مكثفًا ونعومة تدوم طويلًا. بتركيبة غنية بزبدة الشيا والكاكاو وزيت اللوز الحلو، مع البانثينول والجلسرين وفيتامين E، للمساعدة على تغذية البشرة وحمايتها من الجفاف، وتركها ناعمة وحريرية بلمسة من عطرك المفضل.",
-  "body-lotion": "لوشن جسم بتركيبة غنية وناعمة تمنح بشرتك ترطيبًا عميقًا ونعومة تدوم طويلًا. مدعوم بزبدة الشيا وزيوت اللوز الحلو والسمسم والبرافين لتغذية البشرة وتقليل فقدان الرطوبة، مع اليوريا والجلسرين ومونو بروبيلين جلايكول لترطيب مكثف دون تقشير، والبانثينول لتهدئة البشرة، والـ IPM لتحسين ملمسها، لتنعمي ببشرة ناعمة وحريرية ولمسة من عطرك المفضل.",
-  "shower-gel": "شاور جل بتركيبة منعشة تنظف بشرتك بلطف وتمنحها إحساسًا بالنظافة والانتعاش. غني بالجلسرين الذي يساعد على ترطيب البشرة وتقليل الجفاف، والـ PQ7 الذي يمنحها ملمسًا ناعمًا وحريريًا، مع عطر مميز يحوّل روتين الاستحمام اليومي إلى لحظات من الانتعاش والدلال، لبشرة نظيفة وناعمة ومعطرة برائحتك المفضلة.",
-  shampoo: "شامبو خالي من السلفات بتركيبة غنية بالهيدروجار والـ PQ10 والجلسرين والبانثينول وخلاصة الألوفيرا، لتنظيف الشعر بلطف والمساعدة على ترطيبه وتقليل الهيشان والتشابك، لشعر أنعم وأسهل في التصفيف وأكثر حيوية ولمعانًا.",
-  "body-splash": "بادي سبلاش بعطر غني ومميز يمنح بشرتك إحساسًا بالانتعاش ولمسة من الأنوثة والجاذبية. بتركيبة مدعومة بالجلسرين الذي يساعد على ترطيب البشرة والحفاظ على نعومتها، وفيتامين E المعروف بخصائصه المضادة للأكسدة، ليمنحك تجربة عطرية منعشة وبشرة ناعمة ومعطرة برائحتك المفضلة طوال يومك.",
-  "hair-mist": "هير ميست بعطر مميز يمنح شعرك انتعاشًا ورائحة جذابة، بتركيبة خالية من الكحول الإيثيلي ومدعومة بالجلسرين والـ PQ7 للمساعدة على ترطيب الشعر وتنعيمه وتقليل الهيشان، لشعر ناعم ومعطر بلمسة من الأنوثة والجمال.",
+  "body-butter": "بادي باتر REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.",
+  "body-lotion": "لوشن جسم REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.",
+  "shower-gel": "شاور جل REEVITA للاستخدام أثناء الاستحمام. الرائحة والحجم موضحان على العبوة.",
+  shampoo: "شامبو REEVITA للعناية بالشعر. راجعي بيانات العبوة للاطلاع على المكونات وطريقة الاستخدام.",
+  "body-splash": "بادي سبلاش REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.",
+  "hair-mist": "هير ميست REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.",
 };
 
 interface RawProduct {
@@ -66,6 +66,7 @@ interface RawProduct {
   rating: number;
   reviews: number;
   isFeatured: boolean;
+  isActive?: boolean;
   isInCollection?: boolean;
   isNew: boolean;
   badge: string | null;
@@ -99,6 +100,8 @@ function toProduct(raw: RawProduct): Product {
     price: raw.price,
     compareAtPrice: raw.compareAtPrice,
     size: raw.size,
+    sizeOptions: [],
+    isPrimarySizeOption: true,
     categorySlug: raw.category,
     categoryNameAr: category?.nameAr ?? "",
     categoryNameEn: category?.nameEn ?? "",
@@ -111,7 +114,7 @@ function toProduct(raw: RawProduct): Product {
     howToUseAr: raw.howToUseAr,
     images: [
       {
-        url: suppliedProductImages[raw.slug] ?? `/images/products/${raw.slug}.webp`,
+        url: suppliedProductImages[raw.slug] ?? suppliedProductImages[raw.slug.replace(/-\d+$/, "")] ?? `/images/products/${raw.slug}.webp`,
         alt: `${raw.nameEn} — ${brand.name}`,
       },
     ],
@@ -126,7 +129,43 @@ function toProduct(raw: RawProduct): Product {
   };
 }
 
-export const staticProducts: Product[] = (catalog.products as RawProduct[]).map(toProduct);
+export function attachProductSizeOptions(products: Product[]): Product[] {
+  const groups = new Map<string, Product[]>();
+  for (const product of products) {
+    const key = [product.categorySlug, product.fragranceSlug, product.variantLabelAr ?? product.slug].join("|");
+    groups.set(key, [...(groups.get(key) ?? []), product]);
+  }
+
+  const defaultIds = new Set<string>();
+  const optionsByProductId = new Map<string, Product["sizeOptions"]>();
+  for (const group of groups.values()) {
+    const sorted = [...group].sort((a, b) => {
+      const amountA = Number(a.size.match(/[\d.]+/)?.[0] ?? 0);
+      const amountB = Number(b.size.match(/[\d.]+/)?.[0] ?? 0);
+      return amountB - amountA || a.id.localeCompare(b.id);
+    });
+    const options = sorted.map((product) => ({
+      productId: product.id,
+      slug: product.slug,
+      size: product.size,
+      price: product.price,
+      compareAtPrice: product.compareAtPrice,
+      stockStatus: product.stockStatus,
+    }));
+    if (sorted[0]) defaultIds.add(sorted[0].id);
+    for (const product of group) optionsByProductId.set(product.id, options);
+  }
+
+  return products.map((product) => ({
+    ...product,
+    sizeOptions: optionsByProductId.get(product.id) ?? [],
+    isPrimarySizeOption: defaultIds.has(product.id),
+  }));
+}
+
+export const staticProducts: Product[] = attachProductSizeOptions(
+  (catalog.products as RawProduct[]).filter((product) => product.isActive !== false).map(toProduct),
+);
 
 export const staticCollections: Collection[] = [
   ...fragrances.map((fragrance) => ({
@@ -150,7 +189,7 @@ export const staticCollections: Collection[] = [
     displayOrder: 50,
     isPublished: true,
     purchaseReady: false,
-    missingProducts: ["Shampoo Bubble Gum — 300 ml", "Shampoo Dove — 300 ml"],
+    missingProducts: ["Shampoo Dove — 300 ml"],
     productIds: [],
   },
   {
@@ -232,7 +271,7 @@ export const featuredCollections: Collection[] = [
     image: "/images/collections/fruity-mood.jpg",
     displayOrder: 5,
     isPublished: true,
-    productIds: featuredCollectionProductIds(["shampoo-blueberry", "hair-mist-ruby-musk"]),
+    productIds: featuredCollectionProductIds(["shower-gel-blueberry", "body-lotion-ruby-musk", "body-splash-ruby-musk"]),
   },
   {
     id: "static-soft-glow-bundle",
@@ -244,7 +283,7 @@ export const featuredCollections: Collection[] = [
     displayOrder: 6,
     isPublished: true,
     purchaseReady: false,
-    missingProducts: ["Shampoo Bubble Gum — 300 ml", "Shampoo Dove — 300 ml"],
+    missingProducts: ["Shampoo Dove — 300 ml"],
     productIds: [],
   },
   {
@@ -274,7 +313,7 @@ export const featuredCollections: Collection[] = [
     displayOrder: 8,
     isPublished: true,
     purchaseReady: true,
-    productIds: featuredCollectionProductIds(["shampoo-blueberry", "hair-mist-ruby-musk"]),
+    productIds: featuredCollectionProductIds(["shampoo-bubble-gum", "hair-mist-ruby-musk"]),
   },
   {
     id: "static-complete-care-bundle",
@@ -285,9 +324,19 @@ export const featuredCollections: Collection[] = [
     image: "/images/collections/complete-care-bundle.jpg",
     displayOrder: 9,
     isPublished: true,
-    purchaseReady: false,
-    missingProducts: ["Shampoo Bubble Gum — 300 ml", "Shower Gel Bubble Gum — 500 ml"],
-    productIds: featuredCollectionProductIds(["body-lotion-sexy", "body-splash-sexy", "body-butter-sexy", "hair-mist-sexy"]),
+    purchaseReady: true,
+    missingProducts: [],
+    productIds: featuredCollectionProductIds([
+      "body-lotion-sexy",
+      "body-lotion-queen",
+      "body-lotion-ruby-musk",
+      "body-splash-sexy",
+      "body-splash-queen",
+      "body-splash-ruby-musk",
+      "shower-gel-bubble-gum",
+      "shower-gel-blueberry",
+      "shower-gel-dove",
+    ]),
   },
 ];
 

@@ -7,6 +7,7 @@ import {
   getStaticProduct,
   staticProducts,
   categoryDescriptionsAr,
+  attachProductSizeOptions,
 } from "@/lib/catalog";
 import { demoGovernorates, demoProducts } from "@/lib/demo/store";
 import { demoCollections } from "@/lib/demo/store";
@@ -74,6 +75,8 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
     price: Number(row.price),
     compareAtPrice: row.compare_at_price === null ? null : Number(row.compare_at_price),
     size: row.size ?? meta?.size ?? "",
+    sizeOptions: [],
+    isPrimarySizeOption: true,
     categorySlug: row.category?.slug ?? meta?.categorySlug ?? "",
     categoryNameAr: row.category?.name_ar ?? category?.nameAr ?? "",
     categoryNameEn: row.category?.name ?? category?.nameEn ?? "",
@@ -85,9 +88,9 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
     ingredientsAr: row.ingredients ?? meta?.ingredientsAr ?? "",
     howToUseAr: row.how_to_use ?? meta?.howToUseAr ?? "",
     images: images.length > 0 ? images : (meta?.images ?? []),
-    rating: meta?.rating ?? 4.8,
+    rating: meta?.rating ?? 0,
     reviews: meta?.reviews ?? 0,
-    stockStatus: availability.get(row.id) ?? meta?.stockStatus ?? "in_stock",
+    stockStatus: availability.get(row.id) ?? meta?.stockStatus ?? "out_of_stock",
     isFeatured: row.is_featured,
     isInCollection: meta?.isInCollection ?? false,
     isNew: meta?.isNew ?? false,
@@ -164,7 +167,7 @@ export const getProducts = cache(async (): Promise<Product[]> => {
     availability.set(row.product_id, mapStock(row.stock_status));
   }
 
-  return ((data ?? []) as unknown as ProductRow[]).map((row) => mapProduct(row, availability));
+  return attachProductSizeOptions(((data ?? []) as unknown as ProductRow[]).map((row) => mapProduct(row, availability)));
 });
 
 export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {

@@ -29,6 +29,7 @@ export type AddableProduct = Pick<
   | "variantLabelAr"
   | "images"
   | "stockStatus"
+  | "sizeOptions"
 >;
 
 interface CartContextValue {

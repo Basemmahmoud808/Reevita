@@ -75,6 +75,10 @@ export async function createTestDatabase() {
     await db.exec(seedSql);
   }
 
+  // Backend order tests use a private inventory fixture. The production seed
+  // deliberately starts with zero stock until the owner enters verified counts.
+  await db.exec('UPDATE public.inventory SET quantity_available = 50, quantity_reserved = 0;');
+
   return db;
 }
 

@@ -33,7 +33,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
   const groupedBestSellers = useMemo(() => {
     const categoryOrder = ["shampoo", "body-lotion", "body-butter", "body-splash", "hair-mist", "shower-gel"];
     return categoryOrder
-      .map((categorySlug) => products.filter((product) => product.categorySlug === categorySlug))
+      .map((categorySlug) => products.filter((product) => product.categorySlug === categorySlug && product.isPrimarySizeOption))
       .filter((variants) => variants.length > 0);
   }, [products]);
 
@@ -133,8 +133,8 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
                   <Price price={selectedCollection.products.reduce((total, product) => total + product.price * (selectedCollection.productQuantities?.[product.id] ?? 1), 0)} className="text-[#fffdf8]" />
                 </div>
                 <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <Link href={selectedCollection.href} className="reference-outline-button border-[#fffdf8]/60 text-[#fffdf8] hover:border-[#34483d]">
-                    View collection <ArrowRight className="size-4" />
+                  <Link href="/collections" className="reference-outline-button border-[#fffdf8]/60 text-[#fffdf8] hover:border-[#34483d]">
+                    Explore collections <ArrowRight className="size-4" />
                   </Link>
                   <CollectionAddToBag purchaseReady={selectedCollection.purchaseReady} products={selectedCollection.products} quantities={selectedCollection.productQuantities} className="border border-[#fffdf8]/60 bg-[#fffdf8] text-[#34483d] hover:bg-[#d9bb83]" />
                 </div>

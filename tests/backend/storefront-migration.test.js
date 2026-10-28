@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createTestDatabase } from './setup-db.js';
 
-test('Storefront seed & migration 000006: 14 real SKUs, safe availability, profile provisioning', async () => {
+test('Storefront seed & migration 000006: 24 catalogued SKUs, safe availability, profile provisioning', async () => {
   const db = await createTestDatabase();
 
   // 27 governorates with a rate each
@@ -11,15 +11,15 @@ test('Storefront seed & migration 000006: 14 real SKUs, safe availability, profi
   const shipRes = await db.query('SELECT count(*) as count FROM public.shipping_rates;');
   assert.equal(Number(shipRes.rows[0].count), 27);
 
-  // Catalogue: 6 product lines, 14 products, 14 available image files, 14 inventory rows
+  // Catalogue: 6 product lines, 24 products, 24 available image files, 24 inventory rows
   const catRes = await db.query('SELECT count(*) as count FROM public.categories;');
   assert.equal(Number(catRes.rows[0].count), 6, 'Shampoo, body lotion, body butter, body splash, hair mist, shower gel');
   const prodRes = await db.query('SELECT count(*) as count FROM public.products;');
-  assert.equal(Number(prodRes.rows[0].count), 14, '14 real REEVITA SKUs');
+  assert.equal(Number(prodRes.rows[0].count), 24, '24 catalogued REEVITA SKUs');
   const imgRes = await db.query('SELECT count(*) as count FROM public.product_images;');
-  assert.equal(Number(imgRes.rows[0].count), 14, 'Each product should reference an existing primary image');
+  assert.equal(Number(imgRes.rows[0].count), 24, 'Each product should reference an existing primary image');
   const invRes = await db.query('SELECT count(*) as count FROM public.inventory;');
-  assert.equal(Number(invRes.rows[0].count), 14);
+  assert.equal(Number(invRes.rows[0].count), 24);
 
   const softGlow = await db.query(`
     SELECT c.name, c.name_ar, c.cover_image_url, c.is_published, c.purchase_ready,
@@ -36,7 +36,22 @@ test('Storefront seed & migration 000006: 14 real SKUs, safe availability, profi
   assert.equal(softGlow.rows[0].is_published, true);
   assert.equal(softGlow.rows[0].purchase_ready, false);
   assert.equal(Number(softGlow.rows[0].product_count), 0, 'Unconfirmed products must not be assigned');
-  assert.deepEqual(softGlow.rows[0].missing_products, ['Shampoo Bubble Gum — 300 ml', 'Shampoo Dove — 300 ml']);
+  assert.deepEqual(softGlow.rows[0].missing_products, ['Shampoo Dove — 300 ml']);
+
+  const completeCare = await db.query(`
+    SELECT c.purchase_ready, c.missing_products, count(cp.product_id)::int AS product_count,
+      sum(p.price * cp.quantity)::int AS bundle_total
+    FROM public.collections c
+    LEFT JOIN public.collection_products cp ON cp.collection_id = c.id
+    LEFT JOIN public.products p ON p.id = cp.product_id
+    WHERE c.slug = 'complete-care-bundle'
+    GROUP BY c.id;
+  `);
+  assert.equal(completeCare.rows[0].purchase_ready, false);
+  assert.deepEqual(completeCare.rows[0].missing_products, []);
+  assert.equal(completeCare.rows[0].purchase_ready, true);
+  assert.equal(Number(completeCare.rows[0].product_count), 9);
+  assert.equal(Number(completeCare.rows[0].bundle_total), 2340);
 
   // Every image points to a local, audited WebP asset
   const badImages = await db.query(
@@ -50,7 +65,7 @@ test('Storefront seed & migration 000006: 14 real SKUs, safe availability, profi
   );`);
   await db.exec(`RESET ROLE; SET ROLE anon;`);
   const availability = await db.query('SELECT * FROM public.product_availability;');
-  assert.equal(availability.rows.length, 14, 'Anon can read availability for active products');
+  assert.equal(availability.rows.length, 24, 'Anon can read availability for active products');
   assert.ok(availability.rows.some(row => row.stock_status === 'out_of_stock'), 'Inventory changes update the public-safe status');
   assert.equal(
     Object.keys(availability.rows[0]).sort().join(','),

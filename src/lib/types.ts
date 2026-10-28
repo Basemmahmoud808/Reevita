@@ -7,6 +7,15 @@ export interface ProductImage {
   alt: string;
 }
 
+export interface ProductSizeOption {
+  productId: string;
+  slug: string;
+  size: string;
+  price: number;
+  compareAtPrice: number | null;
+  stockStatus: StockStatus;
+}
+
 export interface Product {
   id: string;
   slug: string;
@@ -18,6 +27,8 @@ export interface Product {
   price: number;
   compareAtPrice: number | null;
   size: string;
+  sizeOptions: ProductSizeOption[];
+  isPrimarySizeOption: boolean;
   categorySlug: string;
   categoryNameAr: string;
   categoryNameEn: string;

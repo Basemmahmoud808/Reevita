@@ -87,10 +87,7 @@ lines.push(
   "INSERT INTO public.shipping_rates (governorate_id, shipping_cost, free_shipping_threshold, estimated_days_min, estimated_days_max)",
 );
 lines.push("SELECT id,");
-lines.push("  CASE zone");
-lines.push("    WHEN 'greater_cairo' THEN 50 WHEN 'alexandria' THEN 50");
-lines.push("    WHEN 'delta' THEN 65 WHEN 'canal' THEN 65");
-lines.push("    WHEN 'upper_egypt' THEN 80 WHEN 'frontier' THEN 100 END,");
+lines.push("  50,");
 lines.push("  CASE zone");
 lines.push("    WHEN 'frontier' THEN 1500 WHEN 'upper_egypt' THEN 1200 ELSE 1000 END,");
 lines.push("  CASE zone");
@@ -130,7 +127,7 @@ const categoryIdBySlug = new Map(
 );
 const fragranceById = new Map(catalog.fragrances.map((fragrance) => [fragrance.slug, fragrance]));
 
-lines.push("-- 4. Products (14 real SKUs) — prices in EGP");
+lines.push(`-- 4. Products (${products.length} catalogue SKUs) — prices in EGP`);
 lines.push(
   "INSERT INTO public.products (id, category_id, slug, name, name_ar, short_description, short_description_ar, description, price, compare_at_price, benefits, ingredients, how_to_use, size, is_featured, is_active) VALUES",
 );
@@ -146,7 +143,7 @@ lines.push(
         product.price
       }, ${product.compareAtPrice ?? "NULL"}, ${arr(product.benefits)}, ${q(product.ingredientsAr)}, ${q(
         product.howToUseAr,
-      )}, ${q(product.size)}, ${product.isFeatured ? "TRUE" : "FALSE"}, TRUE)`;
+      )}, ${q(product.size)}, ${product.isFeatured ? "TRUE" : "FALSE"}, ${product.isActive === false ? "FALSE" : "TRUE"})`;
     })
     .join(",\n"),
 );
@@ -156,23 +153,19 @@ lines.push("  short_description = EXCLUDED.short_description, short_description_
 lines.push("  description = EXCLUDED.description, price = EXCLUDED.price,");
 lines.push("  compare_at_price = EXCLUDED.compare_at_price, benefits = EXCLUDED.benefits,");
 lines.push("  ingredients = EXCLUDED.ingredients, how_to_use = EXCLUDED.how_to_use,");
-lines.push("  size = EXCLUDED.size, is_featured = EXCLUDED.is_featured, is_active = TRUE;");
+lines.push("  size = EXCLUDED.size, is_featured = EXCLUDED.is_featured, is_active = EXCLUDED.is_active;");
 lines.push("");
 
-lines.push("-- 5. Product imagery (primary + label detail)");
+lines.push("-- 5. Product imagery");
 lines.push("DELETE FROM public.product_images;");
 lines.push(
   "INSERT INTO public.product_images (product_id, image_url, alt_text, display_order, is_primary) VALUES",
 );
 const imageRows = [];
 for (const product of products) {
+  const imageSlug = product.slug.replace(/-(100|120)$/, "");
   imageRows.push(
-    `  (${q(product.id)}, ${q(`/images/products/${product.slug}.webp`)}, ${q(`${product.nameAr} — REEVITA`)}, 1, TRUE)`,
-  );
-  imageRows.push(
-    `  (${q(product.id)}, ${q(`/images/products/${product.slug}-detail.webp`)}, ${q(
-      `تفاصيل عبوة ${product.nameAr}`,
-    )}, 2, FALSE)`,
+    `  (${q(product.id)}, ${q(`/images/products/${imageSlug}.webp`)}, ${q(`${product.nameAr} — REEVITA`)}, 1, TRUE)`,
   );
 }
 lines.push(imageRows.join(",\n") + ";");
@@ -237,6 +230,20 @@ lines.push(
 );
 lines.push("ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, description = EXCLUDED.description;");
 lines.push("");
+
+lines.push("-- 8. Collection memberships use owner-confirmed products.");
+lines.push("UPDATE public.collections SET purchase_ready = FALSE, missing_products = ARRAY['Shampoo Dove — 300 ml'], updated_at = now() WHERE slug = 'soft-glow-bundle';");
+lines.push("UPDATE public.collections SET purchase_ready = TRUE, missing_products = ARRAY[]::text[], updated_at = now() WHERE slug = 'complete-care-bundle';");
+lines.push("DELETE FROM public.collection_products cp USING public.collections c WHERE cp.collection_id = c.id AND c.slug IN ('complete-care-bundle', 'hair-care-duo-bundle', 'fruity-mood');");
+lines.push("INSERT INTO public.collection_products (collection_id, product_id, display_order, quantity)");
+lines.push("SELECT c.id, p.id, m.display_order, 1 FROM (VALUES");
+lines.push("  ('complete-care-bundle', 'body-lotion-sexy', 0), ('complete-care-bundle', 'body-lotion-queen', 1), ('complete-care-bundle', 'body-lotion-ruby-musk', 2),");
+lines.push("  ('complete-care-bundle', 'body-splash-sexy', 3), ('complete-care-bundle', 'body-splash-queen', 4), ('complete-care-bundle', 'body-splash-ruby-musk', 5),");
+lines.push("  ('complete-care-bundle', 'shower-gel-bubble-gum', 6), ('complete-care-bundle', 'shower-gel-blueberry', 7), ('complete-care-bundle', 'shower-gel-dove', 8),");
+lines.push("  ('hair-care-duo-bundle', 'shampoo-bubble-gum', 0), ('hair-care-duo-bundle', 'hair-mist-ruby-musk', 1),");
+lines.push("  ('fruity-mood', 'shower-gel-blueberry', 0), ('fruity-mood', 'body-lotion-ruby-musk', 1), ('fruity-mood', 'body-splash-ruby-musk', 2)");
+lines.push(") AS m(collection_slug, product_slug, display_order) JOIN public.collections c ON c.slug = m.collection_slug JOIN public.products p ON p.slug = m.product_slug AND p.is_active = TRUE");
+lines.push("ON CONFLICT (collection_id, product_id) DO UPDATE SET display_order = EXCLUDED.display_order, quantity = EXCLUDED.quantity;");
 
 const output = lines.join("\n");
 fs.writeFileSync(path.join(root, "supabase/seed.sql"), output, "utf8");

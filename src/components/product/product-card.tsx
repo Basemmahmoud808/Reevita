@@ -79,7 +79,7 @@ export function ProductCard({ product, priority = false, className }: { product:
       <div className="flex flex-1 flex-col px-0.5 pt-4">
         <div className="flex items-center justify-between gap-2">
           <p className="text-[0.58rem] font-bold tracking-[0.16em] text-muted uppercase">{product.categoryNameEn}</p>
-          <Rating rating={product.rating} reviews={product.reviews} />
+          {product.reviews > 0 && <Rating rating={product.rating} reviews={product.reviews} />}
         </div>
         <h3 className="mt-2 text-[0.98rem] font-bold leading-7 text-plum">
           <Link href={`/products/${product.slug}`} className="transition-colors hover:text-gold-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-offset-2">
@@ -115,7 +115,7 @@ export function GroupedProductCard({ products, priority = false, className }: { 
       <div className="relative flex flex-1 flex-col px-0.5 pt-4">
         <div className="flex items-center justify-between gap-2">
           <p className="text-[0.58rem] font-bold tracking-[0.16em] text-muted uppercase">{product.categoryNameEn}</p>
-          <Rating rating={product.rating} reviews={product.reviews} />
+          {product.reviews > 0 && <Rating rating={product.rating} reviews={product.reviews} />}
         </div>
         <h3 className="mt-2 text-[0.98rem] font-bold leading-7 text-plum">
           <Link href={`/products/${product.slug}`} className="transition-colors hover:text-gold-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-offset-2">

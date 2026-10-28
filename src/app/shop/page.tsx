@@ -20,7 +20,7 @@ export default async function ShopPage({ searchParams }: { searchParams: SearchP
   const search = first(params.search).trim().toLowerCase();
   const category = first(params.category);
   const sort = first(params.sort) || "featured";
-  const allProducts = await getProducts();
+  const allProducts = (await getProducts()).filter((product) => product.isPrimarySizeOption);
   let products = allProducts.filter((product) => {
     const matchesCategory = !category || product.categorySlug === category;
     const haystack = `${product.nameEn} ${product.nameAr} ${product.categoryNameEn} ${product.fragranceNameEn}`.toLowerCase();

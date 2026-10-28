@@ -10,6 +10,9 @@ const productTypes: Record<string, { en: string; ar: string }> = {
 const variantNames: Record<string, { en: string; ar: string }> = {
   "shampoo-aloe-vera": { en: "Aloe Vera", ar: "ألوفيرا" },
   "shampoo-blueberry": { en: "Blueberry", ar: "توت أزرق" },
+  "shampoo-bubble-gum": { en: "Bubble Gum", ar: "بابل جام" },
+  "shower-gel-blueberry": { en: "Blueberry", ar: "توت أزرق" },
+  "shower-gel-dove": { en: "Dove", ar: "دوف" },
   "body-lotion-sexy": { en: "Sexy", ar: "سيكسي" },
   "body-lotion-queen": { en: "Queen", ar: "كوين" },
   "body-lotion-ruby-musk": { en: "Ruby Musk", ar: "روبي مسك" },

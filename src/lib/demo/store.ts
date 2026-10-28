@@ -1,4 +1,4 @@
-import { brand, getStaticProduct, featuredCollections, staticProducts } from "@/lib/catalog";
+import { featuredCollections, staticProducts } from "@/lib/catalog";
 import { normalizeEgyptianPhone } from "@/lib/phone";
 import type {
   Governorate,
@@ -89,7 +89,7 @@ interface DemoStock {
 }
 
 const stock: Map<string, DemoStock> = new Map(
-  staticProducts.map((product) => [product.id, { quantity: product.initialStock ?? 25, threshold: 5 }]),
+  staticProducts.map((product) => [product.id, { quantity: product.initialStock ?? 0, threshold: 5 }]),
 );
 
 const collections: Map<string, Collection> = new Map(
@@ -195,205 +195,9 @@ export interface DemoOrder {
   idempotencyKey?: string | null;
 }
 
-function isoDaysAgo(days: number, hour = 12): string {
-  const date = new Date();
-  date.setDate(date.getDate() - days);
-  date.setHours(hour, Math.floor(Math.random() * 50) + 5, 0, 0);
-  return date.toISOString();
-}
+const orders: DemoOrder[] = [];
 
-function buildOrder(
-  index: number,
-  data: {
-    customerName: string;
-    customerPhone: string;
-    customerEmail?: string;
-    governorateCode: string;
-    city: string;
-    addressLine: string;
-    status: OrderStatus;
-    daysAgo: number;
-    items: Array<{ slug: string; quantity: number }>;
-    carrier?: string;
-    tracking?: string;
-  },
-): DemoOrder {
-  const governorate = demoGovernorates().find((gov) => gov.code === data.governorateCode) ?? demoGovernorates()[0]!;
-  const items: DemoOrderItem[] = data.items.map(({ slug, quantity }) => {
-    const product = getStaticProduct(slug)!;
-    return {
-      productId: product.id,
-      productName: product.nameEn,
-      nameAr: product.nameAr,
-      image: product.images[0]?.url ?? "",
-      quantity,
-      unitPrice: product.price,
-      totalPrice: product.price * quantity,
-    };
-  });
-  const subtotal = items.reduce((sum, item) => sum + item.totalPrice, 0);
-  const shippingFee = subtotal >= governorate.freeShippingThreshold ? 0 : governorate.shippingCost;
-  const createdAt = isoDaysAgo(data.daysAgo);
-  return {
-    id: `99999999-0000-0000-0000-${String(index).padStart(12, "0")}`,
-    orderNumber: `RV-2026-${String(10000 + index)}`,
-    customerName: data.customerName,
-    customerPhone: data.customerPhone,
-    customerEmail: data.customerEmail ?? null,
-    governorateId: governorate.id,
-    governorateAr: governorate.nameAr,
-    city: data.city,
-    addressLine: data.addressLine,
-    landmark: null,
-    notes: null,
-    status: data.status,
-    paymentMethod: "cod",
-    paymentStatus: data.status === "delivered" ? "paid" : "pending",
-    subtotal,
-    shippingFee,
-    codFee: brand.codFee,
-    total: subtotal + shippingFee + brand.codFee,
-    currency: "EGP",
-    shippingCarrier: data.carrier ?? (data.status === "shipped" ? "REEVITA Express" : null),
-    trackingNumber: data.tracking ?? (data.status === "shipped" ? `RVX-${900000 + index}` : null),
-    createdAt,
-    items,
-    history: [
-      { from: null, to: "new", reason: "Order created", at: createdAt },
-      ...(data.status !== "new"
-        ? [{ from: "new" as OrderStatus, to: data.status, reason: "Demo status", at: createdAt }]
-        : []),
-    ],
-  };
-}
-
-const orders: DemoOrder[] = [
-  buildOrder(1, {
-    customerName: "منى عبد الرحمن",
-    customerPhone: "+201012345678",
-    customerEmail: "mona@example.com",
-    governorateCode: "CAI",
-    city: "مدينة نصر",
-    addressLine: "شارع عباس العقاد، عمارة 12، شقة 4",
-    status: "delivered",
-    daysAgo: 18,
-    items: [
-      { slug: "body-lotion-queen", quantity: 1 },
-      { slug: "body-butter-queen", quantity: 1 },
-    ],
-    carrier: "REEVITA Express",
-  }),
-  buildOrder(2, {
-    customerName: "ياسمين سامي",
-    customerPhone: "+201112345678",
-    governorateCode: "GIZ",
-    city: "الدقي",
-    addressLine: "شارع التحرير، عمارة 44، شقة 7",
-    status: "new",
-    daysAgo: 0,
-    items: [
-      { slug: "hair-mist-sexy", quantity: 1 },
-      { slug: "shampoo-aloe-vera", quantity: 1 },
-    ],
-  }),
-  buildOrder(3, {
-    customerName: "نور هشام",
-    customerPhone: "+201212345678",
-    governorateCode: "ALX",
-    city: "سموحة",
-    addressLine: "شارع فوزي معاذ، فيلا 9",
-    status: "confirmed",
-    daysAgo: 2,
-    items: [{ slug: "body-splash-ruby-musk", quantity: 2 }],
-  }),
-  buildOrder(4, {
-    customerName: "سارة مجدي",
-    customerPhone: "+201512345678",
-    governorateCode: "DKH",
-    city: "المنصورة",
-    addressLine: "شارع الجيش، عمارة 21، شقة 3",
-    status: "packed",
-    daysAgo: 5,
-    items: [
-      { slug: "body-butter-sexy", quantity: 1 },
-      { slug: "body-lotion-sexy", quantity: 1 },
-    ],
-  }),
-  buildOrder(5, {
-    customerName: "مي كريم",
-    customerPhone: "+201022345678",
-    governorateCode: "ASY",
-    city: "أسيوط",
-    addressLine: "شارع الجمهورية، عمارة 8، شقة 2",
-    status: "shipped",
-    daysAgo: 7,
-    items: [
-      { slug: "body-butter-queen", quantity: 1 },
-      { slug: "hair-mist-queen", quantity: 1 },
-    ],
-    carrier: "Bosta",
-    tracking: "TRK-BOSTA-48213",
-  }),
-  buildOrder(6, {
-    customerName: "هبة طارق",
-    customerPhone: "+201033345678",
-    governorateCode: "CAI",
-    city: "المعادي",
-    addressLine: "شارع 9، عمارة 5، شقة 11",
-    status: "delivered",
-    daysAgo: 12,
-    items: [{ slug: "body-lotion-queen", quantity: 2 }],
-    carrier: "REEVITA Express",
-  }),
-  buildOrder(7, {
-    customerName: "ريم أحمد",
-    customerPhone: "+201044456789",
-    governorateCode: "PTS",
-    city: "بورسعيد",
-    addressLine: "شارع الجمهورية، عمارة 30",
-    status: "cancelled",
-    daysAgo: 9,
-    items: [{ slug: "shampoo-blueberry", quantity: 1 }],
-  }),
-  buildOrder(8, {
-    customerName: "دينا مصطفى",
-    customerPhone: "+201055567891",
-    governorateCode: "SHG",
-    city: "سوهاج",
-    addressLine: "شارع 15، عمارة 2، شقة 6",
-    status: "refused",
-    daysAgo: 14,
-    items: [{ slug: "body-splash-queen", quantity: 1 }],
-    carrier: "Aramex",
-  }),
-  buildOrder(9, {
-    customerName: "مريم عادل",
-    customerPhone: "+201066678912",
-    customerEmail: "mariam@example.com",
-    governorateCode: "GIZ",
-    city: "الشيخ زايد",
-    addressLine: "الحي الأول، عمارة 18، شقة 5",
-    status: "delivered",
-    daysAgo: 20,
-    items: [
-      { slug: "body-butter-ruby-musk", quantity: 1 },
-      { slug: "hair-mist-ruby-musk", quantity: 1 },
-    ],
-    carrier: "REEVITA Express",
-  }),
-  buildOrder(10, {
-    customerName: "فرح وليد",
-    customerPhone: "+201077789123",
-    governorateCode: "MAT",
-    city: "مرسى مطروح",
-    addressLine: "شارع الإسكندرية، عمارة 6",
-    status: "new",
-    daysAgo: 1,
-    items: [{ slug: "body-lotion-ruby-musk", quantity: 1 }],
-  }),
-];
-
-let orderSequence = orders.length;
+let orderSequence = 0;
 const blockedPhones = new Set<string>();
 
 export function demoOrders(): DemoOrder[] {

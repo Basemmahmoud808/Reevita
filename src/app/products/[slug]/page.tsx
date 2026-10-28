@@ -60,7 +60,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   const relatedProducts = (await getProductsByCategory(product.categorySlug))
-    .filter((item) => item.slug !== product.slug);
+    .filter((item) => item.fragranceSlug !== product.fragranceSlug && item.isPrimarySizeOption);
 
   const accordionItems: AccordionItem[] = [
     {
@@ -71,10 +71,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
         </p>
       ),
     },
-    {
+  ];
+  if (product.benefits.length > 0) {
+    accordionItems.push({
       title: "Benefits",
-      content:
-        product.benefits.length > 0 ? (
+      content: (
           <ul
             dir="rtl"
             lang="ar"
@@ -84,34 +85,33 @@ export default async function ProductPage({ params }: ProductPageProps) {
               <li key={benefit}>{benefit}</li>
             ))}
           </ul>
-        ) : (
-          <p>No product benefits are available for this item.</p>
         ),
-    },
-    {
+    });
+  }
+  if (product.ingredientsAr) {
+    accordionItems.push({
       title: "Ingredients",
-      content: product.ingredientsAr ? (
+      content: (
         <p dir="rtl" lang="ar" className="text-start leading-7">
           {product.ingredientsAr}
         </p>
-      ) : (
-        <p>Ingredient information is not available for this item.</p>
       ),
-    },
-    {
+    });
+  }
+  if (product.howToUseAr) {
+    accordionItems.push({
       title: "How to use",
-      content: product.howToUseAr ? (
+      content: (
         <p dir="rtl" lang="ar" className="text-start leading-7">
           {product.howToUseAr}
         </p>
-      ) : (
-        <p>Usage information is not available for this item.</p>
       ),
-    },
-    {
+    });
+  }
+  if (product.reviews > 0) {
+    accordionItems.push({
       title: "Customer reviews",
-      content:
-        product.reviews > 0 ? (
+      content: (
           <div className="flex flex-wrap items-center gap-3">
             <Rating
               rating={product.rating}
@@ -120,11 +120,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
             />
             <span>Based on verified catalogue review data.</span>
           </div>
-        ) : (
-          <p>No customer reviews are available for this item yet.</p>
         ),
-    },
-  ];
+    });
+  }
 
   const productJsonLd = {
     "@context": "https://schema.org",
@@ -265,10 +263,12 @@ export default async function ProductPage({ params }: ProductPageProps) {
             </h1>
 
             <div className="mt-4 flex min-w-0 flex-wrap items-center gap-3 sm:mt-3">
-              <Rating
-                rating={product.rating}
-                reviews={product.reviews}
-              />
+              {product.reviews > 0 && (
+                <Rating
+                  rating={product.rating}
+                  reviews={product.reviews}
+                />
+              )}
 
               <span className="break-words text-sm text-muted">
                 {product.size}

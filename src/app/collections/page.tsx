@@ -28,27 +28,29 @@ export default async function CollectionsPage() {
         <p className="lead mt-3">Discover curated REEVITA collections designed to become part of your daily ritual.</p>
       </div>
       {collections.length > 0 ? (
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-5 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => {
             const includedProducts = collectionProducts(collection, products);
             const total = includedProducts.reduce((sum, product) => sum + product.price * (collection.productQuantities?.[product.id] ?? 1), 0);
             const quantity = includedProducts.reduce((sum, product) => sum + (collection.productQuantities?.[product.id] ?? 1), 0);
             return (
-              <article key={collection.id} className="card-luxe group overflow-hidden transition-transform duration-300 hover:-translate-y-1">
+              <article key={collection.id} className="card-luxe group flex h-full flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <Link href={`/collections/${collection.slug}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
-                  <div className={`relative overflow-hidden bg-cream ${collection.slug === "soft-glow-bundle" ? "aspect-square" : collection.slug === "fresh-all-day-bundle" ? "aspect-[2/3]" : "aspect-[4/3]"}`}>
+                  <div className="relative aspect-[4/3] overflow-hidden bg-cream">
                     {collection.image ? <Image src={collection.image} alt={`${collection.nameEn} collection`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-105" /> : null}
                   </div>
                 </Link>
-                <div className="p-6">
+                <div className="flex flex-1 flex-col p-6">
                   <p className="eyebrow">{collection.slug === "soft-glow-bundle" ? "باقة عناية بالشعر" : collection.slug === "fresh-all-day-bundle" ? "مجموعة عناية بالجسم" : "COLLECTION"}</p>
-                  <h2 className="display-md mt-3 text-xl">{collection.slug === "soft-glow-bundle" || collection.slug === "fresh-all-day-bundle" ? collection.nameAr : collection.nameEn}</h2>
-                  {collection.slug === "soft-glow-bundle" || collection.slug === "fresh-all-day-bundle" ? <p className="mt-1 text-xs font-semibold tracking-wide text-muted" dir="ltr">{collection.nameEn}</p> : null}
-                  <p className="mt-2 text-sm leading-7 text-muted">{collection.descriptionAr}</p>
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+                  <h2 className="display-md mt-3 min-h-14 line-clamp-2 text-xl">{collection.slug === "soft-glow-bundle" || collection.slug === "fresh-all-day-bundle" ? collection.nameAr : collection.nameEn}</h2>
+                  <p className="mt-1 min-h-5 text-xs font-semibold tracking-wide text-muted" dir="ltr">
+                    {collection.slug === "soft-glow-bundle" || collection.slug === "fresh-all-day-bundle" ? collection.nameEn : "\u00a0"}
+                  </p>
+                  <p className="mt-2 min-h-21 line-clamp-3 text-sm leading-7 text-muted">{collection.descriptionAr}</p>
+                  <div className="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-2 pt-4 text-xs text-muted">
                     {quantity > 0 ? <><span>{quantity} products</span><Price price={total} size="sm" /></> : <span className="font-semibold text-plum">محتوى الباقة قيد التجهيز</span>}
                   </div>
-                  <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <div className="mt-4 flex min-h-25 flex-col items-start gap-3">
                     <Link href={`/collections/${collection.slug}`} className="inline-flex items-center gap-2 text-sm font-bold text-plum group-hover:text-gold-deep">
                       View collection <ArrowLeft className="size-4" aria-hidden />
                     </Link>

@@ -13,25 +13,60 @@ import { formatEGP } from "@/lib/format";
 export function ProductPurchase({ product }: { product: AddableProduct }) {
   const { addItem, openCart } = useCart();
   const [quantity, setQuantity] = useState(1);
+  const [selection, setSelection] = useState({ baseProductId: product.id, selectedProductId: product.id });
   const [added, setAdded] = useState(false);
-  const outOfStock = product.stockStatus === "out_of_stock";
+  const options = product.sizeOptions.length > 0
+    ? product.sizeOptions
+    : [{ productId: product.id, slug: product.slug, size: product.size, price: product.price, compareAtPrice: product.compareAtPrice, stockStatus: product.stockStatus }];
+
+  const selectedProductId = selection.baseProductId === product.id ? selection.selectedProductId : product.id;
+  const selectedOption = options.find((option) => option.productId === selectedProductId) ?? options[0]!;
+  const selectedProduct = {
+    ...product,
+    id: selectedOption.productId,
+    slug: selectedOption.slug,
+    size: selectedOption.size,
+    price: selectedOption.price,
+    compareAtPrice: selectedOption.compareAtPrice,
+    stockStatus: selectedOption.stockStatus,
+  };
+  const outOfStock = selectedProduct.stockStatus === "out_of_stock";
 
   function handleAdd() {
-    addItem(product, quantity);
+    addItem(selectedProduct, quantity);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 2200);
   }
 
-  const waMessage = `Hello REEVITA,\nI would like to order: ${product.nameEn} (${product.size}) x ${quantity}\nProduct link: ${siteUrl}/products/${product.slug}`;
+  const waMessage = `Hello REEVITA,\nI would like to order: ${product.nameEn} (${selectedProduct.size}) x ${quantity}\nProduct link: ${siteUrl}/products/${product.slug}`;
 
   return (
     <div className="space-y-5">
-      <Price price={product.price} compareAtPrice={product.compareAtPrice} size="lg" />
+      {options.length > 1 && (
+        <fieldset>
+          <legend className="mb-2 text-xs font-bold text-plum">Pack size</legend>
+          <div className="flex flex-wrap gap-2">
+            {options.map((option) => (
+              <button
+                key={option.productId}
+                type="button"
+                aria-pressed={selectedProductId === option.productId}
+                onClick={() => setSelection({ baseProductId: product.id, selectedProductId: option.productId })}
+                className={`rounded-full border px-4 py-2 text-sm transition-colors ${selectedProductId === option.productId ? "border-plum bg-plum text-white" : "border-line bg-white text-plum hover:border-gold-deep"}`}
+              >
+                {option.size}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+      )}
+
+      <Price price={selectedProduct.price} compareAtPrice={selectedProduct.compareAtPrice} size="lg" />
 
       <div className="flex flex-wrap items-center gap-3">
         <QuantityStepper value={quantity} onChange={setQuantity} max={10} label="Quantity" />
         <span className="text-xs text-muted">
-          {outOfStock ? "Currently unavailable" : product.stockStatus === "low_stock" ? "Limited stock" : "In stock and ready to ship"}
+          {outOfStock ? "Currently unavailable" : selectedProduct.stockStatus === "low_stock" ? "Limited stock" : "In stock and ready to ship"}
         </span>
       </div>
 
@@ -43,7 +78,7 @@ export function ProductPurchase({ product }: { product: AddableProduct }) {
           className="btn btn-primary flex-1"
         >
           {added ? <Check className="size-4" aria-hidden /> : <ShoppingBag className="size-4" aria-hidden />}
-          {outOfStock ? "Temporarily out of stock" : added ? "Added to bag" : `Add to bag — ${formatEGP(product.price * quantity)}`}
+          {outOfStock ? "Temporarily out of stock" : added ? "Added to bag" : `Add to bag — ${formatEGP(selectedProduct.price * quantity)}`}
         </button>
         <Link
           href={`https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(waMessage)}`}
