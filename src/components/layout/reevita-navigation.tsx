@@ -8,7 +8,7 @@ const groups = [
   {
     label: "Categories",
     items: [
-      { href: "#collection", label: "Best Sellers", description: "Explore REEVITA favourites." },
+      { href: "#best-sellers", label: "Best Sellers", description: "Explore REEVITA favourites." },
     ],
   },
   {
@@ -37,7 +37,7 @@ export function ReevitaNavigation() {
 
       <nav aria-label="Main navigation" className="hidden items-center gap-8 text-[0.7rem] md:flex">
         <Link className="reference-nav-active" href="/">Home</Link>
-        <a href="#collection">Shop</a>
+        <a href="/shop">Shop</a>
         {groups.map((group) => (
           <div key={group.label} className="relative">
             <button
@@ -67,7 +67,7 @@ export function ReevitaNavigation() {
       {mobileOpen && (
         <div className="absolute end-0 top-full z-50 mt-3 w-72 rounded-xl border border-[#ded8cc] bg-[#f7f3eb] p-3 shadow-lg md:hidden">
           <Link href="/" onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold hover:bg-[#ebe5d9]">Home</Link>
-          <a href="#collection" onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold hover:bg-[#ebe5d9]">Shop</a>
+          <a href="/shop" onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold hover:bg-[#ebe5d9]">Shop</a>
           {groups.flatMap((group) => group.items).map((item) => (
             <a key={item.label} href={item.href} onClick={() => setMobileOpen(false)} className="block rounded-lg px-3 py-2.5 text-sm font-semibold hover:bg-[#ebe5d9]">
               {item.label}

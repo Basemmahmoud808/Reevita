@@ -33,6 +33,7 @@ export interface Product {
   reviews: number;
   stockStatus: StockStatus;
   isFeatured: boolean;
+  isInCollection: boolean;
   isNew: boolean;
   badge: string | null;
   /** Catalogue-only seed quantity (demo mode); never exposed from Supabase. */
@@ -61,6 +62,21 @@ export interface Fragrance {
   accent: string;
   image: string;
   displayOrder: number;
+}
+
+export interface Collection {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameAr: string;
+  descriptionAr: string;
+  image: string;
+  displayOrder: number;
+  isPublished: boolean;
+  productIds?: string[];
+  productQuantities?: Record<string, number>;
+  purchaseReady?: boolean;
+  missingProducts?: string[];
 }
 
 export interface Brand {

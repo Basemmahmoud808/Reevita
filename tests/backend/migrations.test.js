@@ -15,7 +15,7 @@ test('Database Migrations and Seed apply cleanly from scratch', async () => {
 
   // Verify Categories
   const catRes = await db.query('SELECT count(*) as count FROM public.categories;');
-  assert.equal(Number(catRes.rows[0].count), 5, 'Should have 5 product lines');
+  assert.equal(Number(catRes.rows[0].count), 6, 'Should have 6 product lines');
 
   // Verify Products
   const prodRes = await db.query('SELECT count(*) as count FROM public.products;');

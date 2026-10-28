@@ -184,14 +184,26 @@
   }
 
   .reference-hero {
+    position: relative;
+    overflow: hidden;
     min-height: 460px;
     background-color: #e8ddcb;
-    background-image:
-      linear-gradient(90deg, rgba(247, 243, 233, 0.82) 0%, rgba(247, 243, 233, 0.58) 35%, rgba(247, 243, 233, 0.04) 68%),
-      url("/images/reevita-hero.png");
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
+  }
+
+  .reference-hero-image,
+  .reference-hero-overlay {
+    position: absolute;
+    inset: 0;
+  }
+
+  .reference-hero-image {
+    z-index: 0;
+    object-position: center;
+  }
+
+  .reference-hero-overlay {
+    z-index: 1;
+    background: linear-gradient(90deg, rgba(247, 243, 233, 0.82) 0%, rgba(247, 243, 233, 0.58) 35%, rgba(247, 243, 233, 0.04) 68%);
   }
 
   .reference-hero h1,
@@ -254,6 +266,50 @@
     min-width: 0;
   }
 
+  .reference-collection-slider {
+    border-top: 1px solid #e2dbcf;
+  }
+
+  .reference-collection-slide {
+    min-height: 245px;
+    border-radius: 0.35rem;
+    background: #34483d;
+  }
+
+  .reference-collection-slide img {
+    animation: rv-collection-image 700ms ease both;
+  }
+
+  .reference-slider-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid rgba(255, 253, 248, 0.6);
+    border-radius: 999px;
+    color: #fffdf8;
+    transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  .reference-slider-button:hover {
+    background: #fffdf8;
+    color: #34483d;
+  }
+
+  .reference-slider-dot {
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: #c9c1b4;
+    transition: width 180ms ease, background-color 180ms ease;
+  }
+
+  .reference-slider-dot.is-active {
+    width: 1.3rem;
+    background: #34483d;
+  }
+
   .reference-product-card article > div:first-child {
     border-radius: 0.4rem;
     border-color: #e6dfd3;
@@ -303,6 +359,8 @@
 
   .reference-story {
     position: relative;
+    content-visibility: auto;
+    contain-intrinsic-size: 0 250px;
     min-height: 190px;
     overflow: hidden;
     border-radius: 0.35rem;
@@ -314,6 +372,8 @@
   }
 
   .reference-footer {
+    content-visibility: auto;
+    contain-intrinsic-size: 0 260px;
     background: #f7f3eb;
     border-top: 1px solid #e2dbcf;
   }
@@ -382,11 +442,14 @@
 
     .reference-hero {
       min-height: 500px;
-      background-image:
-        linear-gradient(90deg, rgba(247, 243, 233, 0.98) 0%, rgba(247, 243, 233, 0.88) 42%, rgba(247, 243, 233, 0.18) 100%),
-        url("/images/reevita-hero.png");
-      background-position: 100% center;
-      background-size: auto 100%;
+    }
+
+    .reference-hero-image {
+      object-position: 100% center;
+    }
+
+    .reference-hero-overlay {
+      background: linear-gradient(90deg, rgba(247, 243, 233, 0.98) 0%, rgba(247, 243, 233, 0.88) 42%, rgba(247, 243, 233, 0.18) 100%);
     }
 
     .reference-hero > .reference-container {
@@ -810,6 +873,11 @@
   }
 }
 
+@keyframes rv-collection-image {
+  from { opacity: 0.55; transform: scale(1.02); }
+  to { opacity: 1; transform: scale(1); }
+}
+
 @keyframes rv-shimmer {
   0% {
     background-position: 200% 0;
@@ -863,7 +931,8 @@
 
   .ticker,
   .animate-float,
-  .slow-zoom {
+  .slow-zoom,
+  .reference-collection-slide img {
     animation: none !important;
   }
 }
@@ -871,6 +940,9 @@
 @media (max-width: 640px) {
   .reference-hero {
     min-height: 560px;
-    background-position: 65% center;
+  }
+
+  .reference-hero-image {
+    object-position: 65% center;
   }
 }

@@ -12,8 +12,8 @@ export const metadata: Metadata = {
 export default async function CheckoutPage() {
   const governorates = await getGovernorates();
   return (
-    <div className="bg-ivory">
+    <main className="bg-ivory">
       <CheckoutForm governorates={governorates} isDemo={isDemoMode} />
-    </div>
+    </main>
   );
 }

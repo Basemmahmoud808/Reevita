@@ -1,6 +1,7 @@
 
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import { Check, Headphones, ShieldCheck, Truck } from "lucide-react";
 import { Accordion, type AccordionItem } from "@/components/ui/accordion";
@@ -11,6 +12,7 @@ import { ProductPurchase } from "@/components/product/product-purchase";
 import { Rating } from "@/components/ui/rating";
 import { brand } from "@/lib/catalog";
 import { getProductBySlug, getProductsByCategory } from "@/lib/data/catalog";
+import { blurForSlug } from "@/lib/images";
 import { siteUrl } from "@/lib/env";
 
 type ProductPageProps = {
@@ -58,8 +60,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   const relatedProducts = (await getProductsByCategory(product.categorySlug))
-    .filter((item) => item.slug !== product.slug)
-    .slice(0, 4);
+    .filter((item) => item.slug !== product.slug);
 
   const accordionItems: AccordionItem[] = [
     {
@@ -178,7 +179,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
             <li className="min-w-0 max-w-full">
               <Link
-                href="/#collection"
+                href={`/shop?category=${product.categorySlug}`}
                 className="break-words transition-colors hover:text-gold-deep"
               >
                 {product.categoryNameEn}
@@ -206,6 +207,54 @@ export default async function ProductPage({ params }: ProductPageProps) {
               name={product.nameEn}
               slug={product.slug}
             />
+
+            {relatedProducts.length > 0 && (
+              <div className="mt-5 rounded-2xl border border-line bg-cream/60 p-3 sm:mt-6 sm:p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="eyebrow">CHOOSE YOUR SCENT</p>
+                  <span className="text-[0.68rem] text-muted">{relatedProducts.length + 1} options</span>
+                </div>
+
+                <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
+                  {[product, ...relatedProducts].map((option) => {
+                    const image = option.images[0];
+                    const isSelected = option.slug === product.slug;
+
+                    return (
+                      <Link
+                        key={option.slug}
+                        href={`/products/${option.slug}`}
+                        aria-current={isSelected ? "page" : undefined}
+                        className={`group min-w-0 rounded-xl border p-1.5 transition-colors sm:p-2 ${
+                          isSelected
+                            ? "border-gold-deep bg-ivory"
+                            : "border-transparent hover:border-gold/60 hover:bg-ivory"
+                        }`}
+                      >
+                        <span className="relative block aspect-square overflow-hidden rounded-lg bg-ivory">
+                          {image?.url && (
+                            <Image
+                              src={image.url}
+                              alt={image.alt || option.nameEn}
+                              fill
+                              quality={70}
+                              sizes="96px"
+                              unoptimized={image.url.startsWith("/")}
+                              placeholder="blur"
+                              blurDataURL={blurForSlug(option.slug)}
+                              className="object-contain p-1 transition-transform duration-300 group-hover:scale-105"
+                            />
+                          )}
+                        </span>
+                        <span className="mt-1.5 block truncate text-center text-[0.66rem] font-semibold text-plum sm:text-xs">
+                          {option.variantLabelAr || option.fragranceNameEn || option.nameEn}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <section className="w-full min-w-0 lg:pt-2 xl:pt-5">
@@ -327,10 +376,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
         {/* Related products */}
         {relatedProducts.length > 0 && (
           <section className="mt-12 min-w-0 border-t border-line pt-8 sm:mt-16 sm:pt-10 md:mt-24 md:pt-14">
-            <p className="eyebrow">YOU MAY ALSO LIKE</p>
+            <p className="eyebrow">SAME CATEGORY</p>
 
             <h2 className="display-md mt-3">
-              Complete your ritual
+              More from this category
             </h2>
 
             <ProductGrid

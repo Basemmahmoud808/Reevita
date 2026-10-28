@@ -1,9 +1,19 @@
 import { cache } from "react";
-import { categories as staticCategories, getStaticCategory, getStaticProduct, staticProducts } from "@/lib/catalog";
+import {
+  categories as staticCategories,
+  featuredCollections,
+  collectionProducts as getStaticCollectionProducts,
+  getStaticCategory,
+  getStaticProduct,
+  staticProducts,
+  categoryDescriptionsAr,
+} from "@/lib/catalog";
 import { demoGovernorates, demoProducts } from "@/lib/demo/store";
+import { demoCollections } from "@/lib/demo/store";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Category, Governorate, Product, StockStatus } from "@/lib/types";
+import type { Category, Collection, Governorate, Product, StockStatus } from "@/lib/types";
+import { canonicalProductNames } from "@/lib/product-names";
 
 /** Central read layer for the public catalogue. Falls back to the static catalogue in demo mode. */
 
@@ -44,15 +54,23 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
   const images = [...(row.images ?? [])]
     .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.display_order - b.display_order)
     .map((image) => ({ url: image.image_url, alt: image.alt_text ?? row.name_ar }));
+  const names = canonicalProductNames({
+    slug: row.slug,
+    categorySlug: row.category?.slug ?? meta?.categorySlug,
+    size: row.size ?? meta?.size,
+    variantLabelAr: meta?.variantLabelAr,
+    nameEn: row.name,
+    nameAr: row.name_ar,
+  });
 
   return {
     id: row.id,
     slug: row.slug,
     sku: meta?.sku ?? `RV-${row.slug.toUpperCase()}`,
-    nameAr: row.name_ar,
-    nameEn: row.name,
+    nameAr: names.nameAr,
+    nameEn: names.nameEn,
     shortAr: row.short_description_ar ?? meta?.shortAr ?? "",
-    descriptionAr: row.description,
+    descriptionAr: categoryDescriptionsAr[row.category?.slug ?? ""] ?? row.description,
     price: Number(row.price),
     compareAtPrice: row.compare_at_price === null ? null : Number(row.compare_at_price),
     size: row.size ?? meta?.size ?? "",
@@ -71,11 +89,61 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
     reviews: meta?.reviews ?? 0,
     stockStatus: availability.get(row.id) ?? meta?.stockStatus ?? "in_stock",
     isFeatured: row.is_featured,
+    isInCollection: meta?.isInCollection ?? false,
     isNew: meta?.isNew ?? false,
     badge: meta?.badge ?? null,
   };
 }
 
+
+export const getCollectionProducts = cache(async (): Promise<Product[]> => {
+  if (!isSupabaseConfigured) return getStaticCollectionProducts();
+  const products = await getProducts();
+  return products.filter((product) => product.isInCollection);
+});
+
+export const getCollections = cache(async (): Promise<Collection[]> => {
+  if (!isSupabaseConfigured) return demoCollections();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return featuredCollections;
+  const { data, error } = await supabase
+    .from("collections")
+    .select("id, slug, name, name_ar, description, cover_image_url, display_order, is_published, purchase_ready, missing_products, collection_products(product_id, quantity, display_order)")
+    .eq("is_published", true)
+    .order("display_order", { ascending: true });
+  if (error || !data) return featuredCollections;
+  return (data as Array<Record<string, unknown>>).map((row) => {
+    const memberships = ((row.collection_products ?? []) as Array<{ product_id: string; quantity?: number; display_order?: number }>)
+      .slice()
+      .sort((a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0));
+    return {
+    id: String(row.id),
+    slug: String(row.slug),
+    nameEn: String(row.name),
+    nameAr: String(row.name_ar),
+    descriptionAr: String(row.description ?? ""),
+    image: String(row.cover_image_url ?? ""),
+    displayOrder: Number(row.display_order ?? 0),
+    isPublished: Boolean(row.is_published),
+    purchaseReady: row.purchase_ready === undefined ? true : Boolean(row.purchase_ready),
+    missingProducts: Array.isArray(row.missing_products) ? row.missing_products.map(String) : [],
+      productIds: memberships.map((item) => item.product_id),
+      productQuantities: Object.fromEntries(memberships.map((item) => [item.product_id, Math.max(1, Number(item.quantity ?? 1))])),
+    };
+  });
+});
+
+export const getCollectionBySlug = cache(async (slug: string): Promise<{ collection: Collection; products: Product[] } | null> => {
+  const collections = await getCollections();
+  const collection = collections.find((item) => item.slug === slug);
+  if (!collection) return null;
+  const products = await getProducts();
+  const productMap = new Map(products.map((product) => [product.id, product]));
+  return {
+    collection,
+    products: (collection.productIds ?? []).map((id) => productMap.get(id)).filter((product): product is Product => Boolean(product)),
+  };
+});
 export const getProducts = cache(async (): Promise<Product[]> => {
   if (!isSupabaseConfigured) return demoProducts();
   const supabase = await createSupabaseServerClient();
@@ -124,7 +192,8 @@ export const getCategories = cache(async (): Promise<Category[]> => {
     .eq("is_active", true)
     .order("display_order", { ascending: true });
   if (error || !data) return staticCategories;
-  return (data as Array<Record<string, unknown>>).map((row) => {
+  const allowedSlugs = new Set(staticCategories.map((category) => category.slug));
+  return (data as Array<Record<string, unknown>>).filter((row) => allowedSlugs.has(String(row.slug))).map((row) => {
     const meta = getStaticCategory(String(row.slug));
     return {
       slug: String(row.slug),

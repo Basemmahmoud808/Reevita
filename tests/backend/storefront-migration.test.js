@@ -11,9 +11,9 @@ test('Storefront seed & migration 000006: 14 real SKUs, availability view, profi
   const shipRes = await db.query('SELECT count(*) as count FROM public.shipping_rates;');
   assert.equal(Number(shipRes.rows[0].count), 27);
 
-  // Catalogue: 5 product lines, 14 products, 28 images, 14 inventory rows
+  // Catalogue: 6 product lines, 14 products, 28 images, 14 inventory rows
   const catRes = await db.query('SELECT count(*) as count FROM public.categories;');
-  assert.equal(Number(catRes.rows[0].count), 5, 'Body lotion, body butter, body splash, hair mist, shampoo');
+  assert.equal(Number(catRes.rows[0].count), 6, 'Shampoo, body lotion, body butter, body splash, hair mist, shower gel');
   const prodRes = await db.query('SELECT count(*) as count FROM public.products;');
   assert.equal(Number(prodRes.rows[0].count), 14, '14 real REEVITA SKUs');
   const imgRes = await db.query('SELECT count(*) as count FROM public.product_images;');

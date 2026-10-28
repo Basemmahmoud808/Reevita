@@ -1,12 +1,12 @@
 import type { MetadataRoute } from "next";
-import { categories, fragrances } from "@/lib/catalog";
-import { getProducts } from "@/lib/data/catalog";
+import { categories } from "@/lib/catalog";
+import { getCollections, getProducts } from "@/lib/data/catalog";
 import { siteUrl } from "@/lib/env";
 
 export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getProducts();
+  const [products, collections] = await Promise.all([getProducts(), getCollections()]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${siteUrl}/`, changeFrequency: "weekly", priority: 1 },
@@ -29,8 +29,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  const collectionRoutes: MetadataRoute.Sitemap = fragrances.map((fragrance) => ({
-    url: `${siteUrl}/collections/${fragrance.slug}`,
+  const collectionRoutes: MetadataRoute.Sitemap = collections.map((collection) => ({
+    url: `${siteUrl}/collections/${collection.slug}`,
     changeFrequency: "weekly",
     priority: 0.7,
   }));

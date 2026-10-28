@@ -42,7 +42,6 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
               {line.nameAr}
             </Link>
             <p className="mt-1 text-[0.7rem] text-muted">
-              {line.variantLabelAr ? `${line.variantLabelAr} · ` : ""}
               {line.size}
             </p>
           </div>

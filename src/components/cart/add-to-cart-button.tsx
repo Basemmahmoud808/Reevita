@@ -26,7 +26,7 @@ export function AddToCartButton({
           "flex size-10 items-center justify-center rounded-full bg-ivory/95 text-plum shadow-card backdrop-blur transition-all hover:bg-plum hover:text-ivory",
           className,
         )}
-        aria-label={`${label} — ${product.nameAr}`}
+              aria-label={`${label}: ${product.nameAr}`}
       >
         <Plus className="size-4" aria-hidden />
       </button>
@@ -43,7 +43,7 @@ export function AddToCartButton({
           className,
         )}
         disabled={product.stockStatus === "out_of_stock"}
-        aria-label={`${label} — ${product.nameAr}`}
+      aria-label={`${label}: ${product.nameAr}`}
       >
         <Plus className="size-3.5" aria-hidden />
         {product.stockStatus === "out_of_stock" ? "نفد المخزون" : label}

@@ -9,10 +9,10 @@ export function NavLinks({ onNavigate, className }: { onNavigate?: () => void; c
   const pathname = usePathname();
   const { t } = useI18n();
   const links = [
-    { href: "/#collection", label: t("shop") },
-    { href: "/#collection", label: t("collections") },
-    { href: "/#collection", label: t("bodyCare"), category: "body-lotion" },
-    { href: "/#collection", label: t("hairCare"), category: "shampoo" },
+    { href: "/shop", label: t("shop") },
+    { href: "/collections", label: t("collections") },
+    { href: "/shop?category=body-lotion", label: t("bodyCare"), category: "body-lotion" },
+    { href: "/shop?category=shampoo", label: t("hairCare"), category: "shampoo" },
     { href: "/#story", label: t("ourStory") },
     { href: "/checkout", label: t("contact") },
   ];
@@ -22,9 +22,7 @@ export function NavLinks({ onNavigate, className }: { onNavigate?: () => void; c
       {links.map((link) => {
         const isActive = link.category
           ? false
-          : link.href === "/#collection"
-            ? pathname === "/" && !link.category
-            : pathname === link.href;
+          : pathname === link.href;
         return (
           <li key={`${link.href}-${link.label}`}>
             <Link

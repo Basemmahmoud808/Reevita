@@ -131,9 +131,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </a>
         <Providers initialLocale="en">
           <SiteChrome part="header" />
-          <main id="main" className="site-page min-h-[60vh]">
+          <div id="main" className="site-page min-h-[60vh]">
             {children}
-          </main>
+          </div>
           <SiteChrome part="footer" />
           <CartDrawer />
         </Providers>

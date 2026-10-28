@@ -42,6 +42,7 @@ export function CartDrawer() {
         role="dialog"
         aria-modal="true"
         aria-label={t("cart")}
+        inert={!isOpen}
         className={cn(
           "absolute inset-y-0 left-0 flex w-full max-w-[440px] flex-col bg-ivory shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
           isOpen ? "translate-x-0" : "-translate-x-full",

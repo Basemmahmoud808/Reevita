@@ -1,4 +1,4 @@
-import { brand, getStaticProduct, staticProducts } from "@/lib/catalog";
+import { brand, getStaticProduct, featuredCollections, staticProducts } from "@/lib/catalog";
 import { normalizeEgyptianPhone } from "@/lib/phone";
 import type {
   Governorate,
@@ -7,6 +7,7 @@ import type {
   Product,
   StockStatus,
   TrackedOrder,
+  Collection,
 } from "@/lib/types";
 import { STATUS_META } from "@/lib/orders/status";
 
@@ -90,6 +91,39 @@ interface DemoStock {
 const stock: Map<string, DemoStock> = new Map(
   staticProducts.map((product) => [product.id, { quantity: product.initialStock ?? 25, threshold: 5 }]),
 );
+
+const collections: Map<string, Collection> = new Map(
+  featuredCollections.map((collection) => [collection.id, { ...collection, productIds: [...(collection.productIds ?? [])] }]),
+);
+
+export function demoCollections(): Collection[] {
+  return [...collections.values()]
+    .filter((collection) => collection.isPublished)
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((collection) => ({ ...collection, productIds: [...(collection.productIds ?? [])], productQuantities: { ...(collection.productQuantities ?? {}) } }));
+}
+
+export function demoAllCollections(): Collection[] {
+  return [...collections.values()]
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((collection) => ({ ...collection, productIds: [...(collection.productIds ?? [])], productQuantities: { ...(collection.productQuantities ?? {}) } }));
+}
+
+export function demoCreateCollection(input: Omit<Collection, "id">): void {
+  const id = `demo-collection-${crypto.randomUUID()}`;
+  collections.set(id, { ...input, id, productIds: [...(input.productIds ?? [])], productQuantities: { ...(input.productQuantities ?? {}) } });
+}
+
+export function demoUpdateCollection(id: string, patch: Partial<Omit<Collection, "id">>): boolean {
+  const current = collections.get(id);
+  if (!current) return false;
+  collections.set(id, { ...current, ...patch, id, productIds: patch.productIds ? [...patch.productIds] : current.productIds, productQuantities: patch.productQuantities ? { ...patch.productQuantities } : current.productQuantities });
+  return true;
+}
+
+export function demoDeleteCollection(id: string): boolean {
+  return collections.delete(id);
+}
 
 function stockStatusOf(quantity: number): StockStatus {
   if (quantity <= 0) return "out_of_stock";

@@ -11,6 +11,9 @@ import {
   deleteProduct,
   updateShippingRate,
   createAdminProduct,
+  createCollection,
+  updateCollection,
+  deleteCollection,
 } from "@/lib/data/admin";
 import { OrderError } from "@/lib/data/orders";
 import { getStaticProduct } from "@/lib/catalog";
@@ -256,5 +259,80 @@ export async function createProductAction(
   } catch (error) {
     console.error("[reevita] product creation failed", error);
     return { error: error instanceof OrderError ? error.message : "تعذّر إنشاء المنتج." };
+  }
+}
+
+function collectionInput(formData: FormData) {
+  return {
+    slug: String(formData.get("slug") ?? "").trim(),
+    nameEn: String(formData.get("nameEn") ?? "").trim(),
+    nameAr: String(formData.get("nameAr") ?? "").trim(),
+    descriptionAr: String(formData.get("descriptionAr") ?? "").trim(),
+    image: String(formData.get("image") ?? "").trim(),
+    displayOrder: Number(formData.get("displayOrder") ?? 0),
+    isPublished: formData.get("isPublished") === "on",
+    productIds: formData.getAll("productIds").map(String).filter(Boolean),
+  };
+}
+
+export async function createCollectionAction(
+  _prev: AdminActionState | null,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const denied = await guard();
+  if (denied) return { error: denied };
+  const input = collectionInput(formData);
+  if (!input.slug || !input.nameEn || !input.nameAr || !input.image) return { error: "بيانات الـ Collection الأساسية مطلوبة." };
+  try {
+    await createCollection(input);
+    revalidatePath("/admin/collections");
+    revalidatePath("/collections");
+    revalidatePath("/");
+    return { ok: true, message: "تم إنشاء الـ Collection ونشرها." };
+  } catch (error) {
+    console.error("[reevita] collection creation failed", error);
+    return { error: "تعذر إنشاء الـ Collection." };
+  }
+}
+
+export async function updateCollectionAction(
+  _prev: AdminActionState | null,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const denied = await guard();
+  if (denied) return { error: denied };
+  const id = String(formData.get("id") ?? "");
+  const input = collectionInput(formData);
+  if (!id || !input.slug || !input.nameEn || !input.nameAr || !input.image) return { error: "بيانات الـ Collection الأساسية مطلوبة." };
+  try {
+    await updateCollection(id, input);
+    revalidatePath("/admin/collections");
+    revalidatePath("/collections");
+    revalidatePath(`/collections/${input.slug}`);
+    revalidatePath("/");
+    return { ok: true, message: "تم تحديث الـ Collection." };
+  } catch (error) {
+    console.error("[reevita] collection update failed", error);
+    return { error: "تعذر تحديث الـ Collection." };
+  }
+}
+
+export async function deleteCollectionAction(
+  _prev: AdminActionState | null,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const denied = await guard();
+  if (denied) return { error: denied };
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "معرف الـ Collection مطلوب." };
+  try {
+    await deleteCollection(id);
+    revalidatePath("/admin/collections");
+    revalidatePath("/collections");
+    revalidatePath("/");
+    return { ok: true, message: "تم حذف الـ Collection بدون حذف المنتجات." };
+  } catch (error) {
+    console.error("[reevita] collection deletion failed", error);
+    return { error: "تعذر حذف الـ Collection." };
   }
 }

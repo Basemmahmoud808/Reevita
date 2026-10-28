@@ -1,5 +1,6 @@
 import catalogJson from "@/data/catalog.json";
-import type { Brand, Category, Faq, Fragrance, Product, StockStatus, Testimonial } from "@/lib/types";
+import type { Brand, Category, Collection, Faq, Fragrance, Product, StockStatus, Testimonial } from "@/lib/types";
+import { canonicalProductNames } from "@/lib/product-names";
 
 /**
  * The static brand catalogue is the single source of truth for merchandising
@@ -34,6 +35,16 @@ export const fragrances = [...(catalog.fragrances as Fragrance[])].sort(
 export const testimonials = catalog.testimonials as Testimonial[];
 export const faqs = catalog.faqs as Faq[];
 
+/** Product descriptions supplied by the brand, shared by each product family. */
+export const categoryDescriptionsAr: Record<string, string> = {
+  "body-butter": "زبدة جسم غنية بقوام كريمي ناعم يذوب على بشرتك ليمنحها ترطيبًا مكثفًا ونعومة تدوم طويلًا. بتركيبة غنية بزبدة الشيا والكاكاو وزيت اللوز الحلو، مع البانثينول والجلسرين وفيتامين E، للمساعدة على تغذية البشرة وحمايتها من الجفاف، وتركها ناعمة وحريرية بلمسة من عطرك المفضل.",
+  "body-lotion": "لوشن جسم بتركيبة غنية وناعمة تمنح بشرتك ترطيبًا عميقًا ونعومة تدوم طويلًا. مدعوم بزبدة الشيا وزيوت اللوز الحلو والسمسم والبرافين لتغذية البشرة وتقليل فقدان الرطوبة، مع اليوريا والجلسرين ومونو بروبيلين جلايكول لترطيب مكثف دون تقشير، والبانثينول لتهدئة البشرة، والـ IPM لتحسين ملمسها، لتنعمي ببشرة ناعمة وحريرية ولمسة من عطرك المفضل.",
+  "shower-gel": "شاور جل بتركيبة منعشة تنظف بشرتك بلطف وتمنحها إحساسًا بالنظافة والانتعاش. غني بالجلسرين الذي يساعد على ترطيب البشرة وتقليل الجفاف، والـ PQ7 الذي يمنحها ملمسًا ناعمًا وحريريًا، مع عطر مميز يحوّل روتين الاستحمام اليومي إلى لحظات من الانتعاش والدلال، لبشرة نظيفة وناعمة ومعطرة برائحتك المفضلة.",
+  shampoo: "شامبو خالي من السلفات بتركيبة غنية بالهيدروجار والـ PQ10 والجلسرين والبانثينول وخلاصة الألوفيرا، لتنظيف الشعر بلطف والمساعدة على ترطيبه وتقليل الهيشان والتشابك، لشعر أنعم وأسهل في التصفيف وأكثر حيوية ولمعانًا.",
+  "body-splash": "بادي سبلاش بعطر غني ومميز يمنح بشرتك إحساسًا بالانتعاش ولمسة من الأنوثة والجاذبية. بتركيبة مدعومة بالجلسرين الذي يساعد على ترطيب البشرة والحفاظ على نعومتها، وفيتامين E المعروف بخصائصه المضادة للأكسدة، ليمنحك تجربة عطرية منعشة وبشرة ناعمة ومعطرة برائحتك المفضلة طوال يومك.",
+  "hair-mist": "هير ميست بعطر مميز يمنح شعرك انتعاشًا ورائحة جذابة، بتركيبة خالية من الكحول الإيثيلي ومدعومة بالجلسرين والـ PQ7 للمساعدة على ترطيب الشعر وتنعيمه وتقليل الهيشان، لشعر ناعم ومعطر بلمسة من الأنوثة والجمال.",
+};
+
 interface RawProduct {
   id: string;
   slug: string;
@@ -55,6 +66,7 @@ interface RawProduct {
   rating: number;
   reviews: number;
   isFeatured: boolean;
+  isInCollection?: boolean;
   isNew: boolean;
   badge: string | null;
 }
@@ -68,14 +80,22 @@ function stockStatus(stock: number): StockStatus {
 function toProduct(raw: RawProduct): Product {
   const category = categories.find((item) => item.slug === raw.category);
   const fragrance = fragrances.find((item) => item.slug === raw.fragrance);
+  const names = canonicalProductNames({
+    slug: raw.slug,
+    categorySlug: raw.category,
+    size: raw.size,
+    variantLabelAr: raw.variantLabelAr,
+    nameEn: raw.nameEn,
+    nameAr: raw.nameAr,
+  });
   return {
     id: raw.id,
     slug: raw.slug,
     sku: raw.sku,
-    nameAr: raw.nameAr,
-    nameEn: raw.nameEn,
+    nameAr: names.nameAr,
+    nameEn: names.nameEn,
     shortAr: raw.shortAr,
-    descriptionAr: raw.descriptionAr,
+    descriptionAr: categoryDescriptionsAr[raw.category] ?? raw.descriptionAr,
     price: raw.price,
     compareAtPrice: raw.compareAtPrice,
     size: raw.size,
@@ -99,6 +119,7 @@ function toProduct(raw: RawProduct): Product {
     reviews: raw.reviews,
     stockStatus: stockStatus(raw.stock),
     isFeatured: raw.isFeatured,
+    isInCollection: raw.isInCollection ?? false,
     isNew: raw.isNew,
     badge: raw.badge,
     initialStock: raw.stock,
@@ -106,6 +127,159 @@ function toProduct(raw: RawProduct): Product {
 }
 
 export const staticProducts: Product[] = (catalog.products as RawProduct[]).map(toProduct);
+
+export const staticCollections: Collection[] = [
+  ...fragrances.map((fragrance) => ({
+    id: `static-${fragrance.slug}`,
+    slug: fragrance.slug,
+    nameEn: fragrance.nameEn,
+    nameAr: fragrance.nameAr,
+    descriptionAr: fragrance.descriptionAr || fragrance.taglineAr,
+    image: fragrance.image,
+    displayOrder: fragrance.displayOrder,
+    isPublished: true,
+    productIds: staticProducts.filter((product) => product.fragranceSlug === fragrance.slug).map((product) => product.id),
+  })),
+  {
+    id: "static-soft-glow-bundle",
+    slug: "soft-glow-bundle",
+    nameEn: "Soft & Glow Bundle",
+    nameAr: "مجموعة النعومة والإشراقة",
+    descriptionAr: "مجموعة متكاملة لبشرة ناعمة ومشرقة.",
+    image: "/images/soft-glow-bundle.jpg",
+    displayOrder: 50,
+    isPublished: true,
+    productIds: [],
+  },
+  {
+    id: "static-fresh-all-day-bundle",
+    slug: "fresh-all-day-bundle",
+    nameEn: "Fresh All Day Bundle",
+    nameAr: "مجموعة الانتعاش طوال اليوم",
+    descriptionAr: "مجموعة منعشة للنظافة والترطيب والعطر طوال اليوم.",
+    image: "/images/fresh-all-day-bundle.jpg",
+    displayOrder: 51,
+    isPublished: true,
+    productIds: [],
+  },
+];
+
+const featuredCollectionProductIds = (slugs: string[]) => slugs
+  .map((slug) => staticProducts.find((product) => product.slug === slug)?.id)
+  .filter((id): id is string => Boolean(id));
+
+/** Supplied-image collections and verified bundle compositions used in demo mode. */
+export const featuredCollections: Collection[] = [
+  {
+    id: "static-sweet-mood",
+    slug: "sweet-mood",
+    nameEn: "Sweet Mood",
+    nameAr: "Sweet Mood",
+    descriptionAr: "A sweet daily ritual of cleansing, hydration, and fragrance.",
+    image: "/images/collections/sweet-mood.jpg",
+    displayOrder: 1,
+    isPublished: true,
+    productIds: featuredCollectionProductIds(["body-lotion-sexy", "body-splash-sexy"]),
+  },
+  {
+    id: "static-clean-mood",
+    slug: "clean-mood",
+    nameEn: "Clean Mood",
+    nameAr: "Clean Mood",
+    descriptionAr: "A soft, fresh ritual for everyday care.",
+    image: "/images/collections/clean-mood.jpg",
+    displayOrder: 2,
+    isPublished: true,
+    productIds: featuredCollectionProductIds(["body-lotion-queen", "body-splash-queen"]),
+  },
+  {
+    id: "static-ruby-musk-collection",
+    slug: "ruby-musk-collection",
+    nameEn: "Ruby Musk Collection",
+    nameAr: "Ruby Musk Collection",
+    descriptionAr: "A warm, luminous musk ritual for soft, scented skin.",
+    image: "/images/collections/ruby-musk-collection.jpg",
+    displayOrder: 3,
+    isPublished: true,
+    productIds: featuredCollectionProductIds(["body-lotion-ruby-musk", "body-splash-ruby-musk", "body-butter-ruby-musk"]),
+  },
+  {
+    id: "static-sexy-collection",
+    slug: "sexy-collection",
+    nameEn: "Sexy Collection",
+    nameAr: "Sexy Collection",
+    descriptionAr: "An elegant, expressive ritual with lasting fragrance.",
+    image: "/images/collections/sexy-collection.jpg",
+    displayOrder: 4,
+    isPublished: true,
+    productIds: featuredCollectionProductIds(["body-lotion-sexy", "body-splash-sexy", "body-butter-sexy"]),
+  },
+  {
+    id: "static-fruity-mood",
+    slug: "fruity-mood",
+    nameEn: "Fruity Mood",
+    nameAr: "Fruity Mood",
+    descriptionAr: "A bright, fruity mood for lively haircare moments.",
+    image: "/images/collections/fruity-mood.jpg",
+    displayOrder: 5,
+    isPublished: true,
+    productIds: featuredCollectionProductIds(["shampoo-blueberry", "hair-mist-ruby-musk"]),
+  },
+  {
+    id: "static-soft-glow-bundle",
+    slug: "soft-glow-bundle",
+    nameEn: "Soft & Glow Bundle",
+    nameAr: "Soft & Glow Bundle",
+    descriptionAr: "A complete body-care ritual for soft, glowing skin.",
+    image: "/images/collections/soft-glow-bundle.jpg",
+    displayOrder: 6,
+    isPublished: true,
+    purchaseReady: true,
+    productIds: featuredCollectionProductIds([
+      "body-lotion-queen", "body-splash-queen", "body-butter-queen",
+      "body-lotion-sexy", "body-splash-sexy", "body-butter-sexy",
+      "body-lotion-ruby-musk", "body-splash-ruby-musk", "body-butter-ruby-musk",
+    ]),
+  },
+  {
+    id: "static-fresh-all-day-bundle",
+    slug: "fresh-all-day-bundle",
+    nameEn: "Fresh All Day Bundle",
+    nameAr: "Fresh All Day Bundle",
+    descriptionAr: "A fresh shower and body ritual for an easy all-day routine.",
+    image: "/images/collections/fresh-all-day-bundle.jpg",
+    displayOrder: 7,
+    isPublished: true,
+    purchaseReady: false,
+    missingProducts: ["Shower Gel Blueberry — 500 ml"],
+    productIds: featuredCollectionProductIds(["body-lotion-ruby-musk", "body-splash-ruby-musk"]),
+  },
+  {
+    id: "static-hair-care-duo-bundle",
+    slug: "hair-care-duo-bundle",
+    nameEn: "Hair Care Duo Bundle",
+    nameAr: "Hair Care Duo Bundle",
+    descriptionAr: "A coordinated shampoo and hair mist ritual for fresh, scented hair.",
+    image: "/images/collections/hair-care-duo-bundle.jpg",
+    displayOrder: 8,
+    isPublished: true,
+    purchaseReady: true,
+    productIds: featuredCollectionProductIds(["shampoo-blueberry", "hair-mist-ruby-musk"]),
+  },
+  {
+    id: "static-complete-care-bundle",
+    slug: "complete-care-bundle",
+    nameEn: "Complete Care Bundle",
+    nameAr: "Complete Care Bundle",
+    descriptionAr: "A full-body care ritual shown in the supplied bundle image.",
+    image: "/images/collections/complete-care-bundle.jpg",
+    displayOrder: 9,
+    isPublished: true,
+    purchaseReady: false,
+    missingProducts: ["Shampoo Bubble Gum — 300 ml", "Shower Gel Bubble Gum — 500 ml"],
+    productIds: featuredCollectionProductIds(["body-lotion-sexy", "body-splash-sexy", "body-butter-sexy", "hair-mist-sexy"]),
+  },
+];
 
 export function getStaticProduct(slug: string): Product | undefined {
   return staticProducts.find((product) => product.slug === slug);
@@ -129,6 +303,10 @@ export function countByFragrance(slug: string): number {
 
 export function featuredProducts(limit = 4): Product[] {
   return staticProducts.filter((product) => product.isFeatured).slice(0, limit);
+}
+
+export function collectionProducts(limit = 8): Product[] {
+  return staticProducts.filter((product) => product.isInCollection).slice(0, limit);
 }
 
 export function bestSellers(limit = 4): Product[] {

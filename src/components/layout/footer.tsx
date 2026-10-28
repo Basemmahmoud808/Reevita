@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Check } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { SocialIconLinks } from "@/components/ui/social-icon";
+import { NewsletterForm } from "@/components/layout/newsletter-form";
 
 const links = [
   { href: "/", label: "Home" },
@@ -44,10 +44,7 @@ export function Footer() {
           <p className="mt-3 text-xs leading-5 text-[#77766e]">
             {locale === "en" ? "Be the first to know about new products, exclusive offers and beauty tips." : "كوني أول من يعرف المنتجات الجديدة والعروض ونصائح العناية."}
           </p>
-          <div className="mt-3 flex border-b border-[#cfc8bb] pb-2">
-            <span className="flex-1 text-xs text-[#aaa69c]">Your email address</span>
-            <Check className="size-4 text-[#405247]" />
-          </div>
+          <NewsletterForm className="mt-3" />
         </div>
       </div>
       <div className="reference-container flex justify-between border-t border-[#ded8cc] py-4 text-[0.6rem] text-[#99958a]">

@@ -64,6 +64,7 @@ export function MobileMenu() {
         />
         <div
           onClick={closeOnLinkClick}
+          inert={!open}
           className={cn(
             "absolute inset-y-0 right-0 flex w-[86%] max-w-sm flex-col bg-ivory shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
             open ? "translate-x-0" : "translate-x-full",
@@ -125,7 +126,7 @@ export function MobileMenu() {
           </div>
 
           <div className="border-t border-line bg-cream/60 px-5 py-5">
-            <Link href="/#collection" onClick={() => setOpen(false)} className="btn btn-primary w-full">
+            <Link href="/shop" onClick={() => setOpen(false)} className="btn btn-primary w-full">
               {t("shopNow")}
               <ArrowLeft className="size-4" aria-hidden />
             </Link>

@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Store, Truck } from "lucide-react";
+import { Layers, LayoutDashboard, Package, ShoppingCart, Store, Truck } from "lucide-react";
 import { cn } from "@/lib/format";
 
 const links = [
   { href: "/admin", label: "لوحة التحكم", icon: LayoutDashboard },
   { href: "/admin/orders", label: "الطلبات", icon: ShoppingCart },
   { href: "/admin/products", label: "المنتجات والمخزون", icon: Package },
+  { href: "/admin/collections", label: "المجموعات", icon: Layers },
   { href: "/admin/shipping", label: "الشحن والمحافظات", icon: Truck },
 ];
 

@@ -10,12 +10,17 @@ import {
   demoUpdateInventory,
   demoUpdateOrderStatus,
   demoUpdateShippingRate,
+  demoAllCollections,
+  demoCreateCollection,
+  demoUpdateCollection,
+  demoDeleteCollection,
 } from "@/lib/demo/store";
 import { isSupabaseConfigured } from "@/lib/env";
 import { canTransition } from "@/lib/orders/status";
 import { OrderError, errorFromSupabase } from "@/lib/data/orders";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { Governorate, OrderStatus } from "@/lib/types";
+import type { Collection, Governorate, OrderStatus } from "@/lib/types";
+import { canonicalProductNames } from "@/lib/product-names";
 
 export interface CreateAdminProductInput {
   name: string;
@@ -316,6 +321,90 @@ export interface InventoryItem {
   size?: string;
 }
 
+export type AdminCollection = Collection;
+
+export async function getAdminCollections(): Promise<AdminCollection[]> {
+  if (!isSupabaseConfigured) return demoAllCollections();
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("collections")
+    .select("id, slug, name, name_ar, description, cover_image_url, display_order, is_published, collection_products(product_id)")
+    .order("display_order", { ascending: true });
+  if (error || !data) throw new OrderError("UNKNOWN");
+  return (data as Array<Record<string, unknown>>).map((row) => ({
+    id: String(row.id),
+    slug: String(row.slug),
+    nameEn: String(row.name),
+    nameAr: String(row.name_ar),
+    descriptionAr: String(row.description ?? ""),
+    image: String(row.cover_image_url ?? ""),
+    displayOrder: Number(row.display_order ?? 0),
+    isPublished: Boolean(row.is_published),
+    productIds: ((row.collection_products ?? []) as Array<{ product_id: string }>).map((item) => item.product_id),
+  }));
+}
+
+export async function createCollection(input: Omit<Collection, "id">): Promise<void> {
+  if (!isSupabaseConfigured) {
+    demoCreateCollection(input);
+    return;
+  }
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new OrderError("UNKNOWN");
+  const { data, error } = await supabase.from("collections").insert({
+    slug: input.slug,
+    name: input.nameEn,
+    name_ar: input.nameAr,
+    description: input.descriptionAr,
+    cover_image_url: input.image || null,
+    display_order: input.displayOrder,
+    is_published: input.isPublished,
+  }).select("id").single();
+  if (error || !data) throw new OrderError("UNKNOWN");
+  if (input.productIds?.length) {
+    const { error: productsError } = await supabase.from("collection_products").insert(input.productIds.map((productId, index) => ({ collection_id: data.id, product_id: productId, display_order: index })));
+    if (productsError) throw new OrderError("UNKNOWN");
+  }
+}
+
+export async function updateCollection(id: string, input: Omit<Collection, "id">): Promise<void> {
+  if (!isSupabaseConfigured) {
+    if (!demoUpdateCollection(id, input)) throw new OrderError("NOT_FOUND");
+    return;
+  }
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new OrderError("UNKNOWN");
+  const { error } = await supabase.from("collections").update({
+    slug: input.slug,
+    name: input.nameEn,
+    name_ar: input.nameAr,
+    description: input.descriptionAr,
+    cover_image_url: input.image || null,
+    display_order: input.displayOrder,
+    is_published: input.isPublished,
+    updated_at: new Date().toISOString(),
+  }).eq("id", id);
+  if (error) throw new OrderError("UNKNOWN");
+  const { error: deleteError } = await supabase.from("collection_products").delete().eq("collection_id", id);
+  if (deleteError) throw new OrderError("UNKNOWN");
+  if (input.productIds?.length) {
+    const { error: productsError } = await supabase.from("collection_products").insert(input.productIds.map((productId, index) => ({ collection_id: id, product_id: productId, display_order: index })));
+    if (productsError) throw new OrderError("UNKNOWN");
+  }
+}
+
+export async function deleteCollection(id: string): Promise<void> {
+  if (!isSupabaseConfigured) {
+    if (!demoDeleteCollection(id)) throw new OrderError("NOT_FOUND");
+    return;
+  }
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new OrderError("UNKNOWN");
+  const { error } = await supabase.from("collections").delete().eq("id", id);
+  if (error) throw new OrderError("UNKNOWN");
+}
+
 export async function getInventory(): Promise<InventoryItem[]> {
   if (!isSupabaseConfigured) return demoInventory();
   const supabase = await createSupabaseServerClient();
@@ -337,18 +426,28 @@ export async function getInventory(): Promise<InventoryItem[]> {
     const primary = [...images].sort(
       (a, b) => Number(b.is_primary) - Number(a.is_primary) || a.display_order - b.display_order,
     )[0];
+    const slug = String(row.slug);
+    const categorySlug = (Array.isArray(row.category) ? row.category[0]?.slug : (row.category as { slug?: string } | null)?.slug) ?? "";
+    const names = canonicalProductNames({
+      slug,
+      categorySlug,
+      size: String(row.size ?? ""),
+      nameEn: String(row.name),
+      nameAr: String(row.name_ar),
+      variantLabelAr: getStaticProduct(slug)?.variantLabelAr,
+    });
     return {
       productId: String(row.id),
-      name: String(row.name),
-      nameAr: String(row.name_ar),
-      slug: String(row.slug),
+      name: names.nameEn,
+      nameAr: names.nameAr,
+      slug,
       quantityAvailable: record?.quantity ?? 0,
       lowStockThreshold: record?.threshold ?? 5,
       price: Number(row.price),
       isActive: Boolean(row.is_active),
       isFeatured: Boolean(row.is_featured),
       image: primary?.image_url ?? getStaticProduct(String(row.slug))?.images[0]?.url ?? "",
-      categorySlug: (Array.isArray(row.category) ? row.category[0]?.slug : (row.category as { slug?: string } | null)?.slug) ?? "",
+      categorySlug,
       shortDescription: String(row.short_description ?? ""),
       shortDescriptionAr: String(row.short_description_ar ?? ""),
       description: String(row.description ?? ""),

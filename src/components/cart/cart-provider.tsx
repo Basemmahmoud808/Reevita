@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { brand } from "@/lib/catalog";
+import { canonicalProductNames } from "@/lib/product-names";
 import type { CartLine, Product } from "@/lib/types";
 import { useToast } from "@/components/ui/toast";
 
@@ -41,6 +42,7 @@ interface CartContextValue {
   openCart: () => void;
   closeCart: () => void;
   addItem: (product: AddableProduct, quantity?: number) => void;
+  addItems: (products: AddableProduct[], quantity?: number) => void;
   removeItem: (productId: string) => void;
   setQuantity: (productId: string, quantity: number) => void;
   clear: () => void;
@@ -64,11 +66,20 @@ function sanitizeLines(value: unknown): CartLine[] {
       );
     })
     .slice(0, 30)
-    .map((line) => ({
-      ...line,
-      quantity: Math.min(Math.max(1, Math.round(line.quantity)), MAX_QUANTITY),
-      maxQuantity: MAX_QUANTITY,
-    }));
+    .map((line) => {
+      const names = canonicalProductNames({
+        slug: line.slug,
+        size: line.size,
+        variantLabelAr: line.variantLabelAr,
+        nameAr: line.nameAr,
+      });
+      return {
+        ...line,
+        nameAr: names.nameAr,
+        quantity: Math.min(Math.max(1, Math.round(line.quantity)), MAX_QUANTITY),
+        maxQuantity: MAX_QUANTITY,
+      };
+    });
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -169,6 +180,50 @@ export function CartProvider({ children }: { children: ReactNode }) {
     [toast],
   );
 
+  const addItems = useCallback(
+    (products: AddableProduct[], quantity = 1) => {
+      const availableProducts = products.filter((product) => product.stockStatus !== "out_of_stock");
+      if (availableProducts.length === 0) {
+        toast("لا توجد منتجات متاحة للإضافة من هذه المجموعة.", "error");
+        return;
+      }
+
+      setLines((current) => {
+        let next = [...current];
+        for (const product of availableProducts) {
+          const existing = next.find((line) => line.productId === product.id);
+          if (existing) {
+            const nextQuantity = Math.min(existing.quantity + quantity, MAX_QUANTITY);
+            next = next.map((line) => line.productId === product.id ? { ...line, quantity: nextQuantity } : line);
+            continue;
+          }
+          next.push({
+            productId: product.id,
+            slug: product.slug,
+            nameAr: product.nameAr,
+            price: product.price,
+            compareAtPrice: product.compareAtPrice,
+            image: product.images[0]?.url ?? "",
+            size: product.size,
+            variantLabelAr: product.variantLabelAr,
+            quantity: Math.min(Math.max(1, quantity), MAX_QUANTITY),
+            maxQuantity: MAX_QUANTITY,
+          });
+        }
+        return next;
+      });
+      const skipped = products.length - availableProducts.length;
+      toast(
+        skipped > 0
+          ? `تمت إضافة ${availableProducts.length} منتجات، وتم تخطي ${skipped} غير متاح.`
+          : `تمت إضافة ${availableProducts.length} منتجات إلى السلة.`,
+        skipped > 0 ? "info" : "success",
+      );
+      setIsOpen(true);
+    },
+    [toast],
+  );
+
   const removeItem = useCallback((productId: string) => {
     setLines((current) => current.filter((line) => line.productId !== productId));
   }, []);
@@ -204,6 +259,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       openCart,
       closeCart,
       addItem,
+      addItems,
       removeItem,
       setQuantity,
       clear,
@@ -219,6 +275,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       openCart,
       closeCart,
       addItem,
+      addItems,
       removeItem,
       setQuantity,
       clear,
