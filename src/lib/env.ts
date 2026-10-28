@@ -6,7 +6,11 @@
  * Nothing secret is ever read here — only public browser variables.
  */
 const rawUrl = (process.env.NEXT_PUBLIC_SUPABASE_URL ?? "").trim();
-const rawAnonKey = (process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "").trim();
+const rawAnonKey = (
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+  ""
+).trim();
 
 export const supabaseUrl = rawUrl;
 export const supabaseAnonKey = rawAnonKey;

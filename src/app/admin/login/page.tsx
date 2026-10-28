@@ -34,6 +34,8 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: P
             <p role="alert" className="mb-4 rounded-xl border border-danger/20 bg-danger/5 px-3.5 py-3 text-xs leading-6 text-danger">
               {error === "not-admin"
                 ? "حساب GitHub هذا غير مخوّل لإدارة المتجر. استخدم الحساب المسجل كمدير."
+                : error === "supabase"
+                  ? "اتصال Supabase غير مضبوط على استضافة الموقع. أضف رابط المشروع والمفتاح العام في Vercel ثم أعد النشر."
                 : error === "github"
                   ? "تسجيل GitHub غير مفعّل بعد في إعدادات Supabase. أكمل إعداد مزود GitHub ثم حاول مجددًا."
                   : "تعذر إكمال تسجيل الدخول. راجع إعدادات GitHub وروابط التحويل في Supabase وحاول مرة أخرى."}

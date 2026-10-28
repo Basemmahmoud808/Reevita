@@ -175,7 +175,10 @@ export async function adminGitHubSignInAction() {
   const vercelOrigin = vercelHost
     ? `https://${vercelHost.replace(/^https?:\/\//, "")}`
     : siteUrl;
-  const callbackOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || vercelOrigin;
+  const callbackOrigin =
+    process.env.NODE_ENV === "production" && vercelHost
+      ? vercelOrigin
+      : process.env.NEXT_PUBLIC_SITE_URL?.trim() || vercelOrigin;
   const callbackUrl = new URL("/auth/callback", callbackOrigin);
   callbackUrl.searchParams.set("next", "/admin");
   const { data, error } = await supabase.auth.signInWithOAuth({
