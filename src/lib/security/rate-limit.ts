@@ -1,10 +1,14 @@
+import { createHash } from "node:crypto";
+
 /**
  * Lightweight in-process rate limiter.
  *
  * Good enough to stop casual abuse on a single Node instance (local, VPS, or a
- * single Vercel region). For multi-region serverless deployments put a durable
- * limiter in front (Upstash Redis / Cloudflare Turnstile). This is documented in
- * docs/SECURITY.md.
+ * single Vercel region). When `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`
+ * are configured a shared Redis counter is used instead, which is required for
+ * multi-instance / serverless deployments. If Upstash is configured but fails,
+ * the limiter degrades to the in-process bucket (logged) rather than failing the
+ * request open to unlimited traffic.
  */
 type Bucket = { count: number; resetAt: number };
 
@@ -90,16 +94,53 @@ export async function rateLimit(key: string, limit: number, windowMs: number): P
   return localRateLimit(key, limit, windowMs);
 }
 
+/**
+ * Stable, non-reversible key for values that must never be logged or stored in
+ * clear (phone numbers, emails). Rate-limit keys are written to Redis when
+ * Upstash is configured, so hashing keeps personal data out of that store.
+ */
+export function hashedKey(scope: string, value: string): string {
+  const normalized = value.trim().toLowerCase();
+  const digest = createHash("sha256").update(normalized).digest("hex").slice(0, 32);
+  return `${scope}:${digest}`;
+}
+
+/**
+ * Resolve the client address used for rate limiting.
+ *
+ * Trust model: the app is expected to sit behind a proxy that *appends* the
+ * client address to `x-forwarded-for`. Only proxy-controlled values are used:
+ *
+ *  1. Vercel: `x-vercel-forwarded-for` is injected by the platform and cannot be
+ *     spoofed by the browser.
+ *  2. `TRUSTED_IP_HEADER` (optional): an operator-declared header set by their
+ *     own edge proxy (e.g. `cf-connecting-ip`, `x-real-ip`).
+ *  3. Otherwise the right-most `x-forwarded-for` entry (the hop appended by the
+ *     closest proxy). Client-supplied left-hand entries are ignored.
+ *
+ * A raw `x-real-ip` from an untrusted caller is deliberately NOT trusted on its
+ * own, because it is trivially spoofed and would let an attacker rotate the
+ * limiter key at will. When no trustworthy header exists the caller falls back
+ * to the "unknown" bucket, which is intentionally strict.
+ */
 export function clientIp(headers: Headers): string {
-  const trustedVercelIp = headers.get("x-vercel-forwarded-for")?.split(",").at(-1)?.trim();
-  if (trustedVercelIp) return trustedVercelIp;
+  if (process.env.VERCEL) {
+    const vercelIp = headers.get("x-vercel-forwarded-for")?.split(",").at(-1)?.trim();
+    if (vercelIp) return vercelIp;
+  }
 
-  const trustedProxyIp = headers.get("x-real-ip")?.trim();
-  if (trustedProxyIp) return trustedProxyIp;
+  const configuredHeader = process.env.TRUSTED_IP_HEADER?.trim().toLowerCase();
+  if (configuredHeader) {
+    const configuredValue = headers
+      .get(configuredHeader)
+      ?.split(",")
+      .at(-1)
+      ?.trim();
+    if (configuredValue) return configuredValue;
+  }
 
-  // Assumption: the hosting proxy appends its address to x-forwarded-for,
-  // making the right-most value the last proxy-validated client address.
   const forwarded = headers.get("x-forwarded-for");
   if (forwarded) return forwarded.split(",").at(-1)?.trim() || "unknown";
+
   return "unknown";
 }

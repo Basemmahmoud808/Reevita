@@ -1,8 +1,9 @@
-import { isSupabaseConfigured } from "@/lib/env";
+import { backendMode } from "@/lib/env";
 import { demoCustomerOrders, demoOrder, demoPlaceOrder, demoTrackOrder, toPlacedOrder } from "@/lib/demo/store";
-import { isValidEgyptianPhone } from "@/lib/phone";
+import { isValidEgyptianPhone, normalizeEgyptianPhone } from "@/lib/phone";
+import { deriveIdempotencyKey, normalizeIdempotencyKey } from "@/lib/orders/idempotency";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { CheckoutPayload, OrderStatus, PlacedOrder, TrackedOrder } from "@/lib/types";
+import type { CheckoutPayload, OrderStatus, PlacedOrder, OrderReceipt, TrackedOrder } from "@/lib/types";
 
 /** Error messages mirrored from docs/API_CONTRACT.md so the UI is always helpful. */
 export const ORDER_ERROR_MESSAGES: Record<string, string> = {
@@ -18,6 +19,7 @@ export const ORDER_ERROR_MESSAGES: Record<string, string> = {
   INVALID_STATUS_TRANSITION: "هذا الانتقال غير مسموح في حالة الطلب الحالية.",
   ORDER_NOT_FOUND: "لم يتم العثور على الطلب.",
   NOT_FOUND: "العنصر المطلوب غير موجود.",
+  SERVICE_UNAVAILABLE: "خدمة الطلبات غير متاحة حاليًا. يرجى المحاولة لاحقًا أو التواصل معنا.",
 };
 
 export class OrderError extends Error {
@@ -34,8 +36,22 @@ export function errorFromSupabase(message: string): OrderError {
   return new OrderError(code);
 }
 
-export async function placeOrder(payload: CheckoutPayload, ipAddress: string | null): Promise<PlacedOrder> {
-  if (!isSupabaseConfigured) {
+export async function placeOrder(
+  payload: CheckoutPayload,
+  ipAddress: string | null,
+  idempotencyKey?: string | null,
+): Promise<PlacedOrder> {
+  if (backendMode === "blocked") {
+    // Production without Supabase credentials: never accept an order that cannot
+    // be persisted. Failing closed protects customers from being told an order
+    // exists when nothing was recorded.
+    console.error("[reevita] order rejected: backend not configured in production");
+    throw new OrderError("SERVICE_UNAVAILABLE");
+  }
+
+  const key = normalizeIdempotencyKey(idempotencyKey) ?? deriveIdempotencyKey(payload);
+
+  if (backendMode === "demo") {
     try {
       return demoPlaceOrder({
         customerName: payload.customerName,
@@ -47,6 +63,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
         landmark: payload.landmark,
         orderNotes: payload.orderNotes,
         items: payload.items,
+        idempotencyKey: key,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
@@ -55,7 +72,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
   }
 
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
 
   const { data, error } = await supabase.rpc("place_order", {
     p_customer_name: payload.customerName,
@@ -68,11 +85,13 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     p_order_notes: payload.orderNotes ?? null,
     p_items: payload.items,
     p_ip_address: ipAddress,
+    p_idempotency_key: key,
   });
 
   if (error) throw errorFromSupabase(error.message);
   const result = data as unknown as {
     success: boolean;
+    replayed?: boolean;
     order_id: string;
     order_number: string;
     status: string;
@@ -98,6 +117,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     total: Number(result.total),
     currency: result.currency,
     createdAt: result.created_at,
+    replayed: Boolean(result.replayed),
   };
 }
 
@@ -105,8 +125,11 @@ export async function trackOrder(orderNumber: string, phone: string): Promise<Tr
   if (!isValidEgyptianPhone(phone)) {
     return { found: false, messageAr: ORDER_ERROR_MESSAGES.INVALID_PHONE };
   }
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     return demoTrackOrder(orderNumber, phone);
+  }
+  if (backendMode === "blocked") {
+    return { found: false, messageAr: ORDER_ERROR_MESSAGES.SERVICE_UNAVAILABLE };
   }
 
   const supabase = await createSupabaseServerClient();
@@ -157,7 +180,7 @@ export interface CustomerOrder {
 }
 
 export async function getCustomerOrders(email: string | null, phone: string | null): Promise<CustomerOrder[]> {
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     return demoCustomerOrders(email, phone).map((order) => ({
       id: order.id,
       orderNumber: order.orderNumber,
@@ -172,6 +195,7 @@ export async function getCustomerOrders(email: string | null, phone: string | nu
       })),
     }));
   }
+  if (backendMode === "blocked") return [];
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
@@ -199,11 +223,84 @@ export async function getCustomerOrders(email: string | null, phone: string | nu
   }));
 }
 
-/** Used by the order-confirmation page: demo data can be re-read, Supabase cannot (RLS). */
+/** Demo-only lookup for the confirmation page (Supabase uses `getOrderReceipt`). */
 export async function getPlacedDemoOrder(orderNumber: string) {
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     const order = demoOrder(orderNumber);
     return order ? toPlacedOrder(order) : null;
   }
   return null;
+}
+
+/**
+ * Authoritative receipt for the confirmation page.
+ *
+ * Requires the order number *and* the phone number used at checkout, so a
+ * browser cannot fabricate a confirmation (or read someone else's order) by
+ * editing a cookie. Returns only items/totals — never the address or email.
+ */
+export async function getOrderReceipt(orderNumber: string, phone: string): Promise<OrderReceipt | null> {
+  if (!isValidEgyptianPhone(phone)) return null;
+
+  if (backendMode === "demo") {
+    const order = demoOrder(orderNumber);
+    if (!order) return null;
+    const normalized = normalizeEgyptianPhone(phone);
+    if (!normalized || order.customerPhone !== normalized) return null;
+    return { ...toPlacedOrder(order), found: true };
+  }
+
+  if (backendMode === "blocked") return null;
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase.rpc("get_order_receipt", {
+    p_order_number: orderNumber.trim(),
+    p_phone: phone.trim(),
+  });
+  if (error) {
+    console.error("[reevita] order receipt lookup failed", error.message);
+    return null;
+  }
+
+  const row = data as unknown as {
+    found: boolean;
+    order_number?: string;
+    status?: string;
+    customer_name?: string;
+    customer_phone?: string;
+    governorate_ar?: string | null;
+    subtotal?: number;
+    shipping_fee?: number;
+    cod_fee?: number;
+    total?: number;
+    currency?: string;
+    created_at?: string;
+    items?: Array<{ product_name: string; quantity: number; unit_price: number; total_price: number }>;
+  };
+
+  if (!row?.found) return null;
+
+  return {
+    found: true,
+    orderId: "",
+    orderNumber: String(row.order_number ?? orderNumber),
+    status: String(row.status ?? "new"),
+    customerName: String(row.customer_name ?? ""),
+    customerPhone: String(row.customer_phone ?? phone),
+    subtotal: Number(row.subtotal ?? 0),
+    shippingFee: Number(row.shipping_fee ?? 0),
+    codFee: Number(row.cod_fee ?? 0),
+    total: Number(row.total ?? 0),
+    currency: String(row.currency ?? "EGP"),
+    createdAt: String(row.created_at ?? ""),
+    governorateAr: row.governorate_ar ?? undefined,
+    items: (row.items ?? []).map((item) => ({
+      productName: item.product_name,
+      quantity: Number(item.quantity),
+      unitPrice: Number(item.unit_price),
+      totalPrice: Number(item.total_price),
+    })),
+  };
 }

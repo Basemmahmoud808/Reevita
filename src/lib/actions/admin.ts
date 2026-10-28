@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { getAdminSession } from "@/lib/auth/session";
 import {
   updateInventory,
@@ -14,13 +15,9 @@ import {
 } from "@/lib/data/admin";
 import { OrderError } from "@/lib/data/orders";
 import { getStaticProduct } from "@/lib/catalog";
-import {
-  adminInventorySchema,
-  adminShippingSchema,
-  adminStatusSchema,
-  adminProductSchema,
-  adminProductUpdateSchema,
-} from "@/lib/validation";
+import { adminInventorySchema, adminShippingSchema, adminStatusSchema, adminProductSchema, adminProductUpdateSchema } from "@/lib/validation";
+import { clientIp, hashedKey, rateLimit } from "@/lib/security/rate-limit";
+import { MAX_PRODUCT_IMAGE_BYTES, PRODUCT_IMAGE_TYPES, validateProductImage } from "@/lib/security/image-upload";
 import type { OrderStatus } from "@/lib/types";
 
 export interface AdminActionState {
@@ -29,12 +26,28 @@ export interface AdminActionState {
   message?: string;
 }
 
-const MAX_PRODUCT_IMAGE_BYTES = 5 * 1024 * 1024;
-const PRODUCT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+/** Kept for backwards compatibility with the existing admin components. */
+export { MAX_PRODUCT_IMAGE_BYTES, PRODUCT_IMAGE_TYPES };
 
 async function guard(): Promise<string | null> {
   const admin = await getAdminSession();
-  return admin ? null : "غير مصرح لك بهذا الإجراء.";
+  if (!admin) return "غير مصرح لك بهذا الإجراء.";
+  if (await isThrottled("mutations")) {
+    return "عدد كبير من العمليات. يرجى الانتظار دقيقة ثم المحاولة مرة أخرى.";
+  }
+  return null;
+}
+
+/**
+ * Server-side throttle for privileged mutations. Admin sessions are already
+ * authenticated, so this is defence-in-depth against a stolen session or a
+ * runaway client loop rather than a primary access control.
+ */
+async function isThrottled(adminScope: string): Promise<boolean> {
+  const headerList = await headers();
+  const ip = clientIp(headerList);
+  const limited = await rateLimit(hashedKey(`admin:${adminScope}`, ip), 60, 60 * 1000);
+  return !limited.allowed;
 }
 
 export async function updateOrderStatusAction(
@@ -187,12 +200,12 @@ export async function replaceProductImageAction(
     const denied = await guard();
     if (denied) return { error: denied };
     const image = formData.get("image");
-    if (!(image instanceof File) || image.size === 0) return { error: "صورة المنتج مطلوبة." };
-    if (!PRODUCT_IMAGE_TYPES.has(image.type) || image.size > MAX_PRODUCT_IMAGE_BYTES) return { error: "الصورة يجب أن تكون JPG أو PNG أو WEBP حتى 5 ميجابايت." };
+    const validation = await validateProductImage(image);
+    if (!validation.ok) return { error: validation.error ?? "الصورة غير صالحة." };
     const productId = String(formData.get("productId") ?? "");
     if (!productId) return { error: "معرف المنتج مطلوب." };
     try {
-      await replaceProductImage(productId, image, String(formData.get("nameAr") ?? ""));
+      await replaceProductImage(productId, image as File, String(formData.get("nameAr") ?? ""));
       revalidatePath("/admin/products"); revalidatePath("/shop");
       return { ok: true, message: "تم استبدال صورة المنتج." };
     } catch { return { error: "تعذّر استبدال الصورة." }; }
@@ -220,9 +233,8 @@ export async function createProductAction(
   if (denied) return { error: denied };
 
   const image = formData.get("image");
-  if (!(image instanceof File) || image.size === 0) return { error: "صورة المنتج مطلوبة." };
-  if (!PRODUCT_IMAGE_TYPES.has(image.type)) return { error: "الصورة يجب أن تكون JPG أو PNG أو WEBP." };
-  if (image.size > MAX_PRODUCT_IMAGE_BYTES) return { error: "حجم الصورة يجب ألا يتجاوز 5 ميجابايت." };
+  const validation = await validateProductImage(image);
+  if (!validation.ok) return { error: validation.error ?? "الصورة غير صالحة." };
 
   const compareRaw = formData.get("compareAtPrice");
   const parsed = adminProductSchema.safeParse({
@@ -246,7 +258,7 @@ export async function createProductAction(
   }
 
   try {
-    await createAdminProduct({ ...parsed.data, image });
+    await createAdminProduct({ ...parsed.data, image: image as File });
     revalidatePath("/admin/products");
     revalidatePath("/shop");
     return {

@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { isDemoMode, siteUrl } from "@/lib/env";
@@ -8,12 +8,15 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { loginSchema, registerSchema } from "@/lib/validation";
 import { DEMO_ADMIN_COOKIE, DEMO_USER_COOKIE } from "@/lib/auth/session";
 import { normalizeEgyptianPhone } from "@/lib/phone";
+import { clientIp, hashedKey, rateLimit } from "@/lib/security/rate-limit";
 
 export interface AuthFormState {
   error?: string;
   message?: string;
   fieldErrors?: Record<string, string[]>;
 }
+
+const RATE_LIMITED_MESSAGE = "عدد المحاولات كبير. يرجى الانتظار قليلًا ثم المحاولة مرة أخرى.";
 
 function demoUserCookie(email: string, fullName: string, phone: string | null) {
   return encodeURIComponent(
@@ -26,6 +29,22 @@ function demoUserCookie(email: string, fullName: string, phone: string | null) {
   );
 }
 
+/**
+ * Throttle sensitive credential endpoints.
+ *
+ * Keys combine the caller's network with the targeted account (hashed), which
+ * stops both a single host from spraying many accounts and a distributed
+ * low-rate attack against one account. Counters live in Redis when Upstash is
+ * configured, so limits hold across serverless instances.
+ */
+async function throttle(scope: string, account: string, limit: number, windowMs: number): Promise<boolean> {
+  const headerList = await headers();
+  const ip = clientIp(headerList);
+  const perIp = await rateLimit(hashedKey(`${scope}-ip`, ip), limit, windowMs);
+  const perAccount = await rateLimit(hashedKey(`${scope}-account`, account), limit, windowMs);
+  return perIp.allowed && perAccount.allowed;
+}
+
 export async function signInAction(_prev: AuthFormState | null, formData: FormData): Promise<AuthFormState> {
   const parsed = loginSchema.safeParse({
     email: formData.get("email"),
@@ -33,6 +52,10 @@ export async function signInAction(_prev: AuthFormState | null, formData: FormDa
   });
   if (!parsed.success) {
     return { error: "يرجى مراجعة البيانات المدخلة", fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  if (!(await throttle("login", parsed.data.email, 10, 15 * 60 * 1000))) {
+    return { error: RATE_LIMITED_MESSAGE };
   }
 
   if (isDemoMode) {
@@ -53,6 +76,7 @@ export async function signInAction(_prev: AuthFormState | null, formData: FormDa
 
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
+    // Deliberately generic: never reveal whether the address exists.
     return { error: "البريد الإلكتروني أو كلمة المرور غير صحيحة." };
   }
   redirect("/account");
@@ -67,6 +91,10 @@ export async function signUpAction(_prev: AuthFormState | null, formData: FormDa
   });
   if (!parsed.success) {
     return { error: "يرجى مراجعة البيانات المدخلة", fieldErrors: parsed.error.flatten().fieldErrors };
+  }
+
+  if (!(await throttle("register", parsed.data.email, 5, 60 * 60 * 1000))) {
+    return { error: RATE_LIMITED_MESSAGE };
   }
 
   const phone = normalizeEgyptianPhone(parsed.data.phone);
@@ -97,7 +125,12 @@ export async function signUpAction(_prev: AuthFormState | null, formData: FormDa
       },
     },
   });
-  if (error) return { error: error.message };
+  if (error) {
+    // Do not surface provider internals ("User already registered", SMTP errors…):
+    // they leak account existence and infrastructure details.
+    console.error("[reevita] sign-up failed", error.message);
+    return { message: "تعذّر إكمال إنشاء الحساب. إذا كان البريد مسجلًا بالفعل فاستخدمي تسجيل الدخول أو استعادة كلمة المرور." };
+  }
   if (!data.session) {
     return { message: "تم إنشاء حسابك. يرجى تأكيد بريدك الإلكتروني ثم تسجيل الدخول." };
   }
@@ -145,6 +178,12 @@ export async function adminSignInAction(_prev: AuthFormState | null, formData: F
     password: formData.get("password"),
   });
   if (!parsed.success) return { error: "يرجى مراجعة البريد وكلمة المرور." };
+
+  // The admin endpoint is the highest-value credential target: throttle per
+  // network and per account before touching the auth provider.
+  if (!(await throttle("admin-login", parsed.data.email, 5, 15 * 60 * 1000))) {
+    return { error: RATE_LIMITED_MESSAGE };
+  }
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) return { error: "خدمة الدخول غير متاحة حاليًا." };

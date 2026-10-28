@@ -25,3 +25,25 @@ export const onlinePaymentsEnabled =
 export const supportPhone = process.env.NEXT_PUBLIC_SUPPORT_PHONE ?? "+201157024375";
 
 export const isProduction = process.env.NODE_ENV === "production";
+
+/**
+ * Which backend the server-side data layer may use.
+ *
+ * - `supabase`  → real database, RLS and RPCs (configured project).
+ * - `demo`      → in-memory fixtures, allowed only outside production.
+ * - `blocked`   → production without Supabase credentials. Order creation and
+ *                 admin operations must fail closed: silently writing orders to
+ *                 an in-memory store would accept real customer orders that are
+ *                 never persisted or fulfilled.
+ */
+export type BackendMode = "supabase" | "demo" | "blocked";
+
+export const backendMode: BackendMode = isSupabaseConfigured
+  ? "supabase"
+  : isDemoMode
+    ? "demo"
+    : "blocked";
+
+/** True when writes (orders, inventory, status changes) may be persisted. */
+export const canPersistWrites = backendMode !== "blocked";
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft, Loader2, Lock, ShieldCheck, Truck } from "lucide-react";
 import { useCart } from "@/components/cart/cart-provider";
@@ -22,6 +22,34 @@ export function CheckoutForm({
   );
   const [governorateId, setGovernorateId] = useState("");
   const [governorateErrorCleared, setGovernorateErrorCleared] = useState(false);
+
+  /**
+   * One idempotency key per checkout attempt, kept in sessionStorage so a retry
+   * (double click, browser retry, back-and-resubmit) reuses it and the server
+   * replays the original order instead of creating a duplicate. A new key is
+   * generated the next time the customer opens checkout after a successful order.
+   *
+   * The value is written through a ref (not state) because it is only read on
+   * submit — updating it must not trigger a re-render.
+   */
+  const idempotencyRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const input = idempotencyRef.current;
+    if (!input) return;
+    const storageKey = "rv_checkout_idempotency_key";
+    try {
+      let key = window.sessionStorage.getItem(storageKey) ?? "";
+      if (!key) {
+        key = globalThis.crypto?.randomUUID?.() ?? "";
+        if (key) window.sessionStorage.setItem(storageKey, key);
+      }
+      input.value = key;
+    } catch {
+      // Storage unavailable (private mode): the server derives a fallback key
+      // from the checkout payload, so duplicate protection still applies.
+    }
+  }, []);
 
   const governorate = useMemo(
     () => governorates.find((item) => item.id === governorateId),
@@ -89,17 +117,7 @@ export function CheckoutForm({
 
       <form action={formAction} className="grid gap-8 lg:grid-cols-[1.35fr_1fr]">
         <input type="hidden" name="items" value={itemsJson} />
-        <input
-          type="hidden"
-          name="cartSnapshot"
-          value={JSON.stringify(
-            lines.map((line) => ({
-              nameAr: line.nameAr,
-              quantity: line.quantity,
-              price: line.price,
-            })),
-          )}
-        />
+        <input ref={idempotencyRef} type="hidden" name="idempotencyKey" defaultValue="" />
 
         <div className="space-y-6">
           <section className="rounded-2xl border border-line bg-white/70 p-5 sm:p-7">

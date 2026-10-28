@@ -11,7 +11,7 @@ import {
   demoUpdateOrderStatus,
   demoUpdateShippingRate,
 } from "@/lib/demo/store";
-import { isSupabaseConfigured } from "@/lib/env";
+import { backendMode } from "@/lib/env";
 import { canTransition } from "@/lib/orders/status";
 import { OrderError, errorFromSupabase } from "@/lib/data/orders";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -123,7 +123,7 @@ export async function getAdminOrders(query: AdminOrdersQuery): Promise<{ orders:
   const limit = Math.min(Math.max(query.limit ?? 20, 1), 100);
   const offset = Math.max(query.offset ?? 0, 0);
 
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     const filtered = demoOrders().filter((order) => {
       if (query.status && order.status !== query.status) return false;
       if (query.governorateId && order.governorateId !== query.governorateId) return false;
@@ -209,7 +209,7 @@ export async function getAdminOrders(query: AdminOrdersQuery): Promise<{ orders:
 }
 
 export async function getAdminOrder(orderId: string): Promise<AdminOrder | null> {
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     const order = demoOrder(orderId);
     return order ? mapDemoOrder(order) : null;
   }
@@ -258,9 +258,9 @@ export async function getAdminOrder(orderId: string): Promise<AdminOrder | null>
 }
 
 export async function getAdminMetrics(): Promise<AdminMetrics> {
-  if (!isSupabaseConfigured) return demoMetrics();
+  if (backendMode === "demo") return demoMetrics();
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
   const { data, error } = await supabase.rpc("admin_get_metrics");
   if (error) throw errorFromSupabase(error.message);
   const metrics = data as unknown as AdminMetrics;
@@ -278,7 +278,7 @@ export async function updateOrderStatus(input: {
   carrier?: string;
   trackingNumber?: string;
 }): Promise<void> {
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     const order = demoOrder(input.orderId);
     if (!order) throw new OrderError("ORDER_NOT_FOUND");
     if (!canTransition(order.status, input.newStatus)) throw new OrderError("INVALID_STATUS_TRANSITION");
@@ -286,7 +286,7 @@ export async function updateOrderStatus(input: {
     return;
   }
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
   const { error } = await supabase.rpc("admin_update_order_status", {
     p_order_id: input.orderId,
     p_new_status: input.newStatus,
@@ -317,7 +317,7 @@ export interface InventoryItem {
 }
 
 export async function getInventory(): Promise<InventoryItem[]> {
-  if (!isSupabaseConfigured) return demoInventory();
+  if (backendMode === "demo") return demoInventory();
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
   const [productsResult, inventoryResult] = await Promise.all([
@@ -359,12 +359,12 @@ export async function getInventory(): Promise<InventoryItem[]> {
 }
 
 export async function updateInventory(productId: string, quantity: number, threshold?: number): Promise<void> {
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     if (!demoUpdateInventory(productId, quantity, threshold)) throw new OrderError("NOT_FOUND");
     return;
   }
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
   const { error } = await supabase.rpc("admin_update_inventory", {
     p_product_id: productId,
     p_quantity_available: quantity,
@@ -377,14 +377,14 @@ export async function updateProductFlags(
   productId: string,
   patch: { name?: string; nameAr?: string; slug?: string; categoryId?: string | null; shortDescription?: string | null; shortDescriptionAr?: string | null; description?: string; size?: string | null; price?: number; compareAtPrice?: number | null; isActive?: boolean; isFeatured?: boolean },
 ): Promise<void> {
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     const product = demoInventory().find((item) => item.productId === productId);
     if (!product) throw new OrderError("NOT_FOUND");
     return;
   }
 
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (patch.price !== undefined) update.price = patch.price;
   if (patch.name !== undefined) update.name = patch.name;
@@ -403,9 +403,9 @@ export async function updateProductFlags(
 }
 
 export async function replaceProductImage(productId: string, image: File, altText: string): Promise<void> {
-  if (!isSupabaseConfigured) throw new OrderError("UNKNOWN");
+  if (backendMode !== "supabase") throw new OrderError("SERVICE_UNAVAILABLE");
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
   const { data: oldImages } = await supabase.from("product_images").select("id, image_url").eq("product_id", productId);
   const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
   const objectPath = `products/${productId}/${crypto.randomUUID()}.${extension}`;
@@ -431,9 +431,9 @@ export async function archiveProduct(productId: string): Promise<void> {
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-  if (!isSupabaseConfigured) throw new OrderError("UNKNOWN");
+  if (backendMode !== "supabase") throw new OrderError("SERVICE_UNAVAILABLE");
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
   const { count, error: countError } = await supabase.from("order_items").select("id", { count: "exact", head: true }).eq("product_id", productId);
   if (countError) throw errorFromSupabase(countError.message);
   if ((count ?? 0) > 0) throw new OrderError("CONFLICT");
@@ -448,9 +448,9 @@ export async function deleteProduct(productId: string): Promise<void> {
 }
 
 export async function createAdminProduct(input: CreateAdminProductInput): Promise<void> {
-  if (!isSupabaseConfigured) throw new OrderError("UNKNOWN");
+  if (backendMode !== "supabase") throw new OrderError("SERVICE_UNAVAILABLE");
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
 
   const { data: category, error: categoryError } = await supabase
     .from("categories")
@@ -517,7 +517,7 @@ export async function createAdminProduct(input: CreateAdminProductInput): Promis
 }
 
 export async function getShippingRates(): Promise<Governorate[]> {
-  if (!isSupabaseConfigured) return demoGovernorates();
+  if (backendMode === "demo") return demoGovernorates();
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
   const { data, error } = await supabase
@@ -548,12 +548,12 @@ export async function getShippingRates(): Promise<Governorate[]> {
 }
 
 export async function updateShippingRate(governorateId: string, cost: number, threshold: number): Promise<void> {
-  if (!isSupabaseConfigured) {
+  if (backendMode === "demo") {
     if (!demoUpdateShippingRate(governorateId, cost, threshold)) throw new OrderError("NOT_FOUND");
     return;
   }
   const supabase = await createSupabaseServerClient();
-  if (!supabase) throw new OrderError("UNKNOWN");
+  if (!supabase) throw new OrderError("SERVICE_UNAVAILABLE");
   const { error } = await supabase.rpc("admin_update_shipping_rate", {
     p_governorate_id: governorateId,
     p_shipping_cost: cost,
@@ -572,7 +572,7 @@ export interface AuditEntry {
 }
 
 export async function getAuditLog(limit = 20): Promise<AuditEntry[]> {
-  if (!isSupabaseConfigured) return demoAuditLog();
+  if (backendMode === "demo") return demoAuditLog();
   const supabase = await createSupabaseServerClient();
   if (!supabase) return [];
   const { data } = await supabase

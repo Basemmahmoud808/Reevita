@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { isValidEgyptianPhone } from "@/lib/phone";
 
+/** Business limits shared by the client schema and the database RPC. */
+export const MAX_ITEM_QUANTITY = 10;
+export const MAX_ORDER_LINES = 20;
+
 const phoneSchema = z
   .string()
   .trim()
@@ -33,11 +37,21 @@ export const checkoutSchema = z.object({
     .array(
       z.object({
         product_id: z.string().guid(),
-        quantity: z.number().int().min(1).max(10),
+        quantity: z.number().int().min(1).max(MAX_ITEM_QUANTITY),
       }),
     )
     .min(1, { message: "سلة المشتريات فارغة" })
-    .max(20),
+    .max(MAX_ORDER_LINES),
+  /**
+   * Client-generated checkout attempt identifier. The server also derives one
+   * when a client cannot provide it, so duplicate submissions stay protected
+   * even without JavaScript.
+   */
+  idempotencyKey: z
+    .string()
+    .trim()
+    .regex(/^[A-Za-z0-9_.:-]{8,128}$/, { message: "معرّف محاولة الطلب غير صالح" })
+    .optional(),
   terms: z.literal(true, { error: "يجب الموافقة على الشروط وسياسة الاسترجاع." }),
 });
 

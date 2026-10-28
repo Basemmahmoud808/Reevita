@@ -67,7 +67,34 @@ test('place_order calculates subtotal, shipping, and updates inventory correctly
   assert.equal(invRes2.rows[0].quantity_available, 46);
   assert.equal(invRes2.rows[0].quantity_reserved, 4);
 
-  // 3. Test Insufficient Stock rejection
+  // 3. Insufficient-stock rejection (quantity within the per-item cap of 10, so
+  //    the stock guard — not the quantity cap — rejects the order).
+  await db.query('UPDATE public.inventory SET quantity_available = 5 WHERE product_id = $1;', [shampooId]);
+  const stockError = await db
+    .query(`
+      SELECT public.place_order($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb);
+    `, [
+      'طارق حسن',
+      '01234567890',
+      null,
+      cairoGovId,
+      'الدقي',
+      'شارع التحرير عمارة 4',
+      null,
+      null,
+      JSON.stringify([{ product_id: shampooId, quantity: 10 }]),
+    ])
+    .then(() => null)
+    .catch((error) => error);
+  assert.ok(stockError, 'Should reject order when requested quantity exceeds available stock');
+  assert.match(stockError.message, /INSUFFICIENT_STOCK/);
+  assert.doesNotMatch(
+    stockError.message,
+    /\b5\b/,
+    'Stock errors must never disclose the exact remaining quantity'
+  );
+
+  // 4. Per-item quantity above the business cap is rejected before stock checks
   await assert.rejects(
     async () => {
       await db.query(`
@@ -83,11 +110,37 @@ test('place_order calculates subtotal, shipping, and updates inventory correctly
         'شارع التحرير عمارة 4',
         null,
         null,
-        JSON.stringify([{ product_id: shampooId, quantity: 999 }]) // only 46 available
+        JSON.stringify([{ product_id: shampooId, quantity: 999 }])
       ]);
     },
-    /INSUFFICIENT_STOCK/,
-    'Should reject order when requested quantity exceeds available stock'
+    /Maximum quantity per product is 10/,
+    'Should reject quantities above the per-product cap'
+  );
+
+  // 5. Repeating the same product must not bypass the per-product cap
+  await assert.rejects(
+    async () => {
+      await db.query(`
+        SELECT public.place_order(
+          $1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb
+        );
+      `, [
+        'طارق حسن',
+        '01234567890',
+        null,
+        cairoGovId,
+        'الدقي',
+        'شارع التحرير عمارة 4',
+        null,
+        null,
+        JSON.stringify([
+          { product_id: shampooId, quantity: 6 },
+          { product_id: shampooId, quantity: 6 },
+        ])
+      ]);
+    },
+    /Maximum quantity per product is 10/,
+    'Duplicate product lines must be aggregated before the quantity cap is applied'
   );
 
   await db.close();

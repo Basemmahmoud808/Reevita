@@ -3,7 +3,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { Check, CircleHelp, MessageCircle, PackageCheck, Truck } from "lucide-react";
 import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
-import { getPlacedDemoOrder } from "@/lib/data/orders";
+import { getOrderReceipt, getPlacedDemoOrder } from "@/lib/data/orders";
 import { ClearCartOnMount } from "@/components/cart/clear-cart-on-mount";
 import { brand } from "@/lib/catalog";
 import { formatDateTimeAr, formatEGP } from "@/lib/format";
@@ -19,17 +19,44 @@ interface PageProps {
   params: Promise<{ orderNumber: string }>;
 }
 
+interface OrderCookie {
+  orderNumber?: string;
+  phone?: string;
+}
+
+/**
+ * Resolve the confirmation from the backend, never from cookie contents.
+ *
+ * The httpOnly cookie only carries the order number and phone used at checkout.
+ * The receipt itself is re-read from the database through `get_order_receipt`,
+ * which requires both values — so a tampered cookie cannot display a fake
+ * "order confirmed" page or another customer's order.
+ */
 async function readOrder(orderNumber: string): Promise<PlacedOrder | null> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(LAST_ORDER_COOKIE)?.value;
+  let reference: OrderCookie | null = null;
   if (raw) {
     try {
-      const parsed = JSON.parse(decodeURIComponent(raw)) as PlacedOrder;
-      if (parsed.orderNumber?.toLowerCase() === orderNumber.toLowerCase()) return parsed;
+      reference = JSON.parse(decodeURIComponent(raw)) as OrderCookie;
     } catch {
-      // fall through to demo lookup
+      reference = null;
     }
   }
+
+  const matches = reference?.orderNumber?.toLowerCase() === orderNumber.toLowerCase();
+  if (matches && reference?.phone) {
+    const receipt = await getOrderReceipt(orderNumber, reference.phone);
+    if (receipt) return receipt;
+  }
+
+  // Legacy demo sessions stored the whole order in the cookie; demo rows live in
+  // memory and are re-read here (Supabase mode returns null by design).
+  if (matches) {
+    const demoOrder = await getPlacedDemoOrder(orderNumber);
+    if (demoOrder) return demoOrder;
+  }
+
   return getPlacedDemoOrder(orderNumber);
 }
 

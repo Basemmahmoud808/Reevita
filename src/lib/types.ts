@@ -151,6 +151,13 @@ export interface PlacedOrder {
   createdAt: string;
   items?: { productName: string; quantity: number; unitPrice: number; totalPrice: number }[];
   governorateAr?: string;
+  /** True when an identical checkout attempt was replayed instead of creating a new order. */
+  replayed?: boolean;
+}
+
+/** Authoritative, phone-verified receipt used by the confirmation page. */
+export interface OrderReceipt extends PlacedOrder {
+  found: boolean;
 }
 
 export type OrderStatus =

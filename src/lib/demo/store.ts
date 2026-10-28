@@ -364,6 +364,14 @@ export function demoOrders(): DemoOrder[] {
   return [...orders].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
 }
 
+/** Demo-only replay registry mirroring `public.order_idempotency`. */
+const demoIdempotentOrders = new Map<string, DemoOrder>();
+
+/** Test helper: clears demo idempotency claims between scenarios. */
+export function demoResetIdempotency(): void {
+  demoIdempotentOrders.clear();
+}
+
 export function demoPlaceOrder(input: {
   customerName: string;
   customerPhone: string;
@@ -374,6 +382,7 @@ export function demoPlaceOrder(input: {
   landmark?: string | null;
   orderNotes?: string | null;
   items: { product_id: string; quantity: number }[];
+  idempotencyKey?: string | null;
 }): PlacedOrder {
   const governorate = demoGovernorates().find((gov) => gov.id === input.governorateId);
   if (!governorate) throw new Error("INVALID_LOCATION: Selected governorate is invalid");
@@ -384,12 +393,27 @@ export function demoPlaceOrder(input: {
   if (input.addressLine.trim().length < 5) throw new Error("INVALID_INPUT: Address too short");
   if (input.city.trim().length < 2) throw new Error("INVALID_INPUT: City required");
 
+  // Idempotent replay: same attempt + same phone returns the original order.
+  if (input.idempotencyKey) {
+    const existing = demoIdempotentOrders.get(input.idempotencyKey);
+    if (existing) {
+      if (existing.customerPhone !== normalizedPhone) {
+        throw new Error("ORDER_REJECTED: This checkout attempt was already used");
+      }
+      return { ...toPlacedOrder(existing), replayed: true };
+    }
+  }
+
   const items = input.items.map((item) => {
     const product = staticProducts.find((candidate) => candidate.id === item.product_id);
     if (!product) throw new Error("PRODUCT_UNAVAILABLE: Product not found");
+    if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+      throw new Error("INVALID_ITEM: Quantity must be a positive whole number");
+    }
+    if (item.quantity > 10) throw new Error("INVALID_ITEM: Maximum quantity per product is 10");
     const record = stock.get(product.id);
     if (!record || record.quantity < item.quantity) {
-      throw new Error(`INSUFFICIENT_STOCK: Product "${product.nameAr}" is out of stock`);
+      throw new Error(`INSUFFICIENT_STOCK: The requested quantity is not available for product "${product.nameAr}"`);
     }
     return { product, quantity: item.quantity };
   });
@@ -440,6 +464,7 @@ export function demoPlaceOrder(input: {
   });
 
   orders.push(order);
+  if (input.idempotencyKey) demoIdempotentOrders.set(input.idempotencyKey, order);
   return toPlacedOrder(order);
 }
 

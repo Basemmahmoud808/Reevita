@@ -3,7 +3,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { checkoutSchema, trackOrderSchema } from "@/lib/validation";
-import { clientIp, rateLimit } from "@/lib/security/rate-limit";
+import { clientIp, hashedKey, rateLimit } from "@/lib/security/rate-limit";
 import { ORDER_ERROR_MESSAGES, OrderError, placeOrder, trackOrder } from "@/lib/data/orders";
 import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
 import type { TrackedOrder } from "@/lib/types";
@@ -37,10 +37,19 @@ export async function placeOrderAction(
   const values = checkoutValues(formData);
   const headerList = await headers();
   const ip = clientIp(headerList);
-  const limited = await rateLimit(`checkout:${ip}`, 5, 10 * 60 * 1000);
-  if (!limited.allowed) {
+
+  // Two independent dimensions: the network (IP) and the contact number. The IP
+  // limit stops scripted floods from one host; the phone limit stops a single
+  // number from spamming orders across rotating proxies. Phone numbers are
+  // hashed so no personal data is written to the rate-limit store.
+  const ipLimited = await rateLimit(`checkout:${ip}`, 5, 10 * 60 * 1000);
+  const phoneLimited = values.customerPhone
+    ? await rateLimit(hashedKey("checkout-phone", values.customerPhone), 5, 10 * 60 * 1000)
+    : { allowed: true, remaining: 5, retryAfterSeconds: 0 };
+  if (!ipLimited.allowed || !phoneLimited.allowed) {
+    const retryAfter = Math.max(ipLimited.retryAfterSeconds, phoneLimited.retryAfterSeconds, 30);
     return {
-      error: "عدد محاولات الطلب كبير. يرجى المحاولة بعد قليل.",
+      error: `عدد محاولات الطلب كبير. يرجى المحاولة بعد ${Math.ceil(retryAfter / 60)} دقيقة.`,
       code: "RATE_LIMITED",
       values,
     };
@@ -53,27 +62,6 @@ export async function placeOrderAction(
     return { error: "سلة المشتريات غير صالحة. يرجى تحديث الصفحة.", code: "INVALID_ITEM", values };
   }
 
-  // Display-only snapshot for the confirmation page (prices/totals always come from the RPC).
-  let snapshot: unknown = [];
-  try {
-    snapshot = JSON.parse(String(formData.get("cartSnapshot") ?? "[]"));
-  } catch {
-    snapshot = [];
-  }
-  const displayItems = Array.isArray(snapshot)
-    ? snapshot.slice(0, 20).map((item) => {
-        const record = item as Record<string, unknown>;
-        const quantity = Math.max(1, Math.min(10, Math.round(Number(record.quantity) || 1)));
-        const unitPrice = Math.max(0, Number(record.price) || 0);
-        return {
-          productName: String(record.nameAr ?? "").slice(0, 140),
-          quantity,
-          unitPrice,
-          totalPrice: unitPrice * quantity,
-        };
-      })
-    : [];
-
   const parsed = checkoutSchema.safeParse({
     customerName: formData.get("customerName"),
     customerPhone: formData.get("customerPhone"),
@@ -84,6 +72,7 @@ export async function placeOrderAction(
     landmark: formData.get("landmark") ?? "",
     orderNotes: formData.get("orderNotes") ?? "",
     items,
+    idempotencyKey: formData.get("idempotencyKey") ?? undefined,
     terms: formData.get("terms") === "on",
   });
 
@@ -112,25 +101,21 @@ export async function placeOrderAction(
         items: parsed.data.items,
       },
       ip,
+      parsed.data.idempotencyKey,
     );
 
+    // The confirmation page re-reads the order from the backend using the order
+    // number + phone (the same anti-IDOR pair as tracking). Only those two values
+    // are stored client-side, so the cookie can never act as a source of truth
+    // for totals, prices or "order confirmed" claims.
     const cookieStore = await cookies();
-    cookieStore.set(
-      LAST_ORDER_COOKIE,
-      encodeURIComponent(
-        JSON.stringify({
-          ...order,
-          items: order.items && order.items.length > 0 ? order.items : displayItems,
-        }),
-      ),
-      {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        maxAge: 60 * 30,
-        secure: process.env.NODE_ENV === "production",
-      },
-    );
+    cookieStore.set(LAST_ORDER_COOKIE, encodeURIComponent(JSON.stringify({ orderNumber: order.orderNumber, phone: order.customerPhone })), {
+      httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 30,
+      secure: process.env.NODE_ENV === "production",
+    });
 
     redirect(`/order/${order.orderNumber}`);
   } catch (error) {
