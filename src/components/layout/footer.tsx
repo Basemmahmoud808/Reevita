@@ -49,7 +49,9 @@ export function Footer() {
       </div>
       <div className="reference-container flex justify-between border-t border-[#ded8cc] py-4 text-[0.6rem] text-[#99958a]">
         <span>© {new Date().getFullYear()} REEVITA. All rights reserved.</span>
-        <span>Skincare / Haircare / Beauty</span>
+        <a href="https://www.facebook.com/share/1CWMusi43s/" target="_blank" rel="noreferrer" className="transition-colors hover:text-[#34483d]">
+          Powered by Basem
+        </a>
       </div>
     </footer>
   );
