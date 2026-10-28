@@ -6,12 +6,13 @@ import { createCollectionAction, deleteCollectionAction, updateCollectionAction,
 import type { Collection, Product } from "@/lib/types";
 
 const coverOptions = [
-  "/images/products/body-lotion-sexy.webp",
-  "/images/products/body-lotion-queen.webp",
-  "/images/products/body-lotion-ruby-musk.webp",
-  "/images/products/shampoo-aloe-vera.webp",
-  "/images/collections/soft-glow-bundle.webp",
-  "/images/fresh-all-day-bundle.jpg",
+  "/images/collections/hair-care-duo-products.jpg",
+  "/images/collections/soft-glow-bundle.jpg",
+  "/images/collections/complete-care-bundle.jpg",
+  "/images/collections/fresh-all-day-bundle.jpg",
+  "/images/collections/soft-glow-bubblegum.jpg",
+  "/images/collections/soft-glow-dove.jpg",
+  "/images/collections/soft-glow-blueberry.jpg",
 ];
 
 function Feedback({ state }: { state: AdminActionState | null }) {

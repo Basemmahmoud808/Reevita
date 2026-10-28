@@ -12,15 +12,17 @@ export const metadata: Metadata = {
   description: "Explore REEVITA signature collections.",
 };
 
-const merchandisingCollectionSlugs = new Set([
+const merchandisingCollectionOrder = [
+  "hair-care-duo-bundle",
+  "soft-glow-bundle",
+  "complete-care-bundle",
+  "fresh-all-day-bundle",
   "sweet-mood",
   "clean-mood",
   "ruby-musk-collection",
   "sexy-collection",
   "fruity-mood",
-  "hair-care-duo-bundle",
-  "complete-care-bundle",
-]);
+];
 
 function collectionProducts(collection: Collection, products: Product[]) {
   const ids = new Set(collection.productIds ?? []);
@@ -29,7 +31,10 @@ function collectionProducts(collection: Collection, products: Product[]) {
 
 export default async function CollectionsPage() {
   const [allCollections, products] = await Promise.all([getCollections(), getProducts()]);
-  const collections = allCollections.filter((collection) => merchandisingCollectionSlugs.has(collection.slug));
+  const rank = new Map(merchandisingCollectionOrder.map((slug, index) => [slug, index]));
+  const collections = allCollections
+    .filter((collection) => rank.has(collection.slug))
+    .sort((a, b) => (rank.get(a.slug) ?? Number.MAX_SAFE_INTEGER) - (rank.get(b.slug) ?? Number.MAX_SAFE_INTEGER));
 
   return (
     <main className="container-luxe py-10 md:py-14">

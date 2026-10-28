@@ -64,7 +64,7 @@ ON CONFLICT (id) DO UPDATE SET
   description = EXCLUDED.description, image_url = EXCLUDED.image_url,
   display_order = EXCLUDED.display_order, is_active = TRUE;
 
--- 4. Products (24 catalogue SKUs) — prices in EGP
+-- 4. Products (25 catalogue SKUs) — prices in EGP
 INSERT INTO public.products (id, category_id, slug, name, name_ar, short_description, short_description_ar, description, price, compare_at_price, benefits, ingredients, how_to_use, size, is_featured, is_active) VALUES
   ('33333333-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000005', 'shampoo-aloe-vera', 'REEVITA Shampoo Aloe Vera', 'ريفيتا شامبو ألوفيرا', 'Shampoo with Botanical Care notes.', 'ريفيتا شامبو ألوفيرا — 300 مل', 'شامبو REEVITA للعناية بالشعر. راجعي بيانات العبوة للاطلاع على المكونات وطريقة الاستخدام.', 350, NULL, ARRAY[]::text[], '', '', '300 مل', FALSE, FALSE),
   ('33333333-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000005', 'shampoo-blueberry', 'REEVITA Shampoo Blueberry', 'ريفيتا شامبو توت أزرق', 'Shampoo with Botanical Care notes.', 'ريفيتا شامبو توت أزرق — 300 مل', 'شامبو REEVITA للعناية بالشعر. راجعي بيانات العبوة للاطلاع على المكونات وطريقة الاستخدام.', 220, NULL, ARRAY[]::text[], '', '', '300 مل', FALSE, TRUE),
@@ -89,7 +89,8 @@ INSERT INTO public.products (id, category_id, slug, name, name_ar, short_descrip
   ('33333333-0000-0000-0000-000000000021', '22222222-0000-0000-0000-000000000003', 'body-splash-ruby-musk-120', 'REEVITA Body Splash Ruby Musk', 'ريفيتا بادي سبلاش روبي مسك', 'Body Splash with Ruby Musk notes.', 'ريفيتا بادي سبلاش روبي مسك — 120 مل', 'بادي سبلاش REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.', 220, NULL, ARRAY[]::text[], '', '', '120 مل', FALSE, TRUE),
   ('33333333-0000-0000-0000-000000000022', '22222222-0000-0000-0000-000000000002', 'body-butter-sexy-100', 'REEVITA Body Butter Sexy', 'ريفيتا بادي باتر سيكسي', 'Body Butter with Sexy notes.', 'ريفيتا بادي باتر سيكسي — 100 مل', 'بادي باتر REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.', 200, NULL, ARRAY[]::text[], '', '', '100 مل', FALSE, TRUE),
   ('33333333-0000-0000-0000-000000000023', '22222222-0000-0000-0000-000000000002', 'body-butter-queen-100', 'REEVITA Body Butter Queen', 'ريفيتا بادي باتر كوين', 'Body Butter with Queen notes.', 'ريفيتا بادي باتر كوين — 100 مل', 'بادي باتر REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.', 200, NULL, ARRAY[]::text[], '', '', '100 مل', FALSE, TRUE),
-  ('33333333-0000-0000-0000-000000000024', '22222222-0000-0000-0000-000000000002', 'body-butter-ruby-musk-100', 'REEVITA Body Butter Ruby Musk', 'ريفيتا بادي باتر روبي مسك', 'Body Butter with Ruby Musk notes.', 'ريفيتا بادي باتر روبي مسك — 100 مل', 'بادي باتر REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.', 200, NULL, ARRAY[]::text[], '', '', '100 مل', FALSE, TRUE)
+  ('33333333-0000-0000-0000-000000000024', '22222222-0000-0000-0000-000000000002', 'body-butter-ruby-musk-100', 'REEVITA Body Butter Ruby Musk', 'ريفيتا بادي باتر روبي مسك', 'Body Butter with Ruby Musk notes.', 'ريفيتا بادي باتر روبي مسك — 100 مل', 'بادي باتر REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.', 200, NULL, ARRAY[]::text[], '', '', '100 مل', FALSE, TRUE),
+  ('33333333-0000-0000-0000-000000000025', '22222222-0000-0000-0000-000000000005', 'shampoo-dove', 'REEVITA Shampoo Dove', 'ريفيتا شامبو دوف', 'Shampoo with Botanical Care notes.', 'ريفيتا شامبو دوف — 300 مل', 'شامبو REEVITA للعناية بالشعر. راجعي بيانات العبوة للاطلاع على المكونات وطريقة الاستخدام.', 220, NULL, ARRAY[]::text[], '', '', '300 مل', FALSE, TRUE)
 ON CONFLICT (id) DO UPDATE SET
   category_id = EXCLUDED.category_id, name = EXCLUDED.name, name_ar = EXCLUDED.name_ar,
   short_description = EXCLUDED.short_description, short_description_ar = EXCLUDED.short_description_ar,
@@ -124,7 +125,8 @@ INSERT INTO public.product_images (product_id, image_url, alt_text, display_orde
   ('33333333-0000-0000-0000-000000000021', '/images/products/body-splash-ruby-musk.webp', 'ريفيتا بادي سبلاش روبي مسك — REEVITA', 1, TRUE),
   ('33333333-0000-0000-0000-000000000022', '/images/products/body-butter-sexy.webp', 'ريفيتا بادي باتر سيكسي — REEVITA', 1, TRUE),
   ('33333333-0000-0000-0000-000000000023', '/images/products/body-butter-queen.webp', 'ريفيتا بادي باتر كوين — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000024', '/images/products/body-butter-ruby-musk.webp', 'ريفيتا بادي باتر روبي مسك — REEVITA', 1, TRUE);
+  ('33333333-0000-0000-0000-000000000024', '/images/products/body-butter-ruby-musk.webp', 'ريفيتا بادي باتر روبي مسك — REEVITA', 1, TRUE),
+  ('33333333-0000-0000-0000-000000000025', '/images/products/shampoo-dove.webp', 'ريفيتا شامبو دوف — REEVITA', 1, TRUE);
 
 -- 6. Inventory
 INSERT INTO public.inventory (product_id, quantity_available, quantity_reserved, low_stock_threshold) VALUES
@@ -151,7 +153,8 @@ INSERT INTO public.inventory (product_id, quantity_available, quantity_reserved,
   ('33333333-0000-0000-0000-000000000021', 0, 0, 5),
   ('33333333-0000-0000-0000-000000000022', 0, 0, 5),
   ('33333333-0000-0000-0000-000000000023', 0, 0, 5),
-  ('33333333-0000-0000-0000-000000000024', 0, 0, 5)
+  ('33333333-0000-0000-0000-000000000024', 0, 0, 5),
+  ('33333333-0000-0000-0000-000000000025', 0, 0, 5)
 ON CONFLICT (product_id) DO UPDATE SET
   quantity_available = EXCLUDED.quantity_available,
   low_stock_threshold = EXCLUDED.low_stock_threshold;
@@ -165,21 +168,20 @@ INSERT INTO public.site_settings (key, value, description) VALUES
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, description = EXCLUDED.description;
 
 -- 8. Collection memberships use owner-confirmed products.
-UPDATE public.collections SET is_published = FALSE, updated_at = now() WHERE slug IN ('soft-glow-bundle', 'fresh-all-day-bundle');
-UPDATE public.collections SET purchase_ready = FALSE, missing_products = ARRAY['Shampoo Dove — 300 ml'], updated_at = now() WHERE slug = 'soft-glow-bundle';
-UPDATE public.collections SET purchase_ready = TRUE, missing_products = ARRAY[]::text[], updated_at = now() WHERE slug = 'complete-care-bundle';
-UPDATE public.collections SET cover_image_url = '/images/collections/soft-glow-bundle.jpg' WHERE slug = 'complete-care-bundle';
-UPDATE public.collections SET cover_image_url = '/images/collections/fresh-all-day-bundle.jpg' WHERE slug = 'fruity-mood';
-UPDATE public.collections SET cover_image_url = '/images/collections/hair-care-duo-products.jpg' WHERE slug = 'hair-care-duo-bundle';
-DELETE FROM public.collection_products cp USING public.collections c WHERE cp.collection_id = c.id AND c.slug IN ('sweet-mood', 'clean-mood', 'complete-care-bundle', 'hair-care-duo-bundle', 'fruity-mood');
+UPDATE public.collections SET display_order = CASE slug WHEN 'hair-care-duo-bundle' THEN 1 WHEN 'soft-glow-bundle' THEN 2 WHEN 'complete-care-bundle' THEN 3 WHEN 'fresh-all-day-bundle' THEN 4 WHEN 'sweet-mood' THEN 5 WHEN 'clean-mood' THEN 6 WHEN 'ruby-musk-collection' THEN 7 WHEN 'sexy-collection' THEN 8 WHEN 'fruity-mood' THEN 9 ELSE display_order END, is_published = TRUE, updated_at = now() WHERE slug IN ('hair-care-duo-bundle', 'soft-glow-bundle', 'complete-care-bundle', 'fresh-all-day-bundle', 'sweet-mood', 'clean-mood', 'ruby-musk-collection', 'sexy-collection', 'fruity-mood');
+UPDATE public.collections SET purchase_ready = TRUE, missing_products = ARRAY[]::text[] WHERE slug IN ('hair-care-duo-bundle', 'soft-glow-bundle', 'complete-care-bundle', 'fresh-all-day-bundle');
+UPDATE public.collections SET cover_image_url = CASE slug WHEN 'hair-care-duo-bundle' THEN '/images/collections/hair-care-duo-products.jpg' WHEN 'soft-glow-bundle' THEN '/images/collections/soft-glow-bundle.jpg' WHEN 'complete-care-bundle' THEN '/images/collections/complete-care-bundle.jpg' WHEN 'fresh-all-day-bundle' THEN '/images/collections/fresh-all-day-bundle.jpg' WHEN 'sweet-mood' THEN '/images/collections/soft-glow-bubblegum.jpg' WHEN 'clean-mood' THEN '/images/collections/soft-glow-dove.jpg' WHEN 'fruity-mood' THEN '/images/collections/soft-glow-blueberry.jpg' ELSE cover_image_url END WHERE slug IN ('hair-care-duo-bundle', 'soft-glow-bundle', 'complete-care-bundle', 'fresh-all-day-bundle', 'sweet-mood', 'clean-mood', 'fruity-mood');
+DELETE FROM public.collection_products cp USING public.collections c WHERE cp.collection_id = c.id AND c.slug IN ('sweet-mood', 'clean-mood', 'complete-care-bundle', 'fresh-all-day-bundle', 'soft-glow-bundle', 'hair-care-duo-bundle', 'fruity-mood');
 INSERT INTO public.collection_products (collection_id, product_id, display_order, quantity)
 SELECT c.id, p.id, m.display_order, 1 FROM (VALUES
-  ('sweet-mood', 'shower-gel-bubble-gum', 0), ('sweet-mood', 'body-lotion-sexy', 1), ('sweet-mood', 'body-splash-sexy', 2),
-  ('clean-mood', 'shower-gel-dove', 0), ('clean-mood', 'body-lotion-queen', 1), ('clean-mood', 'body-splash-queen', 2),
+  ('hair-care-duo-bundle', 'shampoo-blueberry', 0), ('hair-care-duo-bundle', 'hair-mist-ruby-musk', 1),
+  ('soft-glow-bundle', 'shampoo-blueberry', 0), ('soft-glow-bundle', 'hair-mist-ruby-musk', 1), ('soft-glow-bundle', 'shampoo-dove', 2), ('soft-glow-bundle', 'hair-mist-queen', 3), ('soft-glow-bundle', 'shampoo-bubble-gum', 4), ('soft-glow-bundle', 'hair-mist-sexy', 5),
   ('complete-care-bundle', 'body-lotion-sexy', 0), ('complete-care-bundle', 'body-lotion-queen', 1), ('complete-care-bundle', 'body-lotion-ruby-musk', 2),
   ('complete-care-bundle', 'body-splash-sexy', 3), ('complete-care-bundle', 'body-splash-queen', 4), ('complete-care-bundle', 'body-splash-ruby-musk', 5),
   ('complete-care-bundle', 'shower-gel-bubble-gum', 6), ('complete-care-bundle', 'shower-gel-blueberry', 7), ('complete-care-bundle', 'shower-gel-dove', 8),
-  ('hair-care-duo-bundle', 'shampoo-blueberry', 0), ('hair-care-duo-bundle', 'hair-mist-ruby-musk', 1),
-  ('fruity-mood', 'shower-gel-blueberry', 0), ('fruity-mood', 'body-lotion-ruby-musk', 1), ('fruity-mood', 'body-splash-ruby-musk', 2)
+  ('fresh-all-day-bundle', 'body-lotion-queen', 0), ('fresh-all-day-bundle', 'body-splash-queen', 1), ('fresh-all-day-bundle', 'body-butter-queen', 2),
+  ('fresh-all-day-bundle', 'body-lotion-ruby-musk', 3), ('fresh-all-day-bundle', 'body-splash-ruby-musk', 4), ('fresh-all-day-bundle', 'body-butter-ruby-musk', 5),
+  ('fresh-all-day-bundle', 'body-lotion-sexy', 6), ('fresh-all-day-bundle', 'body-splash-sexy', 7), ('fresh-all-day-bundle', 'body-butter-sexy', 8),
+  ('sweet-mood', 'shampoo-bubble-gum', 0), ('sweet-mood', 'hair-mist-sexy', 1), ('clean-mood', 'shampoo-dove', 0), ('clean-mood', 'hair-mist-queen', 1), ('fruity-mood', 'shampoo-blueberry', 0), ('fruity-mood', 'hair-mist-ruby-musk', 1)
 ) AS m(collection_slug, product_slug, display_order) JOIN public.collections c ON c.slug = m.collection_slug JOIN public.products p ON p.slug = m.product_slug AND p.is_active = TRUE
 ON CONFLICT (collection_id, product_id) DO UPDATE SET display_order = EXCLUDED.display_order, quantity = EXCLUDED.quantity;

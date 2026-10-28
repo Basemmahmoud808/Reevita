@@ -232,16 +232,21 @@ lines.push("ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, description 
 lines.push("");
 
 lines.push("-- 8. Collection memberships use owner-confirmed products.");
-lines.push("UPDATE public.collections SET purchase_ready = FALSE, missing_products = ARRAY['Shampoo Dove — 300 ml'], updated_at = now() WHERE slug = 'soft-glow-bundle';");
-lines.push("UPDATE public.collections SET purchase_ready = TRUE, missing_products = ARRAY[]::text[], updated_at = now() WHERE slug = 'complete-care-bundle';");
-lines.push("DELETE FROM public.collection_products cp USING public.collections c WHERE cp.collection_id = c.id AND c.slug IN ('complete-care-bundle', 'hair-care-duo-bundle', 'fruity-mood');");
+lines.push("UPDATE public.collections SET display_order = CASE slug WHEN 'hair-care-duo-bundle' THEN 1 WHEN 'soft-glow-bundle' THEN 2 WHEN 'complete-care-bundle' THEN 3 WHEN 'fresh-all-day-bundle' THEN 4 WHEN 'sweet-mood' THEN 5 WHEN 'clean-mood' THEN 6 WHEN 'ruby-musk-collection' THEN 7 WHEN 'sexy-collection' THEN 8 WHEN 'fruity-mood' THEN 9 ELSE display_order END, is_published = TRUE, updated_at = now() WHERE slug IN ('hair-care-duo-bundle', 'soft-glow-bundle', 'complete-care-bundle', 'fresh-all-day-bundle', 'sweet-mood', 'clean-mood', 'ruby-musk-collection', 'sexy-collection', 'fruity-mood');");
+lines.push("UPDATE public.collections SET purchase_ready = TRUE, missing_products = ARRAY[]::text[] WHERE slug IN ('hair-care-duo-bundle', 'soft-glow-bundle', 'complete-care-bundle', 'fresh-all-day-bundle');");
+lines.push("UPDATE public.collections SET cover_image_url = CASE slug WHEN 'hair-care-duo-bundle' THEN '/images/collections/hair-care-duo-products.jpg' WHEN 'soft-glow-bundle' THEN '/images/collections/soft-glow-bundle.jpg' WHEN 'complete-care-bundle' THEN '/images/collections/complete-care-bundle.jpg' WHEN 'fresh-all-day-bundle' THEN '/images/collections/fresh-all-day-bundle.jpg' WHEN 'sweet-mood' THEN '/images/collections/soft-glow-bubblegum.jpg' WHEN 'clean-mood' THEN '/images/collections/soft-glow-dove.jpg' WHEN 'fruity-mood' THEN '/images/collections/soft-glow-blueberry.jpg' ELSE cover_image_url END WHERE slug IN ('hair-care-duo-bundle', 'soft-glow-bundle', 'complete-care-bundle', 'fresh-all-day-bundle', 'sweet-mood', 'clean-mood', 'fruity-mood');");
+lines.push("DELETE FROM public.collection_products cp USING public.collections c WHERE cp.collection_id = c.id AND c.slug IN ('sweet-mood', 'clean-mood', 'complete-care-bundle', 'fresh-all-day-bundle', 'soft-glow-bundle', 'hair-care-duo-bundle', 'fruity-mood');");
 lines.push("INSERT INTO public.collection_products (collection_id, product_id, display_order, quantity)");
 lines.push("SELECT c.id, p.id, m.display_order, 1 FROM (VALUES");
+lines.push("  ('hair-care-duo-bundle', 'shampoo-blueberry', 0), ('hair-care-duo-bundle', 'hair-mist-ruby-musk', 1),");
+lines.push("  ('soft-glow-bundle', 'shampoo-blueberry', 0), ('soft-glow-bundle', 'hair-mist-ruby-musk', 1), ('soft-glow-bundle', 'shampoo-dove', 2), ('soft-glow-bundle', 'hair-mist-queen', 3), ('soft-glow-bundle', 'shampoo-bubble-gum', 4), ('soft-glow-bundle', 'hair-mist-sexy', 5),");
 lines.push("  ('complete-care-bundle', 'body-lotion-sexy', 0), ('complete-care-bundle', 'body-lotion-queen', 1), ('complete-care-bundle', 'body-lotion-ruby-musk', 2),");
 lines.push("  ('complete-care-bundle', 'body-splash-sexy', 3), ('complete-care-bundle', 'body-splash-queen', 4), ('complete-care-bundle', 'body-splash-ruby-musk', 5),");
 lines.push("  ('complete-care-bundle', 'shower-gel-bubble-gum', 6), ('complete-care-bundle', 'shower-gel-blueberry', 7), ('complete-care-bundle', 'shower-gel-dove', 8),");
-lines.push("  ('hair-care-duo-bundle', 'shampoo-bubble-gum', 0), ('hair-care-duo-bundle', 'hair-mist-ruby-musk', 1),");
-lines.push("  ('fruity-mood', 'shower-gel-blueberry', 0), ('fruity-mood', 'body-lotion-ruby-musk', 1), ('fruity-mood', 'body-splash-ruby-musk', 2)");
+lines.push("  ('fresh-all-day-bundle', 'body-lotion-queen', 0), ('fresh-all-day-bundle', 'body-splash-queen', 1), ('fresh-all-day-bundle', 'body-butter-queen', 2),");
+lines.push("  ('fresh-all-day-bundle', 'body-lotion-ruby-musk', 3), ('fresh-all-day-bundle', 'body-splash-ruby-musk', 4), ('fresh-all-day-bundle', 'body-butter-ruby-musk', 5),");
+lines.push("  ('fresh-all-day-bundle', 'body-lotion-sexy', 6), ('fresh-all-day-bundle', 'body-splash-sexy', 7), ('fresh-all-day-bundle', 'body-butter-sexy', 8),");
+lines.push("  ('sweet-mood', 'shampoo-bubble-gum', 0), ('sweet-mood', 'hair-mist-sexy', 1), ('clean-mood', 'shampoo-dove', 0), ('clean-mood', 'hair-mist-queen', 1), ('fruity-mood', 'shampoo-blueberry', 0), ('fruity-mood', 'hair-mist-ruby-musk', 1)");
 lines.push(") AS m(collection_slug, product_slug, display_order) JOIN public.collections c ON c.slug = m.collection_slug JOIN public.products p ON p.slug = m.product_slug AND p.is_active = TRUE");
 lines.push("ON CONFLICT (collection_id, product_id) DO UPDATE SET display_order = EXCLUDED.display_order, quantity = EXCLUDED.quantity;");
 
