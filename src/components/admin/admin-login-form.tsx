@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { adminSignInAction, type AuthFormState } from "@/lib/actions/auth";
+import { adminGitHubSignInAction, adminSignInAction, type AuthFormState } from "@/lib/actions/auth";
 
 export function AdminLoginForm() {
   const [state, formAction, pending] = useActionState<AuthFormState | null, FormData>(
@@ -11,7 +11,8 @@ export function AdminLoginForm() {
   );
 
   return (
-    <form action={formAction} className="space-y-4">
+    <div className="space-y-4">
+      <form action={formAction} className="space-y-4">
       <div>
         <label htmlFor="admin-email" className="label">
           بريد المدير
@@ -51,6 +52,16 @@ export function AdminLoginForm() {
         {pending && <Loader2 className="size-4 animate-spin" aria-hidden />}
         دخول لوحة الإدارة
       </button>
-    </form>
+      </form>
+      <div className="relative py-1 text-center text-[0.7rem] text-muted before:absolute before:inset-x-0 before:top-1/2 before:border-t before:border-line">
+        <span className="relative bg-white px-3">أو</span>
+      </div>
+      <form action={adminGitHubSignInAction}>
+        <button type="submit" className="btn w-full border border-line bg-white text-[#263238] hover:bg-[#f7f6f2]">
+          <span aria-hidden className="text-xs font-extrabold tracking-tight">GH</span>
+          الدخول بحساب GitHub
+        </button>
+      </form>
+    </div>
   );
 }

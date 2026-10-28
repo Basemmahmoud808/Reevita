@@ -164,3 +164,25 @@ export async function adminSignInAction(_prev: AuthFormState | null, formData: F
   }
   redirect("/admin");
 }
+
+export async function adminGitHubSignInAction() {
+  if (isDemoMode) redirect("/admin/login?error=supabase");
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) redirect("/admin/login?error=supabase");
+
+  const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+  const vercelOrigin = vercelHost
+    ? `https://${vercelHost.replace(/^https?:\/\//, "")}`
+    : siteUrl;
+  const callbackOrigin = process.env.NEXT_PUBLIC_SITE_URL?.trim() || vercelOrigin;
+  const callbackUrl = new URL("/auth/callback", callbackOrigin);
+  callbackUrl.searchParams.set("next", "/admin");
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "github",
+    options: { redirectTo: callbackUrl.toString() },
+  });
+
+  if (error || !data.url) redirect("/admin/login?error=github");
+  redirect(data.url);
+}

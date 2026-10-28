@@ -12,8 +12,22 @@ export async function GET(request: Request) {
     const supabase = await createSupabaseServerClient();
     if (supabase) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
-      if (!error) redirect(safeNext);
+      if (!error) {
+        if (safeNext === "/admin") {
+          const { data: { user } } = await supabase.auth.getUser();
+          const { data: profile } = user
+            ? await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle()
+            : { data: null };
+
+          if ((profile as { role?: string } | null)?.role !== "admin") {
+            await supabase.auth.signOut();
+            redirect("/admin/login?error=not-admin");
+          }
+        }
+        redirect(safeNext);
+      }
     }
   }
-  redirect("/account/login?error=callback");
+  const returnToAdmin = new URL(request.url).searchParams.get("next") === "/admin";
+  redirect(returnToAdmin ? "/admin/login?error=callback" : "/account/login?error=callback");
 }

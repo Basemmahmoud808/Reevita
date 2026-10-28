@@ -12,7 +12,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function AdminLoginPage() {
+export default async function AdminLoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
   const admin = await getAdminSession();
   if (admin) redirect("/admin");
 
@@ -29,6 +30,15 @@ export default async function AdminLoginPage() {
         </div>
 
         <div className="mt-8 rounded-2xl border border-line bg-white/80 p-6 shadow-card sm:p-8">
+          {error ? (
+            <p role="alert" className="mb-4 rounded-xl border border-danger/20 bg-danger/5 px-3.5 py-3 text-xs leading-6 text-danger">
+              {error === "not-admin"
+                ? "حساب GitHub هذا غير مخوّل لإدارة المتجر. استخدم الحساب المسجل كمدير."
+                : error === "github"
+                  ? "تسجيل GitHub غير مفعّل بعد في إعدادات Supabase. أكمل إعداد مزود GitHub ثم حاول مجددًا."
+                  : "تعذر إكمال تسجيل الدخول. راجع إعدادات GitHub وروابط التحويل في Supabase وحاول مرة أخرى."}
+            </p>
+          ) : null}
           {isDemoMode ? (
             <div className="space-y-4">
               <p className="rounded-xl border border-gold/40 bg-gold/10 px-3.5 py-3 text-[0.75rem] leading-6 text-plum">
