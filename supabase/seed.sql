@@ -90,37 +90,23 @@ ON CONFLICT (id) DO UPDATE SET
   ingredients = EXCLUDED.ingredients, how_to_use = EXCLUDED.how_to_use,
   size = EXCLUDED.size, is_featured = EXCLUDED.is_featured, is_active = TRUE;
 
--- 5. Product imagery (primary + label detail)
+-- 5. Product imagery (only files present in public/images/products)
 DELETE FROM public.product_images;
 INSERT INTO public.product_images (product_id, image_url, alt_text, display_order, is_primary) VALUES
   ('33333333-0000-0000-0000-000000000001', '/images/products/shampoo-aloe-vera.webp', 'شامبو ألوفيرا — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000001', '/images/products/shampoo-aloe-vera-detail.webp', 'تفاصيل عبوة شامبو ألوفيرا', 2, FALSE),
   ('33333333-0000-0000-0000-000000000002', '/images/products/shampoo-blueberry.webp', 'شامبو توت أزرق — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000002', '/images/products/shampoo-blueberry-detail.webp', 'تفاصيل عبوة شامبو توت أزرق', 2, FALSE),
   ('33333333-0000-0000-0000-000000000003', '/images/products/body-lotion-sexy.webp', 'لوشن الجسم — سيكسي — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000003', '/images/products/body-lotion-sexy-detail.webp', 'تفاصيل عبوة لوشن الجسم — سيكسي', 2, FALSE),
   ('33333333-0000-0000-0000-000000000004', '/images/products/body-lotion-queen.webp', 'لوشن الجسم — كوين — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000004', '/images/products/body-lotion-queen-detail.webp', 'تفاصيل عبوة لوشن الجسم — كوين', 2, FALSE),
   ('33333333-0000-0000-0000-000000000005', '/images/products/body-lotion-ruby-musk.webp', 'لوشن الجسم — روبي مسك — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000005', '/images/products/body-lotion-ruby-musk-detail.webp', 'تفاصيل عبوة لوشن الجسم — روبي مسك', 2, FALSE),
   ('33333333-0000-0000-0000-000000000006', '/images/products/body-butter-sexy.webp', 'زبدة الجسم — سيكسي — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000006', '/images/products/body-butter-sexy-detail.webp', 'تفاصيل عبوة زبدة الجسم — سيكسي', 2, FALSE),
   ('33333333-0000-0000-0000-000000000007', '/images/products/body-butter-queen.webp', 'زبدة الجسم — كوين — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000007', '/images/products/body-butter-queen-detail.webp', 'تفاصيل عبوة زبدة الجسم — كوين', 2, FALSE),
   ('33333333-0000-0000-0000-000000000008', '/images/products/body-butter-ruby-musk.webp', 'زبدة الجسم — روبي مسك — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000008', '/images/products/body-butter-ruby-musk-detail.webp', 'تفاصيل عبوة زبدة الجسم — روبي مسك', 2, FALSE),
   ('33333333-0000-0000-0000-000000000009', '/images/products/body-splash-sexy.webp', 'سبراي الجسم — سيكسي — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000009', '/images/products/body-splash-sexy-detail.webp', 'تفاصيل عبوة سبراي الجسم — سيكسي', 2, FALSE),
   ('33333333-0000-0000-0000-000000000010', '/images/products/body-splash-queen.webp', 'سبراي الجسم — كوين — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000010', '/images/products/body-splash-queen-detail.webp', 'تفاصيل عبوة سبراي الجسم — كوين', 2, FALSE),
   ('33333333-0000-0000-0000-000000000011', '/images/products/body-splash-ruby-musk.webp', 'سبراي الجسم — روبي مسك — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000011', '/images/products/body-splash-ruby-musk-detail.webp', 'تفاصيل عبوة سبراي الجسم — روبي مسك', 2, FALSE),
   ('33333333-0000-0000-0000-000000000012', '/images/products/hair-mist-sexy.webp', 'معطر الشعر — سيكسي — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000012', '/images/products/hair-mist-sexy-detail.webp', 'تفاصيل عبوة معطر الشعر — سيكسي', 2, FALSE),
   ('33333333-0000-0000-0000-000000000013', '/images/products/hair-mist-queen.webp', 'معطر الشعر — كوين — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000013', '/images/products/hair-mist-queen-detail.webp', 'تفاصيل عبوة معطر الشعر — كوين', 2, FALSE),
-  ('33333333-0000-0000-0000-000000000014', '/images/products/hair-mist-ruby-musk.webp', 'معطر الشعر — روبي مسك — REEVITA', 1, TRUE),
-  ('33333333-0000-0000-0000-000000000014', '/images/products/hair-mist-ruby-musk-detail.webp', 'تفاصيل عبوة معطر الشعر — روبي مسك', 2, FALSE);
+  ('33333333-0000-0000-0000-000000000014', '/images/products/hair-mist-ruby-musk.webp', 'معطر الشعر — روبي مسك — REEVITA', 1, TRUE);
 
 -- 6. Inventory
 INSERT INTO public.inventory (product_id, quantity_available, quantity_reserved, low_stock_threshold) VALUES
@@ -144,8 +130,71 @@ ON CONFLICT (product_id) DO UPDATE SET
 
 -- 7. Site settings
 INSERT INTO public.site_settings (key, value, description) VALUES
-  ('store_info', '{"name":"REEVITA","name_ar":"ريفيتا","tagline":"BEAUTY · CARE · RENEW","tagline_ar":"جمال · عناية · تجدُّد","country":"EG","currency":"EGP","support_phone":"+201000000000","support_email":"care@reevita.com","whatsapp":"201000000000","instagram":"https://instagram.com/reevita.eg","owner_action_required":"استبدلي رقم الدعم وروابط السوشيال بالبيانات الرسمية قبل الإطلاق"}'::jsonb, 'General store contact & identity info'),
+  ('store_info', '{"name":"REEVITA","name_ar":"ريفيتا","tagline":"BEAUTY · CARE · RENEW","tagline_ar":"جمال · عناية · تجدُّد","country":"EG","currency":"EGP","support_phone":"+201157024375","support_email":"care@reevita.com","whatsapp":"201157024375","instagram":"https://instagram.com/reevita2026"}'::jsonb, 'General store contact & identity info'),
   ('cod_policy', '{"enabled":true,"fee":0,"max_order_amount":10000,"verification_required_above":3000,"note":"الدفع عند الاستلام فقط داخل مصر"}'::jsonb, 'Cash on Delivery parameters for Egypt'),
   ('free_shipping_default', '{"threshold":1000,"enabled":true}'::jsonb, 'Default free shipping threshold across Egypt'),
   ('return_policy', '{"window_days":14,"condition":"غير مفتوح وبحالته الأصلية"}'::jsonb, 'Return window and conditions')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, description = EXCLUDED.description;
+
+-- 8. Collection memberships. Migrations run before seed data, so these links
+-- are added here after products exist instead of being silently skipped.
+UPDATE public.collections
+SET name_ar = 'باقة النعومة والإشراقة',
+    description = 'روتين عناية بالشعر يجمع الشامبو ومعطر الشعر في اختيارات تناسب مزاجك.',
+    cover_image_url = '/images/collections/soft-glow-bundle.webp',
+    display_order = 6,
+    is_published = TRUE,
+    purchase_ready = FALSE,
+    missing_products = ARRAY['Shampoo Bubble Gum — 300 ml', 'Shampoo Dove — 300 ml'],
+    updated_at = now()
+WHERE slug = 'soft-glow-bundle';
+
+DELETE FROM public.collection_products cp
+USING public.collections c
+WHERE cp.collection_id = c.id AND c.slug = 'soft-glow-bundle';
+
+INSERT INTO public.collection_products (collection_id, product_id, display_order, quantity)
+SELECT c.id, p.id,
+  ROW_NUMBER() OVER (PARTITION BY c.id ORDER BY p.created_at, p.slug) - 1,
+  1
+FROM public.collections c
+JOIN public.products p ON (
+  (c.slug IN ('sexy', 'queen', 'ruby-musk') AND p.slug LIKE '%-' || c.slug)
+  OR (c.slug = 'botanical' AND p.category_id IN (
+    SELECT id FROM public.categories WHERE slug IN ('shampoo', 'hair-mist')
+  ))
+)
+ON CONFLICT (collection_id, product_id) DO UPDATE SET
+  display_order = EXCLUDED.display_order,
+  quantity = EXCLUDED.quantity;
+
+INSERT INTO public.collection_products (collection_id, product_id, display_order, quantity)
+SELECT c.id, p.id, membership.display_order, 1
+FROM (
+  VALUES
+    ('sweet-mood', 'body-lotion-sexy', 0),
+    ('sweet-mood', 'body-splash-sexy', 1),
+    ('clean-mood', 'body-lotion-queen', 0),
+    ('clean-mood', 'body-splash-queen', 1),
+    ('ruby-musk-collection', 'body-lotion-ruby-musk', 0),
+    ('ruby-musk-collection', 'body-splash-ruby-musk', 1),
+    ('ruby-musk-collection', 'body-butter-ruby-musk', 2),
+    ('sexy-collection', 'body-lotion-sexy', 0),
+    ('sexy-collection', 'body-splash-sexy', 1),
+    ('sexy-collection', 'body-butter-sexy', 2),
+    ('fruity-mood', 'shampoo-blueberry', 0),
+    ('fruity-mood', 'hair-mist-ruby-musk', 1),
+    ('fresh-all-day-bundle', 'body-lotion-ruby-musk', 0),
+    ('fresh-all-day-bundle', 'body-splash-ruby-musk', 1),
+    ('hair-care-duo-bundle', 'shampoo-blueberry', 0),
+    ('hair-care-duo-bundle', 'hair-mist-ruby-musk', 1),
+    ('complete-care-bundle', 'body-lotion-sexy', 0),
+    ('complete-care-bundle', 'body-splash-sexy', 1),
+    ('complete-care-bundle', 'body-butter-sexy', 2),
+    ('complete-care-bundle', 'hair-mist-sexy', 3)
+) AS membership(collection_slug, product_slug, display_order)
+JOIN public.collections c ON c.slug = membership.collection_slug
+JOIN public.products p ON p.slug = membership.product_slug
+ON CONFLICT (collection_id, product_id) DO UPDATE SET
+  display_order = EXCLUDED.display_order,
+  quantity = EXCLUDED.quantity;

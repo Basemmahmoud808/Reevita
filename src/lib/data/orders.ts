@@ -13,6 +13,7 @@ export const ORDER_ERROR_MESSAGES: Record<string, string> = {
   PRODUCT_UNAVAILABLE: "أحد المنتجات لم يعد متاحًا. يرجى تحديث السلة.",
   INSUFFICIENT_STOCK: "عذرًا، الكمية المطلوبة غير متوفرة حاليًا في المخزون.",
   ORDER_REJECTED: "عذرًا، لا يمكن إتمام الطلب. يرجى التواصل مع خدمة العملاء للمساعدة.",
+  RATE_LIMITED: "عدد الطلبات من هذا الرقم كبير. يرجى المحاولة بعد قليل.",
   EMPTY_CART: "سلة مشترياتك فارغة.",
   FORBIDDEN: "غير مصرح لك بهذا الإجراء.",
   INVALID_STATUS_TRANSITION: "هذا الانتقال غير مسموح في حالة الطلب الحالية.",
@@ -47,6 +48,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
         landmark: payload.landmark,
         orderNotes: payload.orderNotes,
         items: payload.items,
+        idempotencyKey: payload.idempotencyKey,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : "";
@@ -68,6 +70,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     p_order_notes: payload.orderNotes ?? null,
     p_items: payload.items,
     p_ip_address: ipAddress,
+    p_idempotency_key: payload.idempotencyKey ?? null,
   });
 
   if (error) throw errorFromSupabase(error.message);
@@ -98,6 +101,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     total: Number(result.total),
     currency: result.currency,
     createdAt: result.created_at,
+    isDuplicate: Boolean((result as { is_duplicate?: boolean }).is_duplicate),
   };
 }
 

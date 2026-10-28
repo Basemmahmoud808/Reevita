@@ -11,6 +11,8 @@ import {
   deleteProduct,
   updateShippingRate,
   createAdminProduct,
+  uploadCollectionCover,
+  removeUploadedCollectionCover,
   createCollection,
   updateCollection,
   deleteCollection,
@@ -34,6 +36,8 @@ export interface AdminActionState {
 
 const MAX_PRODUCT_IMAGE_BYTES = 5 * 1024 * 1024;
 const PRODUCT_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
+const MAX_COLLECTION_IMAGE_BYTES = 5 * 1024 * 1024;
+const COLLECTION_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 async function guard(): Promise<string | null> {
   const admin = await getAdminSession();
@@ -271,8 +275,32 @@ function collectionInput(formData: FormData) {
     image: String(formData.get("image") ?? "").trim(),
     displayOrder: Number(formData.get("displayOrder") ?? 0),
     isPublished: formData.get("isPublished") === "on",
-    productIds: formData.getAll("productIds").map(String).filter(Boolean),
+    purchaseReady: formData.get("purchaseReady") === "on",
+    missingProducts: String(formData.get("missingProducts") ?? "")
+      .split(/\r?\n/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .slice(0, 20),
+    productIds: [...new Set(formData.getAll("productIds").map(String).filter(Boolean))],
   };
+}
+
+function validateCollectionInput(input: ReturnType<typeof collectionInput>, coverImage: FormDataEntryValue | null): string | null {
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(input.slug)) return "استخدمي رابطًا بحروف إنجليزية صغيرة وأرقام وشرطات فقط.";
+  const hasUpload = coverImage instanceof File && coverImage.size > 0;
+  if (!input.nameEn || !input.nameAr || (!input.image && !hasUpload)) return "اسم المجموعة وصورتها مطلوبان.";
+  if (!Number.isInteger(input.displayOrder) || input.displayOrder < 0) return "ترتيب المجموعة غير صالح.";
+  if (input.purchaseReady && (!input.productIds.length || input.missingProducts.length)) {
+    return "لا يمكن إتاحة شراء الباقة قبل تعيين منتجاتها واستكمال المنتجات الناقصة.";
+  }
+  return null;
+}
+
+function validateCollectionCover(file: FormDataEntryValue | null): string | null {
+  if (!(file instanceof File) || file.size === 0) return null;
+  if (!COLLECTION_IMAGE_TYPES.has(file.type)) return "صورة الغلاف يجب أن تكون JPG أو PNG أو WEBP.";
+  if (file.size > MAX_COLLECTION_IMAGE_BYTES) return "حجم صورة الغلاف يجب ألا يتجاوز 5 ميجابايت.";
+  return null;
 }
 
 export async function createCollectionAction(
@@ -282,14 +310,22 @@ export async function createCollectionAction(
   const denied = await guard();
   if (denied) return { error: denied };
   const input = collectionInput(formData);
-  if (!input.slug || !input.nameEn || !input.nameAr || !input.image) return { error: "بيانات الـ Collection الأساسية مطلوبة." };
+  const coverImage = formData.get("coverImage");
+  const validationError = validateCollectionInput(input, coverImage) ?? validateCollectionCover(coverImage);
+  if (validationError) return { error: validationError };
+  let uploadedCover: { path: string; url: string } | undefined;
   try {
+    if (coverImage instanceof File && coverImage.size > 0) {
+      uploadedCover = await uploadCollectionCover(input.slug, coverImage);
+      input.image = uploadedCover.url;
+    }
     await createCollection(input);
     revalidatePath("/admin/collections");
     revalidatePath("/collections");
     revalidatePath("/");
     return { ok: true, message: "تم إنشاء الـ Collection ونشرها." };
   } catch (error) {
+    if (uploadedCover) await removeUploadedCollectionCover(uploadedCover.path);
     console.error("[reevita] collection creation failed", error);
     return { error: "تعذر إنشاء الـ Collection." };
   }
@@ -303,8 +339,16 @@ export async function updateCollectionAction(
   if (denied) return { error: denied };
   const id = String(formData.get("id") ?? "");
   const input = collectionInput(formData);
-  if (!id || !input.slug || !input.nameEn || !input.nameAr || !input.image) return { error: "بيانات الـ Collection الأساسية مطلوبة." };
+  const coverImage = formData.get("coverImage");
+  if (!id) return { error: "معرف المجموعة مطلوب." };
+  const validationError = validateCollectionInput(input, coverImage) ?? validateCollectionCover(coverImage);
+  if (validationError) return { error: validationError };
+  let uploadedCover: { path: string; url: string } | undefined;
   try {
+    if (coverImage instanceof File && coverImage.size > 0) {
+      uploadedCover = await uploadCollectionCover(input.slug, coverImage);
+      input.image = uploadedCover.url;
+    }
     await updateCollection(id, input);
     revalidatePath("/admin/collections");
     revalidatePath("/collections");
@@ -312,6 +356,7 @@ export async function updateCollectionAction(
     revalidatePath("/");
     return { ok: true, message: "تم تحديث الـ Collection." };
   } catch (error) {
+    if (uploadedCover) await removeUploadedCollectionCover(uploadedCover.path);
     console.error("[reevita] collection update failed", error);
     return { error: "تعذر تحديث الـ Collection." };
   }

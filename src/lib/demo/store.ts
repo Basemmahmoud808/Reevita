@@ -192,6 +192,7 @@ export interface DemoOrder {
   createdAt: string;
   items: DemoOrderItem[];
   history: { from: OrderStatus | null; to: OrderStatus; reason: string; at: string }[];
+  idempotencyKey?: string | null;
 }
 
 function isoDaysAgo(days: number, hour = 12): string {
@@ -393,6 +394,7 @@ const orders: DemoOrder[] = [
 ];
 
 let orderSequence = orders.length;
+const blockedPhones = new Set<string>();
 
 export function demoOrders(): DemoOrder[] {
   return [...orders].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
@@ -408,12 +410,21 @@ export function demoPlaceOrder(input: {
   landmark?: string | null;
   orderNotes?: string | null;
   items: { product_id: string; quantity: number }[];
+  idempotencyKey?: string | null;
 }): PlacedOrder {
+  if (input.idempotencyKey) {
+    const existing = orders.find((o) => o.idempotencyKey && o.idempotencyKey === input.idempotencyKey);
+    if (existing) return { ...toPlacedOrder(existing), isDuplicate: true };
+  }
+
   const governorate = demoGovernorates().find((gov) => gov.id === input.governorateId);
   if (!governorate) throw new Error("INVALID_LOCATION: Selected governorate is invalid");
 
   const normalizedPhone = normalizeEgyptianPhone(input.customerPhone);
   if (!normalizedPhone) throw new Error("INVALID_PHONE: Invalid Egyptian phone number");
+  if (blockedPhones.has(normalizedPhone)) {
+    throw new Error("ORDER_REJECTED: Account or phone number is restricted. Please contact customer support.");
+  }
   if (input.customerName.trim().length < 2) throw new Error("INVALID_INPUT: Customer name too short");
   if (input.addressLine.trim().length < 5) throw new Error("INVALID_INPUT: Address too short");
   if (input.city.trim().length < 2) throw new Error("INVALID_INPUT: City required");
@@ -466,6 +477,7 @@ export function demoPlaceOrder(input: {
       totalPrice: product.price * quantity,
     })),
     history: [{ from: null, to: "new", reason: "Order created", at: createdAt }],
+    idempotencyKey: input.idempotencyKey ?? null,
   };
 
   items.forEach(({ product, quantity }) => {
@@ -551,6 +563,13 @@ export function demoUpdateOrderStatus(input: {
   if (input.carrier) order.shippingCarrier = input.carrier;
   if (input.trackingNumber) order.trackingNumber = input.trackingNumber;
   if (input.newStatus === "delivered") order.paymentStatus = "paid";
+  if (input.newStatus === "refused") blockedPhones.add(order.customerPhone);
+  if (["cancelled", "refused", "returned"].includes(input.newStatus) && !["cancelled", "refused", "returned"].includes(from)) {
+    order.items.forEach((item) => {
+      const record = stock.get(item.productId);
+      if (record) record.quantity += item.quantity;
+    });
+  }
   order.history.push({
     from,
     to: input.newStatus,

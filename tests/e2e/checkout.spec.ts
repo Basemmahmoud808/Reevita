@@ -34,6 +34,7 @@ test("invalid phone shows an error and preserves typed checkout fields", async (
   await expect(page.locator("#checkout-error").getByText(/رقم هاتف محمول مصري صحيح/)).toBeVisible();
   await expect(page.getByLabel("Full name *")).toHaveValue("سارة أحمد");
   await expect(page.getByLabel("رقم الموبايل *")).toHaveValue("010123");
+  await expect(page.getByLabel("Governorate *")).not.toHaveValue("");
   await expect(page.getByLabel("City / district *")).toHaveValue("مدينة نصر");
   await expect(page.getByLabel("Full address *")).toHaveValue("شارع رئيسي، عمارة 10، شقة 4");
   await expect(page.getByLabel("أوافق على الشروط والأحكام وسياسة الاسترجاع.")).toBeChecked();

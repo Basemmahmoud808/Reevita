@@ -10,6 +10,36 @@ const ROOT_DIR = path.resolve(__dirname, '../..');
 export async function createTestDatabase() {
   const db = new PGlite();
 
+  // Supabase owns these objects in real projects. The local PGlite database
+  // supplies compatible test stand-ins without putting them in migrations.
+  await db.exec(`
+    CREATE SCHEMA IF NOT EXISTS auth;
+    CREATE TABLE IF NOT EXISTS auth.users (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      email TEXT UNIQUE,
+      raw_user_meta_data JSONB DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ DEFAULT now()
+    );
+    CREATE OR REPLACE FUNCTION auth.uid()
+    RETURNS UUID LANGUAGE sql STABLE
+    AS $$ SELECT NULLIF(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+    CREATE OR REPLACE FUNCTION auth.role()
+    RETURNS TEXT LANGUAGE sql STABLE
+    AS $$ SELECT COALESCE(current_setting('request.jwt.claim.role', true), 'anon') $$;
+    CREATE SCHEMA IF NOT EXISTS storage;
+    CREATE TABLE IF NOT EXISTS storage.buckets (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL UNIQUE,
+      public BOOLEAN NOT NULL DEFAULT FALSE
+    );
+    CREATE TABLE IF NOT EXISTS storage.objects (
+      id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+      bucket_id TEXT NOT NULL,
+      name TEXT NOT NULL,
+      UNIQUE (bucket_id, name)
+    );
+  `);
+
   // Create standard Supabase roles
   await db.exec(`
     DO $$
@@ -37,14 +67,6 @@ export async function createTestDatabase() {
     const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf-8');
     await db.exec(sql);
   }
-
-  // Grant permissions to standard roles
-  await db.exec(`
-    GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
-    GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
-    GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
-    GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
-  `);
 
   // 2. Read seed
   const seedPath = path.join(ROOT_DIR, 'supabase', 'seed.sql');

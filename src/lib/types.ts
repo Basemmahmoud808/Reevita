@@ -151,6 +151,7 @@ export interface CheckoutPayload {
   landmark?: string | null;
   orderNotes?: string | null;
   items: { product_id: string; quantity: number }[];
+  idempotencyKey?: string | null;
 }
 
 export interface PlacedOrder {
@@ -167,6 +168,7 @@ export interface PlacedOrder {
   createdAt: string;
   items?: { productName: string; quantity: number; unitPrice: number; totalPrice: number }[];
   governorateAr?: string;
+  isDuplicate?: boolean;
 }
 
 export type OrderStatus =

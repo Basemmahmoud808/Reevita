@@ -47,35 +47,27 @@ function localRateLimit(key: string, limit: number, windowMs: number): RateLimit
 }
 
 async function upstashRateLimit(key: string, limit: number, windowMs: number): Promise<RateLimitResult> {
-  const response = await fetch(upstashUrl!, {
+  const ttlSeconds = Math.max(1, Math.ceil(windowMs / 1000));
+  const pipelineUrl = upstashUrl!.replace(/\/$/, "") + "/pipeline";
+  const response = await fetch(pipelineUrl, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${upstashToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(["INCR", key]),
+    body: JSON.stringify([
+      ["INCR", key],
+      ["EXPIRE", key, ttlSeconds, "NX"],
+    ]),
     cache: "no-store",
   });
   if (!response.ok) throw new Error(`Upstash rate limit returned ${response.status}`);
-  const result = (await response.json()) as { result?: number };
-  const count = Number(result.result);
+  const results = (await response.json()) as Array<{ result?: unknown; error?: string }>;
+  const count = Number(results[0]?.result);
   if (!Number.isInteger(count) || count < 1) throw new Error("Upstash rate limit returned an invalid count");
 
-  if (count === 1) {
-    const expireResponse = await fetch(upstashUrl!, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${upstashToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(["EXPIRE", key, Math.max(1, Math.ceil(windowMs / 1000))]),
-      cache: "no-store",
-    });
-    if (!expireResponse.ok) throw new Error(`Upstash expiry returned ${expireResponse.status}`);
-  }
-
   return count > limit
-    ? { allowed: false, remaining: 0, retryAfterSeconds: Math.max(1, Math.ceil(windowMs / 1000)) }
+    ? { allowed: false, remaining: 0, retryAfterSeconds: ttlSeconds }
     : { allowed: true, remaining: limit - count, retryAfterSeconds: 0 };
 }
 
@@ -84,22 +76,21 @@ export async function rateLimit(key: string, limit: number, windowMs: number): P
     try {
       return await upstashRateLimit(key, limit, windowMs);
     } catch (error) {
-      console.error("[reevita] Upstash rate limit failed; using local fallback", error);
+      console.error("[reevita] Upstash rate limit failed; denying the request", error);
+      return { allowed: false, remaining: 0, retryAfterSeconds: 60 };
     }
   }
   return localRateLimit(key, limit, windowMs);
 }
 
 export function clientIp(headers: Headers): string {
-  const trustedVercelIp = headers.get("x-vercel-forwarded-for")?.split(",").at(-1)?.trim();
+  const trustedVercelIp = headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim();
   if (trustedVercelIp) return trustedVercelIp;
 
   const trustedProxyIp = headers.get("x-real-ip")?.trim();
   if (trustedProxyIp) return trustedProxyIp;
 
-  // Assumption: the hosting proxy appends its address to x-forwarded-for,
-  // making the right-most value the last proxy-validated client address.
   const forwarded = headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",").at(-1)?.trim() || "unknown";
+  if (forwarded) return forwarded.split(",")[0]?.trim() || "unknown";
   return "unknown";
 }

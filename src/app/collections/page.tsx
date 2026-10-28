@@ -36,23 +36,23 @@ export default async function CollectionsPage() {
             return (
               <article key={collection.id} className="card-luxe group overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <Link href={`/collections/${collection.slug}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
-                  <div className="relative aspect-[4/3] overflow-hidden bg-cream">
+                  <div className={`relative overflow-hidden bg-cream ${collection.slug === "soft-glow-bundle" ? "aspect-square" : collection.slug === "fresh-all-day-bundle" ? "aspect-[2/3]" : "aspect-[4/3]"}`}>
                     {collection.image ? <Image src={collection.image} alt={`${collection.nameEn} collection`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-105" /> : null}
                   </div>
                 </Link>
                 <div className="p-6">
-                  <p className="eyebrow">COLLECTION</p>
-                  <h2 className="display-md mt-3 text-xl">{collection.nameEn}</h2>
+                  <p className="eyebrow">{collection.slug === "soft-glow-bundle" ? "باقة عناية بالشعر" : collection.slug === "fresh-all-day-bundle" ? "مجموعة عناية بالجسم" : "COLLECTION"}</p>
+                  <h2 className="display-md mt-3 text-xl">{collection.slug === "soft-glow-bundle" || collection.slug === "fresh-all-day-bundle" ? collection.nameAr : collection.nameEn}</h2>
+                  {collection.slug === "soft-glow-bundle" || collection.slug === "fresh-all-day-bundle" ? <p className="mt-1 text-xs font-semibold tracking-wide text-muted" dir="ltr">{collection.nameEn}</p> : null}
                   <p className="mt-2 text-sm leading-7 text-muted">{collection.descriptionAr}</p>
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
-                    <span>{quantity} products</span>
-                    <Price price={total} size="sm" />
+                    {quantity > 0 ? <><span>{quantity} products</span><Price price={total} size="sm" /></> : <span className="font-semibold text-plum">محتوى الباقة قيد التجهيز</span>}
                   </div>
                   <div className="mt-5 flex flex-wrap items-center gap-3">
                     <Link href={`/collections/${collection.slug}`} className="inline-flex items-center gap-2 text-sm font-bold text-plum group-hover:text-gold-deep">
                       View collection <ArrowLeft className="size-4" aria-hidden />
                     </Link>
-                    <CollectionAddToBag purchaseReady={collection.purchaseReady} products={includedProducts} quantities={collection.productQuantities} />
+                    {includedProducts.length > 0 ? <CollectionAddToBag purchaseReady={collection.purchaseReady} products={includedProducts} quantities={collection.productQuantities} /> : null}
                   </div>
                 </div>
               </article>

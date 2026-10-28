@@ -39,6 +39,7 @@ export const checkoutSchema = z.object({
     .min(1, { message: "سلة المشتريات فارغة" })
     .max(20),
   terms: z.literal(true, { error: "يجب الموافقة على الشروط وسياسة الاسترجاع." }),
+  idempotencyKey: z.string().trim().max(128).optional().transform((value) => value || null),
 });
 
 export type CheckoutInput = z.infer<typeof checkoutSchema>;

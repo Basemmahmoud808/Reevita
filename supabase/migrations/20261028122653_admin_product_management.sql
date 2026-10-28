@@ -1,19 +1,7 @@
 -- Migration 000007: secured admin product creation and image storage
 
--- Supabase provides these tables. The guarded definitions keep the migration
--- executable in the repository's lightweight PostgreSQL test harness as well.
-CREATE SCHEMA IF NOT EXISTS storage;
-CREATE TABLE IF NOT EXISTS storage.buckets (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    public BOOLEAN NOT NULL DEFAULT FALSE
-);
-CREATE TABLE IF NOT EXISTS storage.objects (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    bucket_id TEXT NOT NULL,
-    name TEXT NOT NULL,
-    UNIQUE (bucket_id, name)
-);
+-- Supabase owns the storage schema and its tables. The local test harness
+-- supplies stand-ins; production migrations must never create managed objects.
 
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('product-images', 'product-images', true)

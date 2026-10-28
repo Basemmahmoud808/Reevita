@@ -20,8 +20,14 @@ export function CheckoutForm({
     placeOrderAction,
     null,
   );
-  const [governorateId, setGovernorateId] = useState("");
+  const [userGovernorateId, setUserGovernorateId] = useState<string | null>(null);
+  const governorateId = userGovernorateId ?? state?.values?.governorateId ?? "";
   const [governorateErrorCleared, setGovernorateErrorCleared] = useState(false);
+  const [idempotencyKey] = useState(() =>
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `rv-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+  );
 
   const governorate = useMemo(
     () => governorates.find((item) => item.id === governorateId),
@@ -88,6 +94,7 @@ export function CheckoutForm({
       ) : null}
 
       <form action={formAction} className="grid gap-8 lg:grid-cols-[1.35fr_1fr]">
+        <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <input type="hidden" name="items" value={itemsJson} />
         <input
           type="hidden"
@@ -188,14 +195,14 @@ export function CheckoutForm({
                 <label htmlFor="governorateId" className="label">
                   Governorate *
                 </label>
-                <input type="hidden" name="governorateId" value={governorateId} />
                 <select
                   id="governorateId"
+                  name="governorateId"
                   required
                   value={governorateId}
                   onChange={(event) => {
                     const nextGovernorateId = event.target.value.trim();
-                    setGovernorateId(nextGovernorateId);
+                    setUserGovernorateId(nextGovernorateId);
                     setGovernorateErrorCleared(Boolean(nextGovernorateId));
                   }}
                   className="field"

@@ -9,12 +9,12 @@ import { cn } from "@/lib/format";
 export function CollectionAddToBag({ products, quantities = {}, purchaseReady = true, className }: { products: Product[]; quantities?: Record<string, number>; purchaseReady?: boolean; className?: string }) {
   const { addItems } = useCart();
   const [isAdding, setIsAdding] = useState(false);
-  const available = products.filter((product) => product.stockStatus !== "out_of_stock");
-  const disabled = !purchaseReady || available.length === 0 || isAdding;
+  const hasUnavailableProduct = products.some((product) => product.stockStatus === "out_of_stock");
+  const disabled = !purchaseReady || products.length === 0 || hasUnavailableProduct || isAdding;
   const handleAdd = () => {
     if (disabled) return;
     setIsAdding(true);
-    const bundleItems = available.flatMap((product) =>
+    const bundleItems = products.flatMap((product) =>
       Array.from({ length: Math.max(1, quantities[product.id] ?? 1) }, () => product),
     );
     addItems(bundleItems);

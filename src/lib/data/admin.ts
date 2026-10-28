@@ -329,7 +329,7 @@ export async function getAdminCollections(): Promise<AdminCollection[]> {
   if (!supabase) return [];
   const { data, error } = await supabase
     .from("collections")
-    .select("id, slug, name, name_ar, description, cover_image_url, display_order, is_published, collection_products(product_id)")
+    .select("id, slug, name, name_ar, description, cover_image_url, display_order, is_published, purchase_ready, missing_products, collection_products(product_id)")
     .order("display_order", { ascending: true });
   if (error || !data) throw new OrderError("UNKNOWN");
   return (data as Array<Record<string, unknown>>).map((row) => ({
@@ -342,6 +342,8 @@ export async function getAdminCollections(): Promise<AdminCollection[]> {
     displayOrder: Number(row.display_order ?? 0),
     isPublished: Boolean(row.is_published),
     productIds: ((row.collection_products ?? []) as Array<{ product_id: string }>).map((item) => item.product_id),
+    purchaseReady: Boolean(row.purchase_ready),
+    missingProducts: Array.isArray(row.missing_products) ? row.missing_products.map(String) : [],
   }));
 }
 
@@ -360,6 +362,8 @@ export async function createCollection(input: Omit<Collection, "id">): Promise<v
     cover_image_url: input.image || null,
     display_order: input.displayOrder,
     is_published: input.isPublished,
+    purchase_ready: input.purchaseReady ?? Boolean(input.productIds?.length),
+    missing_products: input.missingProducts ?? [],
   }).select("id").single();
   if (error || !data) throw new OrderError("UNKNOWN");
   if (input.productIds?.length) {
@@ -383,6 +387,8 @@ export async function updateCollection(id: string, input: Omit<Collection, "id">
     cover_image_url: input.image || null,
     display_order: input.displayOrder,
     is_published: input.isPublished,
+    purchase_ready: input.purchaseReady ?? Boolean(input.productIds?.length),
+    missing_products: input.missingProducts ?? [],
     updated_at: new Date().toISOString(),
   }).eq("id", id);
   if (error) throw new OrderError("UNKNOWN");
@@ -523,6 +529,28 @@ export async function replaceProductImage(productId: string, image: File, altTex
     return path ? [path] : [];
   });
   if (oldPaths.length) await supabase.storage.from("product-images").remove(oldPaths);
+}
+
+export async function uploadCollectionCover(slug: string, image: File): Promise<{ path: string; url: string }> {
+  if (!isSupabaseConfigured) throw new OrderError("UNKNOWN");
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new OrderError("UNKNOWN");
+  const extension = image.type === "image/png" ? "png" : image.type === "image/webp" ? "webp" : "jpg";
+  const path = `collections/${slug}/${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage.from("product-images").upload(path, image, {
+    contentType: image.type,
+    upsert: false,
+  });
+  if (error) throw errorFromSupabase(error.message);
+  const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+  return { path, url: data.publicUrl };
+}
+
+export async function removeUploadedCollectionCover(path: string): Promise<void> {
+  if (!isSupabaseConfigured || !path.startsWith("collections/")) return;
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return;
+  await supabase.storage.from("product-images").remove([path]);
 }
 
 export async function archiveProduct(productId: string): Promise<void> {

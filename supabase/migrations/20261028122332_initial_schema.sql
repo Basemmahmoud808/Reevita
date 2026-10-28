@@ -1,33 +1,8 @@
 -- Migration 000001: REEVITA Initial Schema
 -- Supports Egyptian E-Commerce (COD, Governorates, Shipping Rates, Inventory, Orders)
 
--- 1. Built-in UUID support (Postgres 13+ includes gen_random_uuid() natively)
-
--- Ensure auth schema exists (compatible with standalone Postgres & Supabase)
-CREATE SCHEMA IF NOT EXISTS auth;
-CREATE TABLE IF NOT EXISTS auth.users (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    email TEXT UNIQUE,
-    raw_user_meta_data JSONB DEFAULT '{}'::jsonb,
-    created_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Mock/compatible auth.uid() and auth.role() functions
-CREATE OR REPLACE FUNCTION auth.uid() 
-RETURNS UUID 
-LANGUAGE sql 
-STABLE 
-AS $$
-  SELECT NULLIF(current_setting('request.jwt.claim.sub', true), '')::uuid;
-$$;
-
-CREATE OR REPLACE FUNCTION auth.role() 
-RETURNS TEXT 
-LANGUAGE sql 
-STABLE 
-AS $$
-  SELECT COALESCE(current_setting('request.jwt.claim.role', true), 'anon');
-$$;
+-- Supabase provides auth.users and auth.uid(). Keep test-only stand-ins in
+-- tests/backend/setup-db.js rather than replacing managed Auth objects here.
 
 -- 2. Profiles (Linked to auth.users)
 CREATE TABLE IF NOT EXISTS public.profiles (

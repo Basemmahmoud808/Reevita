@@ -164,6 +164,8 @@ DECLARE
     v_normalized_phone TEXT;
     v_order RECORD;
     v_status_ar TEXT;
+    v_found_order_number TEXT;
+    v_attempt_count INTEGER;
 BEGIN
     IF p_order_number IS NULL OR trim(p_order_number) = '' THEN
         RAISE EXCEPTION 'INVALID_INPUT: Order number is required';
@@ -171,6 +173,49 @@ BEGIN
 
     -- Normalize phone
     v_normalized_phone := public.normalize_egyptian_phone(p_phone);
+
+    IF upper(trim(p_order_number)) !~ '^RV-[0-9]{4}-[0-9]{5}$' THEN
+        RETURN jsonb_build_object(
+            'found', FALSE,
+            'message_ar', 'لم يتم العثور على طلب مطابق لرقم الطلب ورقم الهاتف المدخلين.',
+            'message_en', 'No order found matching the provided order number and phone.'
+        );
+    END IF;
+
+    -- Only keep counters for real orders, and cap direct RPC phone guesses even
+    -- when callers bypass the Next.js Server Action rate limiter.
+    SELECT o.order_number INTO v_found_order_number
+    FROM public.orders o
+    WHERE upper(trim(o.order_number)) = upper(trim(p_order_number));
+
+    IF v_found_order_number IS NULL THEN
+        RETURN jsonb_build_object(
+            'found', FALSE,
+            'message_ar', 'لم يتم العثور على طلب مطابق لرقم الطلب ورقم الهاتف المدخلين.',
+            'message_en', 'No order found matching the provided order number and phone.'
+        );
+    END IF;
+
+    INSERT INTO private.order_tracking_attempts (order_number, attempt_count, window_started_at)
+    VALUES (upper(trim(v_found_order_number)), 1, now())
+    ON CONFLICT (order_number) DO UPDATE
+      SET attempt_count = CASE
+            WHEN private.order_tracking_attempts.window_started_at <= now() - interval '1 minute' THEN 1
+            ELSE private.order_tracking_attempts.attempt_count + 1
+          END,
+          window_started_at = CASE
+            WHEN private.order_tracking_attempts.window_started_at <= now() - interval '1 minute' THEN now()
+            ELSE private.order_tracking_attempts.window_started_at
+          END
+    RETURNING attempt_count INTO v_attempt_count;
+
+    IF v_attempt_count > 12 THEN
+        RETURN jsonb_build_object(
+            'found', FALSE,
+            'message_ar', 'لم يتم العثور على طلب مطابق لرقم الطلب ورقم الهاتف المدخلين.',
+            'message_en', 'No order found matching the provided order number and phone.'
+        );
+    END IF;
 
     -- Find matching order
     SELECT 

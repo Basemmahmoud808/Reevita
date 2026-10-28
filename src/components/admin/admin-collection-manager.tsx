@@ -10,7 +10,7 @@ const coverOptions = [
   "/images/products/body-lotion-queen.webp",
   "/images/products/body-lotion-ruby-musk.webp",
   "/images/products/shampoo-aloe-vera.webp",
-  "/images/soft-glow-bundle.jpg",
+  "/images/collections/soft-glow-bundle.webp",
   "/images/fresh-all-day-bundle.jpg",
 ];
 
@@ -39,14 +39,26 @@ function CollectionFields({ collection, products }: { collection?: Collection; p
         <input name="nameEn" required defaultValue={collection?.nameEn} className="field py-2 text-xs" placeholder="Collection name" />
         <input name="nameAr" required defaultValue={collection?.nameAr} className="field py-2 text-xs" placeholder="اسم المجموعة" dir="rtl" />
         <input name="slug" required defaultValue={collection?.slug} className="field py-2 text-xs" placeholder="collection-slug" dir="ltr" />
-        <input name="image" required list="collection-cover-options" defaultValue={collection?.image} className="field py-2 text-xs sm:col-span-2" placeholder="Cover image URL" dir="ltr" />
+        <input name="image" list="collection-cover-options" defaultValue={collection?.image} className="field py-2 text-xs sm:col-span-2" placeholder="Cover image URL (or upload below)" dir="ltr" />
+        <label className="grid gap-1 text-xs font-semibold text-muted sm:col-span-2">
+          Upload or replace cover image (JPG, PNG, WEBP · max 5 MB)
+          <input name="coverImage" type="file" accept="image/jpeg,image/png,image/webp" className="field py-2 text-xs" />
+        </label>
         <input name="displayOrder" type="number" min={0} defaultValue={collection?.displayOrder ?? 0} className="field py-2 text-xs" placeholder="Display order" />
         <textarea name="descriptionAr" required defaultValue={collection?.descriptionAr} className="field py-2 text-xs sm:col-span-2" placeholder="وصف المجموعة" rows={2} dir="rtl" />
         <label className="flex items-center gap-2 text-xs font-semibold text-plum">
           <input type="checkbox" name="isPublished" defaultChecked={collection?.isPublished ?? true} className="size-3.5 accent-[#3B0F24]" />
           Published on storefront
         </label>
+        <label className="flex items-center gap-2 text-xs font-semibold text-plum">
+          <input type="checkbox" name="purchaseReady" defaultChecked={collection?.purchaseReady ?? Boolean(collection?.productIds?.length)} className="size-3.5 accent-[#3B0F24]" />
+          Ready for purchase
+        </label>
       </div>
+      <label className="grid gap-1 text-xs font-semibold text-muted">
+        Products still missing (one per line)
+        <textarea name="missingProducts" defaultValue={collection?.missingProducts?.join("\n")} className="field py-2 text-xs" rows={2} dir="auto" />
+      </label>
       <div>
         <p className="label">Products in this collection</p>
         <ProductChoices products={products} selected={collection?.productIds ?? []} />

@@ -26,6 +26,7 @@ function checkoutValues(formData: FormData): Record<string, string> {
     landmark: String(formData.get("landmark") ?? ""),
     orderNotes: String(formData.get("orderNotes") ?? ""),
     terms: formData.get("terms") === "on" ? "on" : "",
+    idempotencyKey: String(formData.get("idempotencyKey") ?? ""),
   };
 }
 
@@ -85,6 +86,7 @@ export async function placeOrderAction(
     orderNotes: formData.get("orderNotes") ?? "",
     items,
     terms: formData.get("terms") === "on",
+    idempotencyKey: formData.get("idempotencyKey") || undefined,
   });
 
   if (!parsed.success) {
@@ -110,6 +112,7 @@ export async function placeOrderAction(
         landmark: parsed.data.landmark,
         orderNotes: parsed.data.orderNotes,
         items: parsed.data.items,
+        idempotencyKey: parsed.data.idempotencyKey,
       },
       ip,
     );

@@ -31,8 +31,11 @@ test('RLS enforcement: Visitor, Customer, and Admin permissions', async () => {
   assert.ok(Number(anonProdRes.rows[0].count) >= 14, 'Anon can view active products');
 
   // Anon CANNOT directly read inventory table (restricted to admin)
-  const anonInvRes = await db.query('SELECT count(*) as count FROM public.inventory;');
-  assert.equal(Number(anonInvRes.rows[0].count), 0, 'Anon should get 0 rows when directly querying inventory table');
+  await assert.rejects(
+    () => db.query('SELECT count(*) as count FROM public.inventory;'),
+    /permission denied for table inventory/,
+    'Anon should not have SQL permission to query exact inventory'
+  );
 
   // Anon CANNOT directly insert products
   await assert.rejects(
@@ -42,7 +45,7 @@ test('RLS enforcement: Visitor, Customer, and Admin permissions', async () => {
         VALUES ('hack-product', 'Hack', 'اختراق', 'Fake product', 10);
       `);
     },
-    /violates row-level security policy/,
+    /permission denied|violates row-level security policy/,
     'Anon cannot insert products'
   );
 
@@ -59,7 +62,7 @@ test('RLS enforcement: Visitor, Customer, and Admin permissions', async () => {
         );
       `);
     },
-    /violates row-level security policy/,
+    /permission denied|violates row-level security policy/,
     'Direct order insertion must be blocked by RLS'
   );
 
