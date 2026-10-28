@@ -67,7 +67,7 @@ ON CONFLICT (id) DO UPDATE SET
 -- 4. Products (24 catalogue SKUs) — prices in EGP
 INSERT INTO public.products (id, category_id, slug, name, name_ar, short_description, short_description_ar, description, price, compare_at_price, benefits, ingredients, how_to_use, size, is_featured, is_active) VALUES
   ('33333333-0000-0000-0000-000000000001', '22222222-0000-0000-0000-000000000005', 'shampoo-aloe-vera', 'REEVITA Shampoo Aloe Vera', 'ريفيتا شامبو ألوفيرا', 'Shampoo with Botanical Care notes.', 'ريفيتا شامبو ألوفيرا — 300 مل', 'شامبو REEVITA للعناية بالشعر. راجعي بيانات العبوة للاطلاع على المكونات وطريقة الاستخدام.', 350, NULL, ARRAY[]::text[], '', '', '300 مل', FALSE, FALSE),
-  ('33333333-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000005', 'shampoo-blueberry', 'REEVITA Shampoo Blueberry', 'ريفيتا شامبو توت أزرق', 'Shampoo with Botanical Care notes.', 'ريفيتا شامبو توت أزرق — 300 مل', 'شامبو REEVITA للعناية بالشعر. راجعي بيانات العبوة للاطلاع على المكونات وطريقة الاستخدام.', 350, NULL, ARRAY[]::text[], '', '', '300 مل', FALSE, FALSE),
+  ('33333333-0000-0000-0000-000000000002', '22222222-0000-0000-0000-000000000005', 'shampoo-blueberry', 'REEVITA Shampoo Blueberry', 'ريفيتا شامبو توت أزرق', 'Shampoo with Botanical Care notes.', 'ريفيتا شامبو توت أزرق — 300 مل', 'شامبو REEVITA للعناية بالشعر. راجعي بيانات العبوة للاطلاع على المكونات وطريقة الاستخدام.', 220, NULL, ARRAY[]::text[], '', '', '300 مل', FALSE, TRUE),
   ('33333333-0000-0000-0000-000000000003', '22222222-0000-0000-0000-000000000001', 'body-lotion-sexy', 'REEVITA Body Lotion Sexy', 'ريفيتا لوشن الجسم سيكسي', 'Body Lotion with Sexy notes.', 'ريفيتا لوشن الجسم سيكسي — 200 مل', 'لوشن جسم REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.', 240, NULL, ARRAY[]::text[], '', '', '200 مل', FALSE, TRUE),
   ('33333333-0000-0000-0000-000000000004', '22222222-0000-0000-0000-000000000001', 'body-lotion-queen', 'REEVITA Body Lotion Queen', 'ريفيتا لوشن الجسم كوين', 'Body Lotion with Queen notes.', 'ريفيتا لوشن الجسم كوين — 200 مل', 'لوشن جسم REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.', 240, NULL, ARRAY[]::text[], '', '', '200 مل', FALSE, TRUE),
   ('33333333-0000-0000-0000-000000000005', '22222222-0000-0000-0000-000000000001', 'body-lotion-ruby-musk', 'REEVITA Body Lotion Ruby Musk', 'ريفيتا لوشن الجسم روبي مسك', 'Body Lotion with Ruby Musk notes.', 'ريفيتا لوشن الجسم روبي مسك — 200 مل', 'لوشن جسم REEVITA. الرائحة والحجم موضحان على صفحة المنتج والعبوة.', 240, NULL, ARRAY[]::text[], '', '', '200 مل', FALSE, TRUE),
@@ -165,15 +165,21 @@ INSERT INTO public.site_settings (key, value, description) VALUES
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, description = EXCLUDED.description;
 
 -- 8. Collection memberships use owner-confirmed products.
+UPDATE public.collections SET is_published = FALSE, updated_at = now() WHERE slug IN ('soft-glow-bundle', 'fresh-all-day-bundle');
 UPDATE public.collections SET purchase_ready = FALSE, missing_products = ARRAY['Shampoo Dove — 300 ml'], updated_at = now() WHERE slug = 'soft-glow-bundle';
 UPDATE public.collections SET purchase_ready = TRUE, missing_products = ARRAY[]::text[], updated_at = now() WHERE slug = 'complete-care-bundle';
-DELETE FROM public.collection_products cp USING public.collections c WHERE cp.collection_id = c.id AND c.slug IN ('complete-care-bundle', 'hair-care-duo-bundle', 'fruity-mood');
+UPDATE public.collections SET cover_image_url = '/images/collections/soft-glow-bundle.jpg' WHERE slug = 'complete-care-bundle';
+UPDATE public.collections SET cover_image_url = '/images/collections/fresh-all-day-bundle.jpg' WHERE slug = 'fruity-mood';
+UPDATE public.collections SET cover_image_url = '/images/collections/hair-care-duo-products.jpg' WHERE slug = 'hair-care-duo-bundle';
+DELETE FROM public.collection_products cp USING public.collections c WHERE cp.collection_id = c.id AND c.slug IN ('sweet-mood', 'clean-mood', 'complete-care-bundle', 'hair-care-duo-bundle', 'fruity-mood');
 INSERT INTO public.collection_products (collection_id, product_id, display_order, quantity)
 SELECT c.id, p.id, m.display_order, 1 FROM (VALUES
+  ('sweet-mood', 'shower-gel-bubble-gum', 0), ('sweet-mood', 'body-lotion-sexy', 1), ('sweet-mood', 'body-splash-sexy', 2),
+  ('clean-mood', 'shower-gel-dove', 0), ('clean-mood', 'body-lotion-queen', 1), ('clean-mood', 'body-splash-queen', 2),
   ('complete-care-bundle', 'body-lotion-sexy', 0), ('complete-care-bundle', 'body-lotion-queen', 1), ('complete-care-bundle', 'body-lotion-ruby-musk', 2),
   ('complete-care-bundle', 'body-splash-sexy', 3), ('complete-care-bundle', 'body-splash-queen', 4), ('complete-care-bundle', 'body-splash-ruby-musk', 5),
   ('complete-care-bundle', 'shower-gel-bubble-gum', 6), ('complete-care-bundle', 'shower-gel-blueberry', 7), ('complete-care-bundle', 'shower-gel-dove', 8),
-  ('hair-care-duo-bundle', 'shampoo-bubble-gum', 0), ('hair-care-duo-bundle', 'hair-mist-ruby-musk', 1),
+  ('hair-care-duo-bundle', 'shampoo-blueberry', 0), ('hair-care-duo-bundle', 'hair-mist-ruby-musk', 1),
   ('fruity-mood', 'shower-gel-blueberry', 0), ('fruity-mood', 'body-lotion-ruby-musk', 1), ('fruity-mood', 'body-splash-ruby-musk', 2)
 ) AS m(collection_slug, product_slug, display_order) JOIN public.collections c ON c.slug = m.collection_slug JOIN public.products p ON p.slug = m.product_slug AND p.is_active = TRUE
 ON CONFLICT (collection_id, product_id) DO UPDATE SET display_order = EXCLUDED.display_order, quantity = EXCLUDED.quantity;

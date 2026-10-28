@@ -24,24 +24,21 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   const result = await getCollectionBySlug(slug);
   if (!result) notFound();
   const { collection, products } = result;
-  const isSoftGlow = collection.slug === "soft-glow-bundle";
-
   return (
     <main className="container-luxe py-10 md:py-14">
       <Link href="/collections" className="text-sm font-bold text-muted hover:text-gold-deep">← All collections</Link>
-      <div className="mt-8 grid items-start gap-8 lg:grid-cols-2">
+      <div className="mt-8 flex flex-col items-center">
         {collection.image ? (
-          <div className={`relative overflow-hidden rounded-3xl bg-cream ${isSoftGlow ? "aspect-square max-w-[680px]" : "aspect-[4/3]"}`}>
-            <Image src={collection.image} alt={`${collection.nameEn} — صورة المجموعة`} fill priority sizes="(max-width: 1024px) 100vw, 50vw" className="object-cover" />
+          <div className="relative aspect-[4/3] w-full max-w-5xl overflow-hidden rounded-3xl bg-cream">
+            <Image src={collection.image} alt={`${collection.nameEn} — صورة المجموعة`} fill priority sizes="(max-width: 1024px) 100vw, 960px" className="object-contain" />
           </div>
         ) : null}
-        <section className="max-w-2xl" dir={isSoftGlow ? "rtl" : undefined}>
-          <p className="eyebrow">{isSoftGlow ? "باقة عناية بالشعر" : "COLLECTION"}</p>
-          <h1 className="display-xl mt-3">{isSoftGlow ? collection.nameAr : collection.nameEn}</h1>
-          {isSoftGlow ? <p className="mt-2 text-sm font-semibold tracking-wide text-muted" dir="ltr">{collection.nameEn}</p> : null}
+        <section className="mt-7 w-full max-w-3xl text-center">
+          <p className="eyebrow">COLLECTION</p>
+          <h1 className="display-xl mt-3">{collection.nameEn}</h1>
           <p className="lead mt-3">{collection.descriptionAr}</p>
           {products.length > 0 ? (
-            <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-muted">
+            <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-sm text-muted">
               <span>{products.reduce((total, item) => total + (collection.productQuantities?.[item.id] ?? 1), 0)} منتجات</span>
               <Price price={products.reduce((total, item) => total + item.price * (collection.productQuantities?.[item.id] ?? 1), 0)} size="sm" />
               <CollectionAddToBag purchaseReady={collection.purchaseReady} products={products} quantities={collection.productQuantities} />

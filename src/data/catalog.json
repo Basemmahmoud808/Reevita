@@ -186,7 +186,7 @@
       "nameEn": "REEVITA Shampoo Blueberry",
       "shortAr": "ريفيتا شامبو توت أزرق — 300 مل",
       "descriptionAr": "شامبو REEVITA للعناية بالشعر. راجعي بيانات العبوة للاطلاع على المكونات وطريقة الاستخدام.",
-      "price": 350,
+      "price": 220,
       "compareAtPrice": null,
       "size": "300 مل",
       "benefits": [],
@@ -199,7 +199,7 @@
       "isNew": true,
       "badge": null,
       "isInCollection": false,
-      "isActive": false
+      "isActive": true
     },
     {
       "id": "33333333-0000-0000-0000-000000000003",

@@ -6,7 +6,6 @@ import { SocialIconLinks } from "@/components/ui/social-icon";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
 
 const links = [
-  { href: "/", label: "Home" },
   { href: "/checkout", label: "Checkout" },
 ];
 

@@ -12,13 +12,24 @@ export const metadata: Metadata = {
   description: "Explore REEVITA signature collections.",
 };
 
+const merchandisingCollectionSlugs = new Set([
+  "sweet-mood",
+  "clean-mood",
+  "ruby-musk-collection",
+  "sexy-collection",
+  "fruity-mood",
+  "hair-care-duo-bundle",
+  "complete-care-bundle",
+]);
+
 function collectionProducts(collection: Collection, products: Product[]) {
   const ids = new Set(collection.productIds ?? []);
   return products.filter((product) => ids.has(product.id));
 }
 
 export default async function CollectionsPage() {
-  const [collections, products] = await Promise.all([getCollections(), getProducts()]);
+  const [allCollections, products] = await Promise.all([getCollections(), getProducts()]);
+  const collections = allCollections.filter((collection) => merchandisingCollectionSlugs.has(collection.slug));
 
   return (
     <main className="container-luxe py-10 md:py-14">
@@ -37,15 +48,13 @@ export default async function CollectionsPage() {
               <article key={collection.id} className="card-luxe group flex h-full flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <Link href={`/collections/${collection.slug}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
                   <div className="relative aspect-[4/3] overflow-hidden bg-cream">
-                    {collection.image ? <Image src={collection.image} alt={`${collection.nameEn} collection`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-cover transition-transform duration-700 group-hover:scale-105" /> : null}
+                    {collection.image ? <Image src={collection.image} alt={`${collection.nameEn} collection`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-contain transition-transform duration-700 group-hover:scale-[1.02]" /> : null}
                   </div>
                 </Link>
                 <div className="flex flex-1 flex-col p-6">
-                  <p className="eyebrow">{collection.slug === "soft-glow-bundle" ? "باقة عناية بالشعر" : collection.slug === "fresh-all-day-bundle" ? "مجموعة عناية بالجسم" : "COLLECTION"}</p>
-                  <h2 className="display-md mt-3 min-h-14 line-clamp-2 text-xl">{collection.slug === "soft-glow-bundle" || collection.slug === "fresh-all-day-bundle" ? collection.nameAr : collection.nameEn}</h2>
-                  <p className="mt-1 min-h-5 text-xs font-semibold tracking-wide text-muted" dir="ltr">
-                    {collection.slug === "soft-glow-bundle" || collection.slug === "fresh-all-day-bundle" ? collection.nameEn : "\u00a0"}
-                  </p>
+                  <p className="eyebrow">COLLECTION</p>
+                  <h2 className="display-md mt-3 min-h-14 line-clamp-2 text-xl">{collection.nameEn}</h2>
+                  <p className="mt-1 min-h-5 text-xs font-semibold tracking-wide text-muted" dir="ltr">&nbsp;</p>
                   <p className="mt-2 min-h-21 line-clamp-3 text-sm leading-7 text-muted">{collection.descriptionAr}</p>
                   <div className="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-2 pt-4 text-xs text-muted">
                     {quantity > 0 ? <><span>{quantity} products</span><Price price={total} size="sm" /></> : <span className="font-semibold text-plum">محتوى الباقة قيد التجهيز</span>}

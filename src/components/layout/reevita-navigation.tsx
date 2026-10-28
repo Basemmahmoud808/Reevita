@@ -28,7 +28,6 @@ export function ReevitaNavigation() {
   return (
     <div className="relative">
       <nav aria-label="Main navigation" className="hidden items-center gap-5 whitespace-nowrap text-xs lg:flex">
-        <Link className={pathname === "/" ? "reference-nav-active" : undefined} aria-current={pathname === "/" ? "page" : undefined} href="/">Home</Link>
         <Link className={pathname === "/shop" ? "reference-nav-active" : undefined} aria-current={pathname === "/shop" ? "page" : undefined} href="/shop">Shop</Link>
         <Link className={isCollectionsPage ? "reference-nav-active" : undefined} aria-current={isCollectionsPage ? "page" : undefined} href="/collections">Collections</Link>
         {groups.map((group) => (
