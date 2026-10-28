@@ -41,3 +41,7 @@ supabase/.branches
 supabase/.temp
 .branches/
 .temp/
+
+# Playwright artifacts
+test-results/
+playwright-report/
