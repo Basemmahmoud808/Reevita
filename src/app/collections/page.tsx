@@ -30,22 +30,22 @@ export default async function CollectionsPage() {
         <h1 className="display-xl mt-3">Collections</h1>
       </div>
       {collections.length > 0 ? (
-        <div className="grid gap-5 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
+        <div className="curated-collection-list-grid">
           {collections.map((collection) => {
             const setCount = collection.setCount ?? 0;
             return (
-              <article key={collection.id} className="card-luxe group flex h-full flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1">
+              <article key={collection.id} className="card-luxe curated-collection-list-card group flex h-full flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <Link href={`/collections/${collection.slug}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
                   <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw" />
                 </Link>
-                <div className="flex flex-1 flex-col p-6">
+                <div className="curated-collection-list-card-body flex flex-1 flex-col">
                   <p className="eyebrow">COLLECTION</p>
-                  <h2 className="display-md mt-3 min-h-14 line-clamp-2 text-xl">{collection.nameEn}</h2>
-                  <div className="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-2 pt-4 text-xs text-muted">
+                  <h2 className="curated-collection-list-title display-md">{collection.nameEn}</h2>
+                  <div className="curated-collection-list-count mt-auto flex flex-wrap items-center justify-between gap-2">
                     <span>{setCount} sets</span>
                   </div>
-                  <div className="mt-4 flex min-h-10 flex-col items-start gap-3">
-                    <Link href={`/collections/${collection.slug}`} className="inline-flex items-center gap-2 text-sm font-bold text-plum group-hover:text-gold-deep">
+                  <div className="curated-collection-list-action flex min-h-10 flex-col items-start gap-3">
+                    <Link href={`/collections/${collection.slug}`} className="inline-flex flex-wrap items-center gap-2 font-bold text-plum group-hover:text-gold-deep">
                       Explore collection <ArrowRight className="size-4" aria-hidden />
                     </Link>
                   </div>
