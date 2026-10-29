@@ -130,7 +130,7 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
             {[
               {
                 icon: Truck,
-                title: "التوصيل خلال ١–٤ أيام عمل",
+                title: "التوصيل خلال ٢–٣ أيام عمل",
                 text: "سنتواصل معك لتأكيد موعد التسليم المناسب.",
               },
               {
