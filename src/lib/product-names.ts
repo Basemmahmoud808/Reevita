@@ -11,6 +11,8 @@ const variantNames: Record<string, { en: string; ar: string }> = {
   "shampoo-aloe-vera": { en: "Aloe Vera", ar: "ألوفيرا" },
   "shampoo-blueberry": { en: "Blueberry", ar: "توت أزرق" },
   "shampoo-bubble-gum": { en: "Bubble Gum", ar: "بابل جام" },
+  "shampoo-dove": { en: "Dove", ar: "دوف" },
+  "shower-gel-bubble-gum": { en: "Bubble Gum", ar: "بابل جام" },
   "shower-gel-blueberry": { en: "Blueberry", ar: "توت أزرق" },
   "shower-gel-dove": { en: "Dove", ar: "دوف" },
   "body-lotion-sexy": { en: "Sexy", ar: "سيكسي" },
@@ -43,7 +45,12 @@ export function canonicalProductNames(input: {
   const type = productTypes[categorySlug];
   if (!type) return { nameEn: input.nameEn ?? input.slug, nameAr: input.nameAr ?? input.slug };
 
-  const variant = variantNames[input.slug] ?? (input.variantLabelAr ? { en: input.variantLabelAr, ar: input.variantLabelAr } : null);
+  // Secondary package-size SKUs suffix the parent slug (for example `-100`).
+  // Reuse the parent's English fragrance label instead of leaking Arabic into
+  // the English product title.
+  const baseSlug = input.slug.replace(/-\d+$/, "");
+  const knownVariant = variantNames[input.slug] ?? variantNames[baseSlug];
+  const variant = knownVariant ?? (input.variantLabelAr ? { en: "", ar: input.variantLabelAr } : null);
   const enParts = ["REEVITA", type.en, variant?.en].filter(Boolean);
   const arParts = ["ريفيتا", type.ar, variant?.ar].filter(Boolean);
 

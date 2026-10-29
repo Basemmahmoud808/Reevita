@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import { Almarai, Manrope } from "next/font/google";
 import { brand } from "@/lib/catalog";
 import { siteUrl } from "@/lib/env";
 import { Providers } from "@/components/providers";
@@ -7,20 +6,6 @@ import { SiteChrome } from "@/components/layout/site-chrome";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { JsonLd } from "@/components/ui/json-ld";
 import "./globals.css";
-
-const almarai = Almarai({
-  subsets: ["arabic", "latin"],
-  weight: ["400", "700"],
-  variable: "--font-almarai",
-  display: "swap",
-});
-
-const manrope = Manrope({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-manrope",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -115,7 +100,6 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang="en"
       dir="ltr"
-      className={`${almarai.variable} ${manrope.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-dvh bg-ivory text-ink">

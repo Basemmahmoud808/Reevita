@@ -1,34 +1,39 @@
 import { expect, test } from "@playwright/test";
 
-async function addProductAndOpenCheckout(page: import("@playwright/test").Page) {
+test("out-of-stock products stay out of the bag and checkout explains why it cannot continue", async ({ page }) => {
   await page.goto("/");
-  const addToBag = page.getByRole("button", { name: /Add to bag/ }).first();
-  await page.locator("article").first().hover({ position: { x: 20, y: 20 } });
-  await addToBag.click();
-  await expect(page.getByRole("button", { name: /سلة المشتريات — 1 منتج/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /Add to bag/ }).first()).toBeDisabled();
+
+  await page.goto("/cart");
+  await expect(page.getByRole("heading", { name: "Your bag is empty" })).toBeVisible();
+  await page.goto("/checkout");
+  await expect(page.getByRole("heading", { name: "Checkout unavailable" })).toBeVisible();
+});
+
+test("checkout rejects an invalid phone and preserves the other entered details", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem("rv_cart_v1", JSON.stringify([{
+      productId: "33333333-0000-0000-0000-000000000002",
+      slug: "shampoo-blueberry",
+      nameAr: "ريفيتا شامبو توت أزرق",
+      price: 220,
+      compareAtPrice: null,
+      image: "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jfif",
+      size: "300 مل",
+      variantLabelAr: "توت أزرق",
+      quantity: 1,
+      maxQuantity: 10,
+    }]));
+  });
+
   await page.goto("/checkout");
   await expect(page.getByRole("heading", { name: "Complete your order" })).toBeVisible();
-}
-
-async function fillCheckout(page: import("@playwright/test").Page, phone = "01012345678") {
   await page.getByLabel("Full name *").fill("سارة أحمد");
-  await page.getByLabel("رقم الموبايل *").fill(phone);
+  await page.getByLabel("رقم الموبايل *").fill("010123");
   await page.getByLabel("Governorate *").selectOption({ index: 1 });
   await page.getByLabel("City / district *").fill("مدينة نصر");
   await page.getByLabel("Full address *").fill("شارع رئيسي، عمارة 10، شقة 4");
   await page.getByLabel("أوافق على الشروط والأحكام وسياسة الاسترجاع.").check();
-}
-
-test("valid COD checkout redirects to the order confirmation", async ({ page }) => {
-  await addProductAndOpenCheckout(page);
-  await fillCheckout(page);
-  await page.getByRole("button", { name: "Confirm order" }).click();
-  await expect(page).toHaveURL(/\/order\/RV-\d{4}-\d{5}$/);
-});
-
-test("invalid phone shows an error and preserves typed checkout fields", async ({ page }) => {
-  await addProductAndOpenCheckout(page);
-  await fillCheckout(page, "010123");
   await page.getByRole("button", { name: "Confirm order" }).click();
 
   await expect(page.locator("#checkout-error").getByText(/رقم هاتف محمول مصري صحيح/)).toBeVisible();

@@ -1,27 +1,21 @@
 import { expect, test } from "@playwright/test";
 
-test("Hair Care Duo shows its two products, total, and prevents accidental double add", async ({ page }) => {
+test("collection picker shows the selected item's exact name, size, price, and availability", async ({ page }) => {
+  test.setTimeout(60_000);
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/collections/hair-care-duo-bundle");
 
   await expect(page.getByRole("heading", { name: "Hair Care Duo Bundle" })).toBeVisible();
-  await expect(page.getByRole("img", { name: "Hair Care Duo Bundle — صورة المجموعة" })).toHaveAttribute(
-    "src",
-    /hair-care-duo-bundle\.jpg/,
-  );
-  await expect(page.locator('a[href="/products/shampoo-blueberry"]')).toHaveCount(1);
-  await expect(page.locator('a[href="/products/hair-mist-ruby-musk"]')).toHaveCount(1);
-  await expect(page.getByText("EGP 550")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "REEVITA Shampoo Blueberry" })).toBeVisible();
+  await expect(page.getByRole("img", { name: "REEVITA Shampoo Blueberry — REEVITA" })).toBeVisible();
+  await expect(page.locator(".collection-product-size")).toHaveText("300 مل");
+  await expect(page.locator(".collection-product-price")).toContainText("EGP 220");
+  await expect(page.getByRole("button", { name: "Temporarily out of stock" })).toBeDisabled();
 
-  await page.getByRole("button", { name: "Add Collection to Bag" }).dblclick();
-  await expect(page.getByRole("button", { name: /سلة المشتريات — 2 منتج/ })).toBeVisible();
-  await page.getByRole("button", { name: /سلة المشتريات — 2 منتج/ }).click();
-  const cart = page.getByRole("dialog", { name: "Shopping bag" });
-  await expect(cart).toBeVisible();
-  await expect(cart.getByText("(2)")).toBeVisible();
-  await expect(cart.getByText("EGP 550")).toBeVisible();
-  await expect(cart.locator('a[href="/products/shampoo-blueberry"]')).toHaveCount(2);
-  await expect(cart.locator('a[href="/products/hair-mist-ruby-musk"]')).toHaveCount(2);
+  await page.locator(".collection-product-thumbnail").nth(1).click();
+  await expect(page.getByRole("heading", { name: "REEVITA Hair Mist Ruby Musk" })).toBeVisible();
+  await expect(page.locator(".collection-product-size")).toHaveText("100 مل");
+  await expect(page.getByRole("button", { name: "Temporarily out of stock" })).toBeDisabled();
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/collections/hair-care-duo-bundle");

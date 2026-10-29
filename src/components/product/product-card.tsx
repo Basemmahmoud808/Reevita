@@ -64,7 +64,7 @@ function ProductImage({ product, priority }: { product: Product; priority: boole
   );
 }
 
-export function ProductCard({ product, priority = false, className }: { product: Product; priority?: boolean; className?: string }) {
+export function ProductCard({ product, priority = false, className, groupName }: { product: Product; priority?: boolean; className?: string; groupName?: string }) {
   const { t, locale } = useI18n();
 
   return (
@@ -78,7 +78,7 @@ export function ProductCard({ product, priority = false, className }: { product:
       </div>
       <div className="flex flex-1 flex-col px-0.5 pt-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[0.58rem] font-bold tracking-[0.16em] text-muted uppercase">{product.categoryNameEn}</p>
+          <p className="text-[0.58rem] font-bold tracking-[0.16em] text-muted uppercase">{groupName ?? product.categoryNameEn}</p>
           {product.reviews > 0 && <Rating rating={product.rating} reviews={product.reviews} />}
         </div>
         <h3 className="mt-2 text-[0.98rem] font-bold leading-7 text-plum">
@@ -119,7 +119,7 @@ export function GroupedProductCard({ products, priority = false, className }: { 
         </div>
         <h3 className="mt-2 text-[0.98rem] font-bold leading-7 text-plum">
           <Link href={`/products/${product.slug}`} className="transition-colors hover:text-gold-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-offset-2">
-            {locale === "en" ? `REEVITA ${product.categoryNameEn}` : product.categoryNameAr}
+            {locale === "en" ? product.nameEn : product.nameAr}
           </Link>
         </h3>
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pt-3">

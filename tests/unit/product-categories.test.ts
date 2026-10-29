@@ -29,9 +29,9 @@ test("featured bundle membership and totals match verified catalog data", () => 
 
   const softGlow = bundles.get("soft-glow-bundle");
   assert.ok(softGlow);
-  assert.equal(softGlow.productIds?.length, 0);
-  assert.equal(softGlow.purchaseReady, false);
-  assert.deepEqual(softGlow.missingProducts, ["Shampoo Dove — 300 ml"]);
+  assert.equal(softGlow.productIds?.length, 6);
+  assert.equal(softGlow.purchaseReady, true);
+  assert.deepEqual(softGlow.missingProducts, []);
 
   const completeCare = bundles.get("complete-care-bundle");
   assert.ok(completeCare);
@@ -44,9 +44,9 @@ test("featured bundle membership and totals match verified catalog data", () => 
   assert.ok(hairCare);
   assert.equal(featuredCollections.filter((collection) => collection.slug === "hair-care-duo-bundle").length, 1);
   assert.equal(hairCare.nameEn, "Hair Care Duo Bundle");
-  assert.equal(hairCare.image, "/images/collections/hair-care-duo-bundle.jpg");
+  assert.equal(hairCare.image, "/images/collections/hair-care-duo-products.jpg");
   assert.equal(hairCare.isPublished, true);
   assert.equal(hairCare.purchaseReady, true);
   assert.deepEqual(hairCare.productIds?.map((id) => productsById.get(id)?.slug), ["shampoo-blueberry", "hair-mist-ruby-musk"]);
-  assert.equal(hairCare.productIds?.reduce((total, id) => total + (productsById.get(id)?.price ?? 0), 0), 550);
+  assert.equal(hairCare.productIds?.reduce((total, id) => total + (productsById.get(id)?.price ?? 0), 0), 440);
 });

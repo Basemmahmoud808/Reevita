@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
   compress: true,
   images: {
     formats: ["image/avif", "image/webp"],
-    qualities: [60, 70, 75, 80, 85, 100],
+    qualities: [60, 70, 75, 80, 85, 90, 100],
     deviceSizes: [360, 420, 640, 768, 1024, 1280, 1536, 1920],
     remotePatterns: supabaseHost
       ? [

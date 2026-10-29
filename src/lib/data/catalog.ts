@@ -6,6 +6,7 @@ import {
   getStaticCategory,
   getStaticProduct,
   staticProducts,
+  getSuppliedProductImage,
   categoryDescriptionsAr,
   attachProductSizeOptions,
 } from "@/lib/catalog";
@@ -44,6 +45,45 @@ const SELECT_PRODUCT = `
   images:product_images ( image_url, alt_text, is_primary, display_order )
 `;
 
+const storefrontBundleCopy: Record<string, { name: string; description: string }> = {
+  "hair-care-duo-bundle": {
+    name: "Hair Care Duo Bundle",
+    description: "A shampoo and hair mist set for soft, scented hair.",
+  },
+  "soft-glow-bundle": {
+    name: "Soft & Glow Bundle",
+    description: "Three shampoo and hair mist duos to match your mood.",
+  },
+  "complete-care-bundle": {
+    name: "Complete Care Bundle",
+    description: "A complete body care routine with lotion, body splash, and shower gel.",
+  },
+  "fresh-all-day-bundle": {
+    name: "Fresh All Day Bundle",
+    description: "Coordinated body care essentials for a fresh, lasting routine.",
+  },
+};
+
+const storefrontBundleCovers: Record<string, string> = {
+  "hair-care-duo-bundle": "/images/collections/hair-care-duo-products.jpg",
+  "soft-glow-bundle": "/images/collections/soft-glow-blueberry.jpg",
+  "complete-care-bundle": "/images/collections/complete-care-bundle.jpg",
+  "fresh-all-day-bundle": "/images/collections/fresh-all-day-bundle.webp",
+};
+
+const storefrontBundleOrder = Object.keys(storefrontBundleCopy);
+
+export function normalizeStorefrontCollections(collections: Collection[]): Collection[] {
+  const rank = new Map(storefrontBundleOrder.map((slug, index) => [slug, index]));
+  return collections
+    .filter((collection) => rank.has(collection.slug))
+    .map((collection) => {
+      const copy = storefrontBundleCopy[collection.slug]!;
+      return { ...collection, nameEn: copy.name, nameAr: copy.name, descriptionAr: copy.description, image: storefrontBundleCovers[collection.slug]! };
+    })
+    .sort((a, b) => (rank.get(a.slug) ?? 0) - (rank.get(b.slug) ?? 0));
+}
+
 function mapStock(status: string | undefined): StockStatus {
   if (status === "out_of_stock" || status === "low_stock") return status;
   return "in_stock";
@@ -55,6 +95,7 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
   const images = [...(row.images ?? [])]
     .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.display_order - b.display_order)
     .map((image) => ({ url: image.image_url, alt: image.alt_text ?? row.name_ar }));
+  const suppliedImage = getSuppliedProductImage(row.slug, row.name);
   const names = canonicalProductNames({
     slug: row.slug,
     categorySlug: row.category?.slug ?? meta?.categorySlug,
@@ -63,6 +104,14 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
     nameEn: row.name,
     nameAr: row.name_ar,
   });
+  const databaseSize = row.size ?? meta?.size ?? "";
+  const size = row.category?.slug === "body-butter"
+    ? databaseSize.replace(/\s*(?:مل|ml|جم|g)$/i, " جم")
+    : databaseSize;
+  const descriptionAr = row.short_description_ar ?? meta?.shortAr ?? "";
+  const shortAr = row.category?.slug === "body-butter"
+    ? descriptionAr.replace(/\s*(?:مل|ml|جم|g)(?=$|\s|[—-])/i, " جم")
+    : descriptionAr;
 
   return {
     id: row.id,
@@ -70,11 +119,11 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
     sku: meta?.sku ?? `RV-${row.slug.toUpperCase()}`,
     nameAr: names.nameAr,
     nameEn: names.nameEn,
-    shortAr: row.short_description_ar ?? meta?.shortAr ?? "",
+    shortAr,
     descriptionAr: categoryDescriptionsAr[row.category?.slug ?? ""] ?? row.description,
     price: Number(row.price),
     compareAtPrice: row.compare_at_price === null ? null : Number(row.compare_at_price),
-    size: row.size ?? meta?.size ?? "",
+    size,
     sizeOptions: [],
     isPrimarySizeOption: true,
     categorySlug: row.category?.slug ?? meta?.categorySlug ?? "",
@@ -87,7 +136,9 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
     benefits: row.benefits ?? meta?.benefits ?? [],
     ingredientsAr: row.ingredients ?? meta?.ingredientsAr ?? "",
     howToUseAr: row.how_to_use ?? meta?.howToUseAr ?? "",
-    images: images.length > 0 ? images : (meta?.images ?? []),
+    // Explicitly supplied product shots override the old seeded photo paths.
+    // Products without a curated photo keep their current admin/DB-selected image.
+    images: suppliedImage ? [suppliedImage] : images.length > 0 ? images : (meta?.images ?? []),
     rating: meta?.rating ?? 0,
     reviews: meta?.reviews ?? 0,
     stockStatus: availability.get(row.id) ?? meta?.stockStatus ?? "out_of_stock",
@@ -106,26 +157,35 @@ export const getCollectionProducts = cache(async (): Promise<Product[]> => {
 });
 
 export const getCollections = cache(async (): Promise<Collection[]> => {
-  if (!isSupabaseConfigured) return demoCollections();
+  if (!isSupabaseConfigured) return normalizeStorefrontCollections(demoCollections());
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return featuredCollections;
+  if (!supabase) return normalizeStorefrontCollections(featuredCollections);
   const { data, error } = await supabase
     .from("collections")
     .select("id, slug, name, name_ar, description, cover_image_url, display_order, is_published, purchase_ready, missing_products, collection_products(product_id, quantity, display_order)")
     .eq("is_published", true)
     .order("display_order", { ascending: true });
-  if (error || !data) return featuredCollections;
-  return (data as Array<Record<string, unknown>>).map((row) => {
+  if (error || !data) return normalizeStorefrontCollections(featuredCollections);
+  const storefrontBundles = new Set([
+    "hair-care-duo-bundle",
+    "soft-glow-bundle",
+    "complete-care-bundle",
+    "fresh-all-day-bundle",
+  ]);
+  const mappedCollections = (data as Array<Record<string, unknown>>)
+    .filter((row) => storefrontBundles.has(String(row.slug)))
+    .map((row) => {
+    const copy = storefrontBundleCopy[String(row.slug)]!;
     const memberships = ((row.collection_products ?? []) as Array<{ product_id: string; quantity?: number; display_order?: number }>)
       .slice()
       .sort((a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0));
     return {
     id: String(row.id),
     slug: String(row.slug),
-    nameEn: String(row.name),
-    nameAr: String(row.name_ar),
-    descriptionAr: String(row.description ?? ""),
-    image: String(row.cover_image_url ?? ""),
+    nameEn: copy.name,
+    nameAr: copy.name,
+    descriptionAr: copy.description,
+    image: storefrontBundleCovers[String(row.slug)]!,
     displayOrder: Number(row.display_order ?? 0),
     isPublished: Boolean(row.is_published),
     purchaseReady: row.purchase_ready === undefined ? true : Boolean(row.purchase_ready),
@@ -133,7 +193,8 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
       productIds: memberships.map((item) => item.product_id),
       productQuantities: Object.fromEntries(memberships.map((item) => [item.product_id, Math.max(1, Number(item.quantity ?? 1))])),
     };
-  });
+    });
+  return normalizeStorefrontCollections(mappedCollections);
 });
 
 export const getCollectionBySlug = cache(async (slug: string): Promise<{ collection: Collection; products: Product[] } | null> => {

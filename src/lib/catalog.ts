@@ -10,10 +10,11 @@ import { canonicalProductNames } from "@/lib/product-names";
 const catalog = catalogJson;
 
 const suppliedProductImages: Record<string, string> = {
-  "shampoo-aloe-vera": "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
+  "shampoo-dove": "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
   "shampoo-blueberry": "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jfif",
   "body-lotion-queen": "/images/supplied/Gemini_Generated_Image_gyp61agyp61agyp6.jfif",
   "body-lotion-ruby-musk": "/images/supplied/Gemini_Generated_Image_odogaoodogaoodog.jfif",
+  "body-lotion-sexy": "/images/supplied/s.jfif",
   "body-butter-sexy": "/images/supplied/Gemini_Generated_Image_yow1joyow1joyow1.jfif",
   "body-butter-queen": "/images/supplied/Gemini_Generated_Image_bp52xsbp52xsbp52.jfif",
   "body-butter-ruby-musk": "/images/supplied/Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jfif",
@@ -24,6 +25,11 @@ const suppliedProductImages: Record<string, string> = {
   "hair-mist-queen": "/images/supplied/Gemini_Generated_Image_6q61gp6q61gp6q61.jfif",
   "hair-mist-ruby-musk": "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jfif",
 };
+
+export function getSuppliedProductImage(slug: string, name: string) {
+  const image = suppliedProductImages[slug] ?? suppliedProductImages[slug.replace(/-\d+$/, "")];
+  return image ? { url: image, alt: `${name} — ${brand.name}` } : undefined;
+}
 
 export const brand = catalog.brand as Brand;
 export const categories = [...(catalog.categories as Category[])].sort(
@@ -112,12 +118,10 @@ function toProduct(raw: RawProduct): Product {
     benefits: raw.benefits,
     ingredientsAr: raw.ingredientsAr,
     howToUseAr: raw.howToUseAr,
-    images: [
-      {
-        url: suppliedProductImages[raw.slug] ?? suppliedProductImages[raw.slug.replace(/-\d+$/, "")] ?? `/images/products/${raw.slug}.webp`,
-        alt: `${raw.nameEn} — ${brand.name}`,
-      },
-    ],
+    images: [getSuppliedProductImage(raw.slug, raw.nameEn) ?? {
+      url: `/images/products/${raw.slug}.webp`,
+      alt: `${raw.nameEn} — ${brand.name}`,
+    }],
     rating: raw.rating,
     reviews: raw.reviews,
     stockStatus: stockStatus(raw.stock),
@@ -184,7 +188,7 @@ export const staticCollections: Collection[] = [
     slug: "soft-glow-bundle",
     nameEn: "Soft & Glow Bundle",
     nameAr: "باقة النعومة والإشراقة",
-    descriptionAr: "روتين عناية بالشعر يجمع الشامبو ومعطر الشعر في اختيارات تناسب مزاجك.",
+    descriptionAr: "A coordinated hair care set with shampoo and hair mist in three signature scents.",
     image: "/images/collections/soft-glow-bundle.jpg",
     displayOrder: 50,
     isPublished: true,
@@ -201,7 +205,7 @@ export const staticCollections: Collection[] = [
     slug: "fresh-all-day-bundle",
     nameEn: "Fresh All Day Bundle",
     nameAr: "باقة الانتعاش طوال اليوم",
-    descriptionAr: "ثلاثة اختيارات عطرية تجمع لوشن الجسم وسبراي الجسم وزبدة الجسم.",
+    descriptionAr: "A complete body care routine with lotion, body splash, and body butter.",
     image: "/images/collections/fresh-all-day-bundle.jpg",
     displayOrder: 51,
     isPublished: true,
@@ -348,7 +352,14 @@ export const featuredCollections: Collection[] = [
       "shower-gel-dove",
     ]),
   },
-];
+]
+  .filter((collection) => [
+    "hair-care-duo-bundle",
+    "soft-glow-bundle",
+    "complete-care-bundle",
+    "fresh-all-day-bundle",
+  ].includes(collection.slug))
+  .sort((a, b) => a.displayOrder - b.displayOrder);
 
 export function getStaticProduct(slug: string): Product | undefined {
   return staticProducts.find((product) => product.slug === slug);

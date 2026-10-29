@@ -3,10 +3,11 @@ import test from "node:test";
 import { staticProducts } from "@/lib/catalog";
 
 const expectedImages: Record<string, string> = {
-  "shampoo-aloe-vera": "Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
+  "shampoo-dove": "Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
   "shampoo-blueberry": "Gemini_Generated_Image_echqdaechqdaechq.jfif",
   "body-lotion-queen": "Gemini_Generated_Image_gyp61agyp61agyp6.jfif",
   "body-lotion-ruby-musk": "Gemini_Generated_Image_odogaoodogaoodog.jfif",
+  "body-lotion-sexy": "s.jfif",
   "body-butter-sexy": "Gemini_Generated_Image_yow1joyow1joyow1.jfif",
   "body-butter-queen": "Gemini_Generated_Image_bp52xsbp52xsbp52.jfif",
   "body-butter-ruby-musk": "Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jfif",
@@ -24,6 +25,10 @@ test("static product images match the product packaging mapping", () => {
     if (expected) assert.equal(product.images[0]?.url.split("/").pop(), expected, product.slug);
   }
 
-  assert.equal(staticProducts.length, 14);
-  assert.equal(staticProducts.find((product) => product.slug === "body-lotion-sexy")?.images[0]?.url, "/images/products/body-lotion-sexy.webp");
+  assert.equal(staticProducts.length, 24);
+  assert.equal(staticProducts.find((product) => product.slug === "body-butter-sexy")?.size, "200 جم");
+  assert.equal(staticProducts.find((product) => product.slug === "body-butter-sexy-100")?.size, "100 جم");
+  assert.equal(staticProducts.find((product) => product.slug === "body-butter-sexy")?.price, 320);
+  assert.equal(staticProducts.find((product) => product.slug === "body-butter-sexy-100")?.price, 200);
+  assert.equal(staticProducts.find((product) => product.slug === "shower-gel-dove")?.nameEn, "REEVITA Shower Gel Dove");
 });

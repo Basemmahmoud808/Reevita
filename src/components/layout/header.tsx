@@ -2,10 +2,8 @@
 
 import { CartButton } from "@/components/cart/cart-button";
 import { Logo } from "@/components/brand/logo";
-import { LanguageToggle } from "@/components/layout/language-toggle";
 import { MobileMenu } from "@/components/layout/mobile-menu";
 import { ReevitaNavigation } from "@/components/layout/reevita-navigation";
-import { SearchOverlay } from "@/components/layout/search-overlay";
 
 export function Header() {
   return (
@@ -19,11 +17,7 @@ export function Header() {
 
         <div className="ms-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <MobileMenu />
-          <SearchOverlay />
           <CartButton className="reference-header-icon" />
-          <div className="hidden sm:flex">
-            <LanguageToggle />
-          </div>
         </div>
       </div>
     </header>

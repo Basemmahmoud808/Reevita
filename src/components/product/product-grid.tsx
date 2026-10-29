@@ -7,11 +7,13 @@ export function ProductGrid({
   className,
   prioritizeFirst = false,
   columns = 4,
+  groupName,
 }: {
   products: Product[];
   className?: string;
   prioritizeFirst?: boolean;
   columns?: 3 | 4;
+  groupName?: string;
 }) {
   return (
     <ul
@@ -23,7 +25,7 @@ export function ProductGrid({
     >
       {products.map((product, index) => (
         <li key={product.id}>
-          <ProductCard product={product} priority={prioritizeFirst && index < 2} />
+          <ProductCard product={product} priority={prioritizeFirst && index < 2} groupName={groupName} />
         </li>
       ))}
     </ul>
