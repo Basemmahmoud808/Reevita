@@ -188,8 +188,10 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
 
         <section id="story" className="reference-container scroll-mt-20 pb-12 md:pb-16">
           <div className="reference-story">
-            <Image src={storyImage} alt="REEVITA care products" fill quality={80} sizes="100vw" loading="lazy" placeholder="blur" blurDataURL={blurForSlug("story")} className="object-cover" />
-            <div className="relative z-10 max-w-[330px] px-7 py-10 md:px-12">
+            <div className="reference-story-media">
+              <Image src={storyImage} alt="REEVITA Ruby Musk hair mist" fill quality={80} sizes="(max-width: 767px) 100vw, 50vw" loading="lazy" placeholder="blur" blurDataURL={blurForSlug("story")} className="object-contain" />
+            </div>
+            <div className="reference-story-copy">
               <p className="reference-kicker">OUR PHILOSOPHY</p>
               <h2 className="mt-3">Skincare<br />That Works</h2>
               <p className="mt-3 text-sm leading-6 text-[#67665d]">Clean, effective, and gentle formulas for your natural glow.</p>
@@ -215,4 +217,3 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
     </div>
   );
 }
-

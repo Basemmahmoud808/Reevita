@@ -517,17 +517,37 @@
   }
 
   .reference-story {
-    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    min-height: 300px;
     content-visibility: auto;
     contain-intrinsic-size: 0 250px;
-    min-height: 190px;
     overflow: hidden;
     border-radius: 0.35rem;
     background: #e9decd;
   }
 
-  .reference-story img {
-    opacity: 0.42;
+  .reference-story-media {
+    position: relative;
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 300px;
+    overflow: hidden;
+    background: #e9decd;
+  }
+
+  .reference-story-copy {
+    position: relative;
+    z-index: 1;
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    max-width: 420px;
+    padding: 2.5rem clamp(1.5rem, 4vw, 3rem);
+  }
+
+  .reference-story-media img {
+    object-position: center;
   }
 
   .reference-footer {
@@ -659,6 +679,25 @@
 
     .reference-hero-slogan {
       display: none;
+    }
+
+    .reference-story {
+      grid-template-columns: minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .reference-story-media {
+      grid-column: 1;
+      grid-row: 1;
+      min-height: 0;
+      height: clamp(14rem, 58vw, 22rem);
+    }
+
+    .reference-story-copy {
+      grid-column: 1;
+      grid-row: 2;
+      max-width: 38rem;
+      padding: 1.5rem 1.15rem 1.75rem;
     }
   }
 
