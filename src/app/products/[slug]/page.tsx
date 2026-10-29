@@ -60,7 +60,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   if (!product) notFound();
 
   const relatedProducts = (await getProductsByCategory(product.categorySlug))
-    .filter((item) => item.fragranceSlug !== product.fragranceSlug && item.isPrimarySizeOption);
+    .filter((item) => item.id !== product.id && item.isPrimarySizeOption);
 
   const accordionItems: AccordionItem[] = [
     {
