@@ -44,6 +44,25 @@ const SELECT_PRODUCT = `
   images:product_images ( image_url, alt_text, is_primary, display_order )
 `;
 
+const storefrontBundleCopy: Record<string, { name: string; description: string }> = {
+  "hair-care-duo-bundle": {
+    name: "Hair Care Duo Bundle",
+    description: "A shampoo and hair mist set for soft, scented hair.",
+  },
+  "soft-glow-bundle": {
+    name: "Soft & Glow Bundle",
+    description: "Three shampoo and hair mist duos to match your mood.",
+  },
+  "complete-care-bundle": {
+    name: "Complete Care Bundle",
+    description: "A complete body care routine with lotion, body splash, and shower gel.",
+  },
+  "fresh-all-day-bundle": {
+    name: "Fresh All Day Bundle",
+    description: "Coordinated body care essentials for a fresh, lasting routine.",
+  },
+};
+
 function mapStock(status: string | undefined): StockStatus {
   if (status === "out_of_stock" || status === "low_stock") return status;
   return "in_stock";
@@ -124,15 +143,16 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
   return (data as Array<Record<string, unknown>>)
     .filter((row) => storefrontBundles.has(String(row.slug)))
     .map((row) => {
+    const copy = storefrontBundleCopy[String(row.slug)]!;
     const memberships = ((row.collection_products ?? []) as Array<{ product_id: string; quantity?: number; display_order?: number }>)
       .slice()
       .sort((a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0));
     return {
     id: String(row.id),
     slug: String(row.slug),
-    nameEn: String(row.name),
-    nameAr: String(row.name_ar),
-    descriptionAr: String(row.description ?? ""),
+    nameEn: copy.name,
+    nameAr: copy.name,
+    descriptionAr: copy.description,
     image: String(row.cover_image_url ?? ""),
     displayOrder: Number(row.display_order ?? 0),
     isPublished: Boolean(row.is_published),
