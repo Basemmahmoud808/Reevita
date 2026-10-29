@@ -7,12 +7,6 @@ import { CollectionAddToBag } from "@/components/collection/collection-actions";
 import { Price } from "@/components/ui/price";
 import { getCollectionBySlug } from "@/lib/data/catalog";
 
-export function generateStaticParams() {
-  // Collection routes depend on the request's Supabase session. Resolve slugs
-  // on demand instead of reading cookies from the build-time prerender step.
-  return [];
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const result = await getCollectionBySlug(slug);
@@ -60,3 +54,4 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
     </main>
   );
 }
+
