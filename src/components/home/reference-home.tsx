@@ -46,6 +46,9 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
   }, [isCollectionPaused, slides.length]);
 
   const selectedCollection = slides[activeCollection] ?? slides[0]!;
+  const collectionEyebrow = /collection$/i.test(selectedCollection.nameEn)
+    ? selectedCollection.nameEn
+    : `${selectedCollection.nameEn} collection`;
   return (
     <div className="reference-home">
       <header className="reference-header">
@@ -108,45 +111,43 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
             </Link>
           </div>
 
-          <div className="reference-collection-slide relative overflow-hidden">
-            <Image
-              key={selectedCollection.slug}
-              src={selectedCollection.image}
-              alt={`${selectedCollection.nameEn} collection`}
-              fill
-              sizes="100vw"
-              placeholder="blur"
-              blurDataURL={blurForSlug(selectedCollection.image.split("/").pop()?.replace(".webp", ""))}
-              className="object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#1f3027]/90 via-[#1f3027]/55 to-transparent" aria-hidden />
-            <div className="relative z-10 flex min-h-[245px] items-end justify-between gap-5 p-6 md:min-h-[300px] md:p-10">
-              <div className="max-w-md text-[#fffdf8]">
-                <p className="text-[0.62rem] tracking-[0.2em] text-[#d9bb83]">{selectedCollection.nameEn.toUpperCase()} COLLECTION</p>
-                <h3 className="mt-2 font-[var(--font-manrope)] text-3xl font-medium tracking-[-0.04em] text-[#fffdf8] md:text-5xl">
-                  {selectedCollection.nameEn}
-                </h3>
-                <p className="mt-2 max-w-sm text-xs leading-6 text-[#fffdf8]/75 md:text-sm">{selectedCollection.taglineAr}</p>
-                <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-[#fffdf8]/80">
-                  <span>{selectedCollection.products.reduce((count, product) => count + (selectedCollection.productQuantities?.[product.id] ?? 1), 0)} products</span>
-                  <span aria-hidden>·</span>
-                  <Price price={selectedCollection.products.reduce((total, product) => total + product.price * (selectedCollection.productQuantities?.[product.id] ?? 1), 0)} className="text-[#fffdf8]" />
-                </div>
-                <div className="mt-5 flex flex-wrap items-center gap-3">
-                  <Link href="/collections" className="reference-outline-button border-[#fffdf8]/60 text-[#fffdf8] hover:border-[#34483d]">
-                    Explore collections <ArrowRight className="size-4" />
-                  </Link>
-                  <CollectionAddToBag purchaseReady={selectedCollection.purchaseReady} products={selectedCollection.products} quantities={selectedCollection.productQuantities} className="border border-[#fffdf8]/60 bg-[#fffdf8] text-[#34483d] hover:bg-[#d9bb83]" />
-                </div>
+          <div className="reference-collection-slide">
+            <div className="reference-collection-copy">
+              <p className="reference-collection-eyebrow">{collectionEyebrow.toUpperCase()}</p>
+              <h3>{selectedCollection.nameEn}</h3>
+              <p className="reference-collection-description">{selectedCollection.taglineAr}</p>
+              <div className="reference-collection-facts">
+                <span>{selectedCollection.products.reduce((count, product) => count + (selectedCollection.productQuantities?.[product.id] ?? 1), 0)} products</span>
+                <span className="reference-collection-price">
+                  <Price price={selectedCollection.products.reduce((total, product) => total + product.price * (selectedCollection.productQuantities?.[product.id] ?? 1), 0)} />
+                </span>
               </div>
-              <div className="hidden shrink-0 items-center gap-2 md:flex" aria-label="Collection navigation">
-              <button type="button" className="reference-slider-button" aria-label="Previous collection" onClick={() => setActiveCollection((activeCollection - 1 + slides.length) % slides.length)}>
+              <div className="reference-collection-actions">
+                <Link href={selectedCollection.href} className="reference-collection-link">
+                  Explore collection <ArrowRight className="size-4" />
+                </Link>
+                <CollectionAddToBag purchaseReady={selectedCollection.purchaseReady} products={selectedCollection.products} quantities={selectedCollection.productQuantities} className="reference-collection-cart" />
+              </div>
+              <div className="reference-collection-arrows" aria-label="Collection navigation">
+                <button type="button" className="reference-slider-button" aria-label="Previous collection" onClick={() => setActiveCollection((activeCollection - 1 + slides.length) % slides.length)}>
                   <ArrowRight className="size-4 rotate-180" />
                 </button>
-              <button type="button" className="reference-slider-button" aria-label="Next collection" onClick={() => setActiveCollection((activeCollection + 1) % slides.length)}>
+                <button type="button" className="reference-slider-button" aria-label="Next collection" onClick={() => setActiveCollection((activeCollection + 1) % slides.length)}>
                   <ArrowRight className="size-4" />
                 </button>
               </div>
+            </div>
+            <div className="reference-collection-art">
+              <Image
+                key={selectedCollection.slug}
+                src={selectedCollection.image}
+                alt={`${selectedCollection.nameEn} collection`}
+                fill
+                sizes="(max-width: 700px) 100vw, 58vw"
+                placeholder="blur"
+                blurDataURL={blurForSlug(selectedCollection.image.split("/").pop()?.replace(".webp", ""))}
+                className="object-cover"
+              />
             </div>
           </div>
           <div className="mt-4 flex items-center justify-between gap-4">
