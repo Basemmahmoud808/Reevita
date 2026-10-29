@@ -63,6 +63,19 @@ const storefrontBundleCopy: Record<string, { name: string; description: string }
   },
 };
 
+const storefrontBundleOrder = Object.keys(storefrontBundleCopy);
+
+export function normalizeStorefrontCollections(collections: Collection[]): Collection[] {
+  const rank = new Map(storefrontBundleOrder.map((slug, index) => [slug, index]));
+  return collections
+    .filter((collection) => rank.has(collection.slug))
+    .map((collection) => {
+      const copy = storefrontBundleCopy[collection.slug]!;
+      return { ...collection, nameEn: copy.name, nameAr: copy.name, descriptionAr: copy.description };
+    })
+    .sort((a, b) => (rank.get(a.slug) ?? 0) - (rank.get(b.slug) ?? 0));
+}
+
 function mapStock(status: string | undefined): StockStatus {
   if (status === "out_of_stock" || status === "low_stock") return status;
   return "in_stock";
@@ -125,22 +138,22 @@ export const getCollectionProducts = cache(async (): Promise<Product[]> => {
 });
 
 export const getCollections = cache(async (): Promise<Collection[]> => {
-  if (!isSupabaseConfigured) return demoCollections();
+  if (!isSupabaseConfigured) return normalizeStorefrontCollections(demoCollections());
   const supabase = await createSupabaseServerClient();
-  if (!supabase) return featuredCollections;
+  if (!supabase) return normalizeStorefrontCollections(featuredCollections);
   const { data, error } = await supabase
     .from("collections")
     .select("id, slug, name, name_ar, description, cover_image_url, display_order, is_published, purchase_ready, missing_products, collection_products(product_id, quantity, display_order)")
     .eq("is_published", true)
     .order("display_order", { ascending: true });
-  if (error || !data) return featuredCollections;
+  if (error || !data) return normalizeStorefrontCollections(featuredCollections);
   const storefrontBundles = new Set([
     "hair-care-duo-bundle",
     "soft-glow-bundle",
     "complete-care-bundle",
     "fresh-all-day-bundle",
   ]);
-  return (data as Array<Record<string, unknown>>)
+  const mappedCollections = (data as Array<Record<string, unknown>>)
     .filter((row) => storefrontBundles.has(String(row.slug)))
     .map((row) => {
     const copy = storefrontBundleCopy[String(row.slug)]!;
@@ -162,6 +175,7 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
       productQuantities: Object.fromEntries(memberships.map((item) => [item.product_id, Math.max(1, Number(item.quantity ?? 1))])),
     };
     });
+  return normalizeStorefrontCollections(mappedCollections);
 });
 
 export const getCollectionBySlug = cache(async (slug: string): Promise<{ collection: Collection; products: Product[] } | null> => {
@@ -273,3 +287,4 @@ export const getGovernorates = cache(async (): Promise<Governorate[]> => {
     };
   });
 });
+
