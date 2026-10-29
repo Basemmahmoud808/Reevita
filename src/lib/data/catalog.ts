@@ -1,7 +1,6 @@
 import { cache } from "react";
 import {
   categories as staticCategories,
-  featuredCollections,
   collectionProducts as getStaticCollectionProducts,
   getStaticCategory,
   getStaticProduct,
@@ -11,11 +10,11 @@ import {
   attachProductSizeOptions,
 } from "@/lib/catalog";
 import { demoGovernorates, demoProducts } from "@/lib/demo/store";
-import { demoCollections } from "@/lib/demo/store";
 import { isSupabaseConfigured } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { Category, Collection, Governorate, Product, StockStatus } from "@/lib/types";
 import { canonicalProductNames } from "@/lib/product-names";
+import { curatedCollectionDefinitions } from "@/lib/curated-collections";
 
 /** Central read layer for the public catalogue. Falls back to the static catalogue in demo mode. */
 
@@ -44,45 +43,6 @@ const SELECT_PRODUCT = `
   category:categories ( slug, name, name_ar ),
   images:product_images ( image_url, alt_text, is_primary, display_order )
 `;
-
-const storefrontBundleCopy: Record<string, { name: string; description: string }> = {
-  "hair-care-duo-bundle": {
-    name: "Hair Care Duo Bundle",
-    description: "A shampoo and hair mist set for soft, scented hair.",
-  },
-  "soft-glow-bundle": {
-    name: "Soft & Glow Bundle",
-    description: "Three shampoo and hair mist duos to match your mood.",
-  },
-  "complete-care-bundle": {
-    name: "Complete Care Bundle",
-    description: "A complete body care routine with lotion, body splash, and shower gel.",
-  },
-  "fresh-all-day-bundle": {
-    name: "Fresh All Day Bundle",
-    description: "Coordinated body care essentials for a fresh, lasting routine.",
-  },
-};
-
-const storefrontBundleCovers: Record<string, string> = {
-  "hair-care-duo-bundle": "/images/collections/hair-care-duo-products.jpg",
-  "soft-glow-bundle": "/images/collections/soft-glow-blueberry.jpg",
-  "complete-care-bundle": "/images/collections/complete-care-bundle.jpg",
-  "fresh-all-day-bundle": "/images/collections/fresh-all-day-bundle.webp",
-};
-
-const storefrontBundleOrder = Object.keys(storefrontBundleCopy);
-
-export function normalizeStorefrontCollections(collections: Collection[]): Collection[] {
-  const rank = new Map(storefrontBundleOrder.map((slug, index) => [slug, index]));
-  return collections
-    .filter((collection) => rank.has(collection.slug))
-    .map((collection) => {
-      const copy = storefrontBundleCopy[collection.slug]!;
-      return { ...collection, nameEn: copy.name, nameAr: copy.name, descriptionAr: copy.description, image: storefrontBundleCovers[collection.slug]! };
-    })
-    .sort((a, b) => (rank.get(a.slug) ?? 0) - (rank.get(b.slug) ?? 0));
-}
 
 function mapStock(status: string | undefined): StockStatus {
   if (status === "out_of_stock" || status === "low_stock") return status;
@@ -141,7 +101,8 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
     images: suppliedImage ? [suppliedImage] : images.length > 0 ? images : (meta?.images ?? []),
     rating: meta?.rating ?? 0,
     reviews: meta?.reviews ?? 0,
-    stockStatus: availability.get(row.id) ?? meta?.stockStatus ?? "out_of_stock",
+    // Missing availability data is not evidence that an active product is sold out.
+    stockStatus: availability.get(row.id) ?? "in_stock",
     isFeatured: row.is_featured,
     isInCollection: meta?.isInCollection ?? false,
     isNew: meta?.isNew ?? false,
@@ -157,55 +118,51 @@ export const getCollectionProducts = cache(async (): Promise<Product[]> => {
 });
 
 export const getCollections = cache(async (): Promise<Collection[]> => {
-  if (!isSupabaseConfigured) return normalizeStorefrontCollections(demoCollections());
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return normalizeStorefrontCollections(featuredCollections);
-  const { data, error } = await supabase
-    .from("collections")
-    .select("id, slug, name, name_ar, description, cover_image_url, display_order, is_published, purchase_ready, missing_products, collection_products(product_id, quantity, display_order)")
-    .eq("is_published", true)
-    .order("display_order", { ascending: true });
-  if (error || !data) return normalizeStorefrontCollections(featuredCollections);
-  const storefrontBundles = new Set([
-    "hair-care-duo-bundle",
-    "soft-glow-bundle",
-    "complete-care-bundle",
-    "fresh-all-day-bundle",
-  ]);
-  const mappedCollections = (data as Array<Record<string, unknown>>)
-    .filter((row) => storefrontBundles.has(String(row.slug)))
-    .map((row) => {
-    const copy = storefrontBundleCopy[String(row.slug)]!;
-    const memberships = ((row.collection_products ?? []) as Array<{ product_id: string; quantity?: number; display_order?: number }>)
-      .slice()
-      .sort((a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0));
+  const products = await getProducts();
+  const productBySlug = new Map(products.map((product) => [product.slug, product]));
+  return curatedCollectionDefinitions.map((definition, index) => {
+    const productSlugs = [...new Set(definition.sets.flatMap((set) => set.productSlugs))];
+    const productIds = productSlugs
+      .map((productSlug) => productBySlug.get(productSlug)?.id)
+      .filter((id): id is string => Boolean(id));
     return {
-    id: String(row.id),
-    slug: String(row.slug),
-    nameEn: copy.name,
-    nameAr: copy.name,
-    descriptionAr: copy.description,
-    image: storefrontBundleCovers[String(row.slug)]!,
-    displayOrder: Number(row.display_order ?? 0),
-    isPublished: Boolean(row.is_published),
-    purchaseReady: row.purchase_ready === undefined ? true : Boolean(row.purchase_ready),
-    missingProducts: Array.isArray(row.missing_products) ? row.missing_products.map(String) : [],
-      productIds: memberships.map((item) => item.product_id),
-      productQuantities: Object.fromEntries(memberships.map((item) => [item.product_id, Math.max(1, Number(item.quantity ?? 1))])),
+      id: `curated-${definition.slug}`,
+      slug: definition.slug,
+      nameEn: definition.name,
+      nameAr: definition.name,
+      descriptionAr: "",
+      image: definition.sets[0]!.image,
+      coverAspectRatio: definition.sets[0]!.aspectRatio,
+      displayOrder: index + 1,
+      isPublished: true,
+      purchaseReady: true,
+      productIds,
+      setCount: definition.sets.length,
     };
-    });
-  return normalizeStorefrontCollections(mappedCollections);
+  });
 });
 
-export const getCollectionBySlug = cache(async (slug: string): Promise<{ collection: Collection; products: Product[] } | null> => {
+export const getCollectionBySlug = cache(async (slug: string): Promise<{
+  collection: Collection;
+  products: Product[];
+  sets: { id: string; image: string; aspectRatio: string; components: { slug: string; product: Product | null; quantity: number }[] }[];
+} | null> => {
   const collections = await getCollections();
   const collection = collections.find((item) => item.slug === slug);
   if (!collection) return null;
   const products = await getProducts();
-  const productMap = new Map(products.map((product) => [product.id, product]));
+  const productMap = new Map(products.map((product) => [product.slug, product]));
+  const definition = curatedCollectionDefinitions.find((item) => item.slug === slug);
+  if (!definition) return null;
   return {
     collection,
-    products: (collection.productIds ?? []).map((id) => productMap.get(id)).filter((product): product is Product => Boolean(product)),
+    products: (collection.productIds ?? []).map((id) => products.find((product) => product.id === id)).filter((product): product is Product => Boolean(product)),
+    sets: definition.sets.map((set, index) => ({
+      id: `${definition.slug}-set-${index + 1}`,
+      image: set.image,
+      aspectRatio: set.aspectRatio,
+      components: set.productSlugs.map((productSlug) => ({ slug: productSlug, product: productMap.get(productSlug) ?? null, quantity: 1 })),
+    })),
   };
 });
 export const getProducts = cache(async (): Promise<Product[]> => {

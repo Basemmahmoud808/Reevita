@@ -82,12 +82,14 @@ export interface Collection {
   nameAr: string;
   descriptionAr: string;
   image: string;
+  coverAspectRatio?: string;
   displayOrder: number;
   isPublished: boolean;
   productIds?: string[];
   productQuantities?: Record<string, number>;
   purchaseReady?: boolean;
   missingProducts?: string[];
+  setCount?: number;
 }
 
 export interface Brand {

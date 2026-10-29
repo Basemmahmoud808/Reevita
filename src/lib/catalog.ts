@@ -1,6 +1,7 @@
 import catalogJson from "@/data/catalog.json";
 import type { Brand, Category, Collection, Faq, Fragrance, Product, StockStatus, Testimonial } from "@/lib/types";
 import { canonicalProductNames } from "@/lib/product-names";
+import { curatedCollectionDefinitions } from "@/lib/curated-collections";
 
 /**
  * The static brand catalogue is the single source of truth for merchandising
@@ -171,196 +172,25 @@ export const staticProducts: Product[] = attachProductSizeOptions(
   (catalog.products as RawProduct[]).filter((product) => product.isActive !== false).map(toProduct),
 );
 
-export const staticCollections: Collection[] = [
-  ...fragrances.map((fragrance) => ({
-    id: `static-${fragrance.slug}`,
-    slug: fragrance.slug,
-    nameEn: fragrance.nameEn,
-    nameAr: fragrance.nameAr,
-    descriptionAr: fragrance.descriptionAr || fragrance.taglineAr,
-    image: fragrance.image,
-    displayOrder: fragrance.displayOrder,
-    isPublished: true,
-    productIds: staticProducts.filter((product) => product.fragranceSlug === fragrance.slug).map((product) => product.id),
-  })),
-  {
-    id: "static-soft-glow-bundle",
-    slug: "soft-glow-bundle",
-    nameEn: "Soft & Glow Bundle",
-    nameAr: "باقة النعومة والإشراقة",
-    descriptionAr: "A coordinated hair care set with shampoo and hair mist in three signature scents.",
-    image: "/images/collections/soft-glow-bundle.jpg",
-    displayOrder: 50,
-    isPublished: true,
-    purchaseReady: true,
-    missingProducts: [],
-    productIds: featuredCollectionProductIds([
-      "shampoo-blueberry", "hair-mist-ruby-musk",
-      "shampoo-dove", "hair-mist-queen",
-      "shampoo-bubble-gum", "hair-mist-sexy",
-    ]),
-  },
-  {
-    id: "static-fresh-all-day-bundle",
-    slug: "fresh-all-day-bundle",
-    nameEn: "Fresh All Day Bundle",
-    nameAr: "باقة الانتعاش طوال اليوم",
-    descriptionAr: "A complete body care routine with lotion, body splash, and body butter.",
-    image: "/images/collections/fresh-all-day-bundle.jpg",
-    displayOrder: 51,
-    isPublished: true,
-    purchaseReady: true,
-    productIds: staticProducts
-      .filter((product) => [
-        "body-lotion-queen", "body-splash-queen", "body-butter-queen",
-        "body-lotion-ruby-musk", "body-splash-ruby-musk", "body-butter-ruby-musk",
-        "body-lotion-sexy", "body-splash-sexy", "body-butter-sexy",
-      ].includes(product.slug))
-      .map((product) => product.id),
-  },
-];
-
-function featuredCollectionProductIds(slugs: string[]) {
-  return slugs
+const curatedStaticCollections: Collection[] = curatedCollectionDefinitions.map((definition, index) => ({
+  id: `static-${definition.slug}`,
+  slug: definition.slug,
+  nameEn: definition.name,
+  nameAr: definition.name,
+  descriptionAr: "",
+  image: definition.sets[0]!.image,
+  coverAspectRatio: definition.sets[0]!.aspectRatio,
+  displayOrder: index + 1,
+  isPublished: true,
+  purchaseReady: true,
+  setCount: definition.sets.length,
+  productIds: [...new Set(definition.sets.flatMap((set) => set.productSlugs))]
     .map((slug) => staticProducts.find((product) => product.slug === slug)?.id)
-    .filter((id): id is string => Boolean(id));
-}
+    .filter((id): id is string => Boolean(id)),
+}));
 
-/** Supplied-image collections and verified bundle compositions used in demo mode. */
-export const featuredCollections: Collection[] = [
-  {
-    id: "static-sweet-mood",
-    slug: "sweet-mood",
-    nameEn: "Sweet Mood",
-    nameAr: "Sweet Mood",
-    descriptionAr: "A shampoo and hair mist duo for a sweet, scented hair ritual.",
-    image: "/images/collections/soft-glow-bubblegum.jpg",
-    displayOrder: 5,
-    isPublished: true,
-    productIds: featuredCollectionProductIds(["shampoo-bubble-gum", "hair-mist-sexy"]),
-  },
-  {
-    id: "static-clean-mood",
-    slug: "clean-mood",
-    nameEn: "Clean Mood",
-    nameAr: "Clean Mood",
-    descriptionAr: "A shampoo and hair mist duo for a soft, fresh hair ritual.",
-    image: "/images/collections/soft-glow-dove.jpg",
-    displayOrder: 6,
-    isPublished: true,
-    productIds: featuredCollectionProductIds(["shampoo-dove", "hair-mist-queen"]),
-  },
-  {
-    id: "static-ruby-musk-collection",
-    slug: "ruby-musk-collection",
-    nameEn: "Ruby Musk Collection",
-    nameAr: "Ruby Musk Collection",
-    descriptionAr: "A warm, luminous musk ritual for soft, scented skin.",
-    image: "/images/collections/ruby-musk-collection.jpg",
-    displayOrder: 7,
-    isPublished: true,
-    productIds: featuredCollectionProductIds(["body-lotion-ruby-musk", "body-splash-ruby-musk", "body-butter-ruby-musk"]),
-  },
-  {
-    id: "static-sexy-collection",
-    slug: "sexy-collection",
-    nameEn: "Sexy Collection",
-    nameAr: "Sexy Collection",
-    descriptionAr: "An elegant, expressive ritual with lasting fragrance.",
-    image: "/images/collections/sexy-collection.jpg",
-    displayOrder: 8,
-    isPublished: true,
-    productIds: featuredCollectionProductIds(["body-lotion-sexy", "body-splash-sexy", "body-butter-sexy"]),
-  },
-  {
-    id: "static-fruity-mood",
-    slug: "fruity-mood",
-    nameEn: "Fruity Mood",
-    nameAr: "Fruity Mood",
-    descriptionAr: "A shampoo and hair mist duo with a bright, fruity feel.",
-    image: "/images/collections/soft-glow-blueberry.jpg",
-    displayOrder: 9,
-    isPublished: true,
-    productIds: featuredCollectionProductIds(["shampoo-blueberry", "hair-mist-ruby-musk"]),
-  },
-  {
-    id: "static-soft-glow-bundle",
-    slug: "soft-glow-bundle",
-    nameEn: "Soft & Glow Bundle",
-    nameAr: "باقة النعومة والإشراقة",
-    descriptionAr: "روتين عناية بالشعر يجمع الشامبو ومعطر الشعر في اختيارات تناسب مزاجك.",
-    image: "/images/collections/soft-glow-bundle.jpg",
-    displayOrder: 2,
-    isPublished: true,
-    purchaseReady: true,
-    missingProducts: [],
-    productIds: featuredCollectionProductIds([
-      "shampoo-blueberry", "hair-mist-ruby-musk",
-      "shampoo-dove", "hair-mist-queen",
-      "shampoo-bubble-gum", "hair-mist-sexy",
-    ]),
-  },
-  {
-    id: "static-fresh-all-day-bundle",
-    slug: "fresh-all-day-bundle",
-    nameEn: "Fresh All Day Bundle",
-    nameAr: "باقة الانتعاش طوال اليوم",
-    descriptionAr: "ثلاثة اختيارات عطرية تجمع لوشن الجسم وسبراي الجسم وزبدة الجسم.",
-    image: "/images/collections/fresh-all-day-bundle.jpg",
-    displayOrder: 4,
-    isPublished: true,
-    purchaseReady: true,
-    missingProducts: [],
-    productIds: featuredCollectionProductIds([
-      "body-lotion-queen", "body-splash-queen", "body-butter-queen",
-      "body-lotion-ruby-musk", "body-splash-ruby-musk", "body-butter-ruby-musk",
-      "body-lotion-sexy", "body-splash-sexy", "body-butter-sexy",
-    ]),
-  },
-  {
-    id: "static-hair-care-duo-bundle",
-    slug: "hair-care-duo-bundle",
-    nameEn: "Hair Care Duo Bundle",
-    nameAr: "Hair Care Duo Bundle",
-    descriptionAr: "A coordinated shampoo and hair mist ritual for fresh, scented hair.",
-    image: "/images/collections/hair-care-duo-products.jpg",
-    displayOrder: 1,
-    isPublished: true,
-    purchaseReady: true,
-    productIds: featuredCollectionProductIds(["shampoo-blueberry", "hair-mist-ruby-musk"]),
-  },
-  {
-    id: "static-complete-care-bundle",
-    slug: "complete-care-bundle",
-    nameEn: "Complete Care Bundle",
-    nameAr: "Complete Care Bundle",
-    descriptionAr: "A full-body care ritual shown in the supplied bundle image.",
-    image: "/images/collections/complete-care-bundle.jpg",
-    displayOrder: 3,
-    isPublished: true,
-    purchaseReady: true,
-    missingProducts: [],
-    productIds: featuredCollectionProductIds([
-      "body-lotion-sexy",
-      "body-lotion-queen",
-      "body-lotion-ruby-musk",
-      "body-splash-sexy",
-      "body-splash-queen",
-      "body-splash-ruby-musk",
-      "shower-gel-bubble-gum",
-      "shower-gel-blueberry",
-      "shower-gel-dove",
-    ]),
-  },
-]
-  .filter((collection) => [
-    "hair-care-duo-bundle",
-    "soft-glow-bundle",
-    "complete-care-bundle",
-    "fresh-all-day-bundle",
-  ].includes(collection.slug))
-  .sort((a, b) => a.displayOrder - b.displayOrder);
-
+export const staticCollections: Collection[] = curatedStaticCollections;
+export const featuredCollections: Collection[] = curatedStaticCollections;
 export function getStaticProduct(slug: string): Product | undefined {
   return staticProducts.find((product) => product.slug === slug);
 }

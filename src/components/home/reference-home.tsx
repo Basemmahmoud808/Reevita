@@ -12,21 +12,8 @@ import { useMemo, useState } from "react";
 import type { Collection, Product } from "@/lib/types";
 
 const storyImage = "/images/reevita-story.jpg";
-const collectionCovers: Record<string, string> = {
-  "hair-care-duo-bundle": "/images/collections/hair-care-duo-products.jpg",
-  "soft-glow-bundle": "/images/collections/soft-glow-blueberry.jpg",
-  "complete-care-bundle": "/images/collections/complete-care-bundle.jpg",
-  "fresh-all-day-bundle": "/images/collections/fresh-all-day-bundle.webp",
-};
-
-function imageSource(url: string | undefined) {
-  if (!url) return null;
-  return url.startsWith("/") || url.startsWith("http://") || url.startsWith("https://") ? url : `/${url}`;
-}
-
 export function ReferenceHome({ products, collections = [] }: { products: Product[]; collections?: Collection[] }) {
   const [wishlist, setWishlist] = useState(false);
-  const [activeCollectionIndex, setActiveCollectionIndex] = useState(0);
   const collectionSlides = useMemo(() => collections.length > 0 ? collections : featuredCollections, [collections]);
   const groupedBestSellers = useMemo(() => {
     const categoryOrder = ["shampoo", "body-lotion", "body-butter", "body-splash", "hair-mist", "shower-gel"];
@@ -89,70 +76,29 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
             </Link>
           </div>
 
-          {collectionSlides.length > 0 ? (() => {
-            const collection = collectionSlides[activeCollectionIndex] ?? collectionSlides[0]!;
-            const coverImage = collectionCovers[collection.slug] ?? imageSource(collection.image);
-            const productCount = Object.entries(collection.productQuantities ?? {}).reduce((count, [, quantity]) => count + quantity, 0)
-              || collection.productIds?.length
-              || 0;
-            return (
-              <>
-                <div className="reference-collection-slide group" role="group" aria-roledescription="slide" aria-label={`${activeCollectionIndex + 1} of ${collectionSlides.length}`}>
-                  <div className="reference-collection-copy">
-                    <p className="reference-collection-eyebrow">COLLECTION {String(activeCollectionIndex + 1).padStart(2, "0")} / {String(collectionSlides.length).padStart(2, "0")}</p>
-                    <h3>{collection.nameEn}</h3>
-                    <p className="reference-collection-description">{collection.descriptionAr}</p>
-                    <div className="reference-collection-facts">
-                      <span>{productCount} products</span>
-                    </div>
-                    <div className="reference-collection-actions">
-                      <Link href={`/collections/${collection.slug}`} className="reference-collection-link">
-                        Explore collection <ArrowRight className="size-4" />
-                      </Link>
-                    </div>
-                    <div className="reference-collection-arrows" aria-label="Collection navigation">
-                      <button type="button" className="reference-slider-button" aria-label="Previous collection" onClick={() => setActiveCollectionIndex((activeCollectionIndex - 1 + collectionSlides.length) % collectionSlides.length)}>
-                        <ArrowRight className="size-4 rotate-180" />
-                      </button>
-                      <button type="button" className="reference-slider-button" aria-label="Next collection" onClick={() => setActiveCollectionIndex((activeCollectionIndex + 1) % collectionSlides.length)}>
-                        <ArrowRight className="size-4" />
-                      </button>
-                    </div>
+          {collectionSlides.length > 0 ? (
+            <div className="curated-home-grid" aria-label="Curated REEVITA collections">
+              {collectionSlides.map((collection) => (
+                <Link key={collection.slug} href={`/collections/${collection.slug}`} className="curated-home-card group">
+                  <div className="curated-home-card-image" style={{ aspectRatio: collection.coverAspectRatio ?? "1 / 1" }}>
+                    <Image
+                      src={collection.image}
+                      alt={`${collection.nameEn} collection`}
+                      fill
+                      quality={90}
+                      sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-[1.025]"
+                    />
                   </div>
-                  <Link href={`/collections/${collection.slug}`} className="reference-collection-art" aria-label={`View ${collection.nameEn}`}>
-                    {coverImage ? (
-                      <Image
-                        src={coverImage}
-                        alt={`${collection.nameEn} collection`}
-                        fill
-                        priority
-                        quality={90}
-                        sizes="(max-width: 700px) 100vw, 58vw"
-                        placeholder="blur"
-                        blurDataURL={blurForSlug(coverImage.split("/").pop()?.replace(/\.(jpe?g|webp)$/i, ""))}
-                        className="object-contain transition-transform duration-700 group-hover:scale-[1.02]"
-                      />
-                    ) : null}
-                  </Link>
-                </div>
-                <div className="reference-collection-pagination">
-                  <div className="reference-collection-dots" aria-label="Choose collection">
-                    {collectionSlides.map((slide, index) => (
-                      <button
-                        key={slide.slug}
-                        type="button"
-                        aria-label={`Show ${slide.nameEn} collection`}
-                        aria-current={index === activeCollectionIndex ? "true" : undefined}
-                        onClick={() => setActiveCollectionIndex(index)}
-                        className={`reference-slider-dot ${index === activeCollectionIndex ? "is-active" : ""}`}
-                      />
-                    ))}
+                  <div className="curated-home-card-copy">
+                    <span className="reference-collection-eyebrow">{collection.setCount} SETS</span>
+                    <span className="curated-home-card-title">{collection.nameEn}</span>
+                    <span className="curated-home-card-link">Explore collection <ArrowRight className="size-4" aria-hidden /></span>
                   </div>
-                  <Link href="/collections" className="reference-home-all-collections">View all collections <ArrowRight className="size-3.5" /></Link>
-                </div>
-              </>
-            );
-          })() : (
+                </Link>
+              ))}
+            </div>
+          ) : (
             <div className="reference-collection-empty">Collections are coming soon.</div>
           )}
         </section>
