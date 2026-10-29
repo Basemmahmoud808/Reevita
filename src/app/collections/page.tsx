@@ -36,7 +36,7 @@ export default async function CollectionsPage() {
             return (
               <article key={collection.id} className="card-luxe curated-collection-list-card group flex h-full flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <Link href={`/collections/${collection.slug}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
-                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw" />
+                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw" />
                 </Link>
                 <div className="curated-collection-list-card-body flex flex-1 flex-col">
                   <p className="eyebrow">COLLECTION</p>

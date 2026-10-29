@@ -83,6 +83,7 @@ export interface Collection {
   descriptionAr: string;
   image: string;
   coverAspectRatio?: string;
+  coverFit?: "cover" | "contain";
   displayOrder: number;
   isPublished: boolean;
   productIds?: string[];

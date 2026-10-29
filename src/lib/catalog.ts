@@ -178,6 +178,7 @@ const curatedStaticCollections: Collection[] = curatedCollectionDefinitions.map(
   descriptionAr: "",
   image: definition.sets[definition.coverSetIndex]!.image,
   coverAspectRatio: definition.sets[definition.coverSetIndex]!.aspectRatio,
+  coverFit: definition.coverFit,
   displayOrder: index + 1,
   isPublished: true,
   purchaseReady: true,

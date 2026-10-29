@@ -81,7 +81,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
             <div className="curated-home-grid" aria-label="Curated REEVITA collections">
               {collectionSlides.map((collection) => (
                 <Link key={collection.slug} href={`/collections/${collection.slug}`} className="curated-home-card group">
-                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
+                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
                   <div className="curated-home-card-copy">
                     <span className="reference-collection-eyebrow">{collection.setCount} SETS</span>
                     <span className="curated-home-card-title">{collection.nameEn}</span>

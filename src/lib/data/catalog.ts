@@ -131,6 +131,7 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
       descriptionAr: "",
       image: definition.sets[definition.coverSetIndex]!.image,
       coverAspectRatio: definition.sets[definition.coverSetIndex]!.aspectRatio,
+      coverFit: definition.coverFit,
       displayOrder: index + 1,
       isPublished: true,
       purchaseReady: true,
