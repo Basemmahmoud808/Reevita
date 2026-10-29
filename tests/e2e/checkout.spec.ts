@@ -18,7 +18,7 @@ test("checkout rejects an invalid phone and preserves the other entered details"
       nameAr: "ريفيتا شامبو توت أزرق",
       price: 220,
       compareAtPrice: null,
-      image: "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jfif",
+      image: "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jpg",
       size: "300 مل",
       variantLabelAr: "توت أزرق",
       quantity: 1,

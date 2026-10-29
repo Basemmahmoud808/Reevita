@@ -10,20 +10,20 @@ import { canonicalProductNames } from "@/lib/product-names";
 const catalog = catalogJson;
 
 const suppliedProductImages: Record<string, string> = {
-  "shampoo-dove": "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jfif",
-  "shampoo-blueberry": "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jfif",
-  "body-lotion-queen": "/images/supplied/Gemini_Generated_Image_gyp61agyp61agyp6.jfif",
-  "body-lotion-ruby-musk": "/images/supplied/Gemini_Generated_Image_odogaoodogaoodog.jfif",
-  "body-lotion-sexy": "/images/supplied/s.jfif",
-  "body-butter-sexy": "/images/supplied/Gemini_Generated_Image_yow1joyow1joyow1.jfif",
-  "body-butter-queen": "/images/supplied/Gemini_Generated_Image_bp52xsbp52xsbp52.jfif",
-  "body-butter-ruby-musk": "/images/supplied/Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jfif",
-  "body-splash-sexy": "/images/supplied/Gemini_Generated_Image_z6nj55z6nj55z6nj.jfif",
-  "body-splash-queen": "/images/supplied/Gemini_Generated_Image_ko6hg2ko6hg2ko6h.jfif",
-  "body-splash-ruby-musk": "/images/supplied/Gemini_Generated_Image_rsfpt0rsfpt0rsfp.jfif",
-  "hair-mist-sexy": "/images/supplied/Gemini_Generated_Image_kj1ed5kj1ed5kj1e.jfif",
-  "hair-mist-queen": "/images/supplied/Gemini_Generated_Image_6q61gp6q61gp6q61.jfif",
-  "hair-mist-ruby-musk": "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jfif",
+  "shampoo-dove": "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jpg",
+  "shampoo-blueberry": "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jpg",
+  "body-lotion-queen": "/images/supplied/Gemini_Generated_Image_gyp61agyp61agyp6.jpg",
+  "body-lotion-ruby-musk": "/images/supplied/Gemini_Generated_Image_odogaoodogaoodog.jpg",
+  "body-lotion-sexy": "/images/supplied/s.jpg",
+  "body-butter-sexy": "/images/supplied/Gemini_Generated_Image_yow1joyow1joyow1.jpg",
+  "body-butter-queen": "/images/supplied/Gemini_Generated_Image_bp52xsbp52xsbp52.jpg",
+  "body-butter-ruby-musk": "/images/supplied/Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jpg",
+  "body-splash-sexy": "/images/supplied/Gemini_Generated_Image_z6nj55z6nj55z6nj.jpg",
+  "body-splash-queen": "/images/supplied/Gemini_Generated_Image_ko6hg2ko6hg2ko6h.jpg",
+  "body-splash-ruby-musk": "/images/supplied/Gemini_Generated_Image_rsfpt0rsfpt0rsfp.jpg",
+  "hair-mist-sexy": "/images/supplied/Gemini_Generated_Image_kj1ed5kj1ed5kj1e.jpg",
+  "hair-mist-queen": "/images/supplied/Gemini_Generated_Image_6q61gp6q61gp6q61.jpg",
+  "hair-mist-ruby-musk": "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jpg",
 };
 
 export function getSuppliedProductImage(slug: string, name: string) {

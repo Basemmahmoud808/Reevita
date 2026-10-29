@@ -7,7 +7,9 @@ test("collection picker shows the selected item's exact name, size, price, and a
 
   await expect(page.getByRole("heading", { name: "Hair Care Duo Bundle" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "REEVITA Shampoo Blueberry" })).toBeVisible();
-  await expect(page.getByRole("img", { name: "REEVITA Shampoo Blueberry — REEVITA" })).toBeVisible();
+  const selectedProductImage = page.getByRole("img", { name: "REEVITA Shampoo Blueberry — REEVITA" });
+  await expect(selectedProductImage).toBeVisible();
+  await expect.poll(() => selectedProductImage.evaluate((image: HTMLImageElement) => image.complete && image.naturalWidth > 0)).toBe(true);
   await expect(page.locator(".collection-product-size")).toHaveText("300 مل");
   await expect(page.locator(".collection-product-price")).toContainText("EGP 220");
   await expect(page.getByRole("button", { name: "Temporarily out of stock" })).toBeDisabled();
