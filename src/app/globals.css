@@ -198,7 +198,12 @@
 
   .reference-hero-content {
     min-height: 460px;
+    align-items: center;
     padding-block: 3rem;
+  }
+
+  .reference-hero-copy {
+    width: min(100%, 34rem);
   }
 
   .reference-hero-media {
@@ -219,7 +224,7 @@
 
   .reference-hero-overlay {
     z-index: 1;
-    background: linear-gradient(90deg, rgba(247, 243, 233, 0.82) 0%, rgba(247, 243, 233, 0.58) 35%, rgba(247, 243, 233, 0.04) 68%);
+    background: linear-gradient(90deg, rgba(247, 243, 233, 0.56) 0%, rgba(247, 243, 233, 0.28) 35%, rgba(247, 243, 233, 0.02) 68%);
   }
 
   .reference-hero h1,
