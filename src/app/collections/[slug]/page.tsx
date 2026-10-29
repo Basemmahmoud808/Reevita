@@ -30,7 +30,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
       <div className="mt-8 flex flex-col items-center">
         {collection.image ? (
           <div className="relative aspect-[4/3] w-full max-w-5xl overflow-hidden rounded-3xl bg-cream">
-            <Image src={collection.image} alt={`${collection.nameEn} — صورة المجموعة`} fill priority sizes="(max-width: 1024px) 100vw, 960px" className="object-contain" />
+            <Image src={collection.image} alt={`${collection.nameEn} bundle`} fill priority sizes="(max-width: 1024px) 100vw, 960px" className="object-contain" />
           </div>
         ) : null}
         <section className="mt-7 w-full max-w-3xl text-center">
@@ -39,7 +39,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
           <p className="lead mt-3">{collection.descriptionAr}</p>
           {products.length > 0 ? (
             <div className="mt-5 flex flex-wrap items-center justify-center gap-4 text-sm text-muted">
-              <span>{products.reduce((total, item) => total + (collection.productQuantities?.[item.id] ?? 1), 0)} منتجات</span>
+              <span>{products.reduce((total, item) => total + (collection.productQuantities?.[item.id] ?? 1), 0)} products</span>
               <Price price={products.reduce((total, item) => total + item.price * (collection.productQuantities?.[item.id] ?? 1), 0)} size="sm" />
               <CollectionAddToBag purchaseReady={collection.purchaseReady} products={products} quantities={collection.productQuantities} />
             </div>
@@ -47,13 +47,13 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         </section>
       </div>
       {products.length > 0 ? (
-        <ProductGrid products={products} prioritizeFirst className="mt-10" />
+        <ProductGrid products={products} prioritizeFirst className="mt-10" groupName={collection.nameEn} />
       ) : (
-        <section className="card-luxe mt-10 px-6 py-12 text-center" dir="rtl">
-          <p className="eyebrow">قريبًا</p>
-          <h2 className="display-md mt-2 text-xl">محتويات الباقة قيد التجهيز</h2>
+        <section className="card-luxe mt-10 px-6 py-12 text-center">
+          <p className="eyebrow">COMING SOON</p>
+          <h2 className="display-md mt-2 text-xl">Bundle contents are being prepared</h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-7 text-muted">
-            هنعلن عن المنتجات المتاحة هنا بعد تأكيد مكونات الباقة. المنتجات الظاهرة في المتجر لن تُضاف للمجموعة إلا بعد اعتمادها.
+            Products will appear here once the bundle contents are confirmed.
           </p>
         </section>
       )}

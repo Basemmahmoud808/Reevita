@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Heart, Search } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 import { GroupedProductCard } from "@/components/product/product-card";
 import { CollectionAddToBag } from "@/components/collection/collection-actions";
 import { Price } from "@/components/ui/price";
@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useMemo } from "react";
 import type { Collection, Product } from "@/lib/types";
 
-const storyImage = "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jfif";
+const storyImage = "/images/reevita-hero.png";
 const collectionSlides = featuredCollections;
 
 export function ReferenceHome({ products, collections = [] }: { products: Product[]; collections?: Collection[] }) {
@@ -55,7 +55,6 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
         <div className="reference-container flex h-[74px] items-center justify-between">
           <Link href="/" className="reference-wordmark">REEVITA</Link>
           <div className="flex items-center gap-4">
-            <a href="/shop" aria-label="Search products" className="reference-header-icon hidden sm:inline-flex"><Search className="size-[17px]" /></a>
             <button type="button" aria-label="Wishlist" aria-pressed={wishlist} onClick={() => setWishlist((value) => !value)} className="reference-header-icon hidden sm:inline-flex">
               <Heart className={`size-[17px] ${wishlist ? "fill-current" : ""}`} />
             </button>
@@ -66,17 +65,19 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
 
       <main>
         <section className="reference-hero">
-          <Image
-            src="/images/reevita-hero.png"
-            alt=""
-            fill
-            priority
-            quality={80}
-            sizes="100vw"
-            className="reference-hero-image object-cover"
-          />
-          <div className="reference-hero-overlay" aria-hidden="true" />
-          <div className="reference-container relative flex min-h-[480px] items-center py-12 md:min-h-[520px] md:py-0">
+          <div className="reference-hero-media">
+            <Image
+              src="/images/reevita-hero.png"
+              alt="REEVITA hair mist surrounded by botanical ingredients"
+              fill
+              priority
+              quality={80}
+              sizes="100vw"
+              className="reference-hero-image object-cover"
+            />
+            <div className="reference-hero-overlay" aria-hidden="true" />
+          </div>
+          <div className="reference-container reference-hero-content relative flex min-h-[480px] items-center py-12 md:min-h-[520px] md:py-0">
             <div className="reference-hero-copy relative z-10 max-w-lg translate-y-4 md:translate-y-7">
               <p className="reference-kicker">SKINCARE · HAIRCARE · BEAUTY</p>
               <h1>Natural Beauty<br />for a Healthier You</h1>

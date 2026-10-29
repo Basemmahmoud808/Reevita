@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { CollectionAddToBag } from "@/components/collection/collection-actions";
 import { Price } from "@/components/ui/price";
 import { getCollections, getProducts } from "@/lib/data/catalog";
@@ -17,11 +17,6 @@ const merchandisingCollectionOrder = [
   "soft-glow-bundle",
   "complete-care-bundle",
   "fresh-all-day-bundle",
-  "sweet-mood",
-  "clean-mood",
-  "ruby-musk-collection",
-  "sexy-collection",
-  "fruity-mood",
 ];
 
 function collectionProducts(collection: Collection, products: Product[]) {
@@ -62,11 +57,11 @@ export default async function CollectionsPage() {
                   <p className="mt-1 min-h-5 text-xs font-semibold tracking-wide text-muted" dir="ltr">&nbsp;</p>
                   <p className="mt-2 min-h-21 line-clamp-3 text-sm leading-7 text-muted">{collection.descriptionAr}</p>
                   <div className="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-2 pt-4 text-xs text-muted">
-                    {quantity > 0 ? <><span>{quantity} products</span><Price price={total} size="sm" /></> : <span className="font-semibold text-plum">محتوى الباقة قيد التجهيز</span>}
+                    {quantity > 0 ? <><span>{quantity} products</span><Price price={total} size="sm" /></> : <span className="font-semibold text-plum">Bundle contents are being prepared</span>}
                   </div>
                   <div className="mt-4 flex min-h-25 flex-col items-start gap-3">
                     <Link href={`/collections/${collection.slug}`} className="inline-flex items-center gap-2 text-sm font-bold text-plum group-hover:text-gold-deep">
-                      View collection <ArrowLeft className="size-4" aria-hidden />
+                      View collection <ArrowRight className="size-4" aria-hidden />
                     </Link>
                     {includedProducts.length > 0 ? <CollectionAddToBag purchaseReady={collection.purchaseReady} products={includedProducts} quantities={collection.productQuantities} /> : null}
                   </div>

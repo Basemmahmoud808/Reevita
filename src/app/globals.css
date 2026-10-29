@@ -196,6 +196,11 @@
     background-color: #e8ddcb;
   }
 
+  .reference-hero-media {
+    position: absolute;
+    inset: 0;
+  }
+
   .reference-hero-image,
   .reference-hero-overlay {
     position: absolute;
@@ -595,63 +600,65 @@
     }
 
     .reference-hero {
-      min-height: 500px;
+      min-height: 0;
+    }
+
+    .reference-hero-media {
+      position: relative;
+      height: clamp(14rem, 58vw, 23rem);
     }
 
     .reference-hero-image {
-      object-position: 100% center;
+      object-position: 68% center;
     }
 
     .reference-hero-overlay {
-      background: linear-gradient(90deg, rgba(247, 243, 233, 0.98) 0%, rgba(247, 243, 233, 0.88) 42%, rgba(247, 243, 233, 0.18) 100%);
+      display: none;
     }
 
-    .reference-hero > .reference-container {
-      min-height: 500px;
+    .reference-hero-content {
+      min-height: 0;
       align-items: flex-start;
-      padding-top: 3.25rem;
-      padding-bottom: 6rem;
+      padding-top: 1.5rem;
+      padding-bottom: 1.75rem;
     }
 
     .reference-hero-copy {
-      max-width: min(52%, 15rem);
+      width: 100%;
+      max-width: 38rem;
       transform: none;
     }
 
     .reference-hero h1 {
-      font-size: clamp(1.5rem, 7.5vw, 2rem);
-      line-height: 1.08;
+      max-width: 15ch;
+      font-size: clamp(2rem, 9vw, 3.4rem);
+      line-height: 1.04;
     }
 
     .reference-hero-copy .reference-kicker {
-      font-size: 0.48rem;
-      letter-spacing: 0.12em;
+      font-size: 0.58rem;
     }
 
     .reference-hero-copy > p:not(.reference-kicker) {
-      max-width: 13rem;
-      margin-top: 0.65rem;
-      font-size: 0.7rem;
-      line-height: 1.55;
+      max-width: 33rem;
+      margin-top: 0.75rem;
+      font-size: 0.9rem;
+      line-height: 1.6;
     }
 
     .reference-hero-copy .reference-button,
     .reference-hero-copy .reference-outline-button {
-      margin-inline-start: 0;
-      margin-top: 0.8rem;
-      padding: 0.55rem 0.75rem;
-      font-size: 0.62rem;
+      margin-top: 1rem;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.75rem;
     }
 
     .reference-hero-copy .reference-outline-button {
-      margin-inline-start: 0.35rem;
+      margin-inline-start: 0.45rem;
     }
 
     .reference-hero-slogan {
-      bottom: 1.25rem;
-      end: 1.15rem;
-      max-width: 7rem;
-      font-size: 0.9rem;
+      display: none;
     }
   }
 
@@ -1091,16 +1098,6 @@
   }
 }
 /* Mobile hero adjustments */
-@media (max-width: 640px) {
-  .reference-hero {
-    min-height: 560px;
-  }
-
-  .reference-hero-image {
-    object-position: 65% center;
-  }
-}
-
 @media (max-width: 700px) {
   .reference-collection-slide {
     grid-template-columns: minmax(0, 1fr);

@@ -184,7 +184,7 @@ export const staticCollections: Collection[] = [
     slug: "soft-glow-bundle",
     nameEn: "Soft & Glow Bundle",
     nameAr: "باقة النعومة والإشراقة",
-    descriptionAr: "روتين عناية بالشعر يجمع الشامبو ومعطر الشعر في اختيارات تناسب مزاجك.",
+    descriptionAr: "A coordinated hair care set with shampoo and hair mist in three signature scents.",
     image: "/images/collections/soft-glow-bundle.jpg",
     displayOrder: 50,
     isPublished: true,
@@ -201,7 +201,7 @@ export const staticCollections: Collection[] = [
     slug: "fresh-all-day-bundle",
     nameEn: "Fresh All Day Bundle",
     nameAr: "باقة الانتعاش طوال اليوم",
-    descriptionAr: "ثلاثة اختيارات عطرية تجمع لوشن الجسم وسبراي الجسم وزبدة الجسم.",
+    descriptionAr: "A complete body care routine with lotion, body splash, and body butter.",
     image: "/images/collections/fresh-all-day-bundle.jpg",
     displayOrder: 51,
     isPublished: true,
@@ -348,7 +348,14 @@ export const featuredCollections: Collection[] = [
       "shower-gel-dove",
     ]),
   },
-];
+]
+  .filter((collection) => [
+    "hair-care-duo-bundle",
+    "soft-glow-bundle",
+    "complete-care-bundle",
+    "fresh-all-day-bundle",
+  ].includes(collection.slug))
+  .sort((a, b) => a.displayOrder - b.displayOrder);
 
 export function getStaticProduct(slug: string): Product | undefined {
   return staticProducts.find((product) => product.slug === slug);

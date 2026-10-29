@@ -115,7 +115,15 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
     .eq("is_published", true)
     .order("display_order", { ascending: true });
   if (error || !data) return featuredCollections;
-  return (data as Array<Record<string, unknown>>).map((row) => {
+  const storefrontBundles = new Set([
+    "hair-care-duo-bundle",
+    "soft-glow-bundle",
+    "complete-care-bundle",
+    "fresh-all-day-bundle",
+  ]);
+  return (data as Array<Record<string, unknown>>)
+    .filter((row) => storefrontBundles.has(String(row.slug)))
+    .map((row) => {
     const memberships = ((row.collection_products ?? []) as Array<{ product_id: string; quantity?: number; display_order?: number }>)
       .slice()
       .sort((a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0));
@@ -133,7 +141,7 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
       productIds: memberships.map((item) => item.product_id),
       productQuantities: Object.fromEntries(memberships.map((item) => [item.product_id, Math.max(1, Number(item.quantity ?? 1))])),
     };
-  });
+    });
 });
 
 export const getCollectionBySlug = cache(async (slug: string): Promise<{ collection: Collection; products: Product[] } | null> => {
