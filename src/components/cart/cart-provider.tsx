@@ -70,8 +70,6 @@ function sanitizeLines(value: unknown): CartLine[] {
     .map((line) => {
       const names = canonicalProductNames({
         slug: line.slug,
-        size: line.size,
-        variantLabelAr: line.variantLabelAr,
         nameAr: line.nameAr,
       });
       return {

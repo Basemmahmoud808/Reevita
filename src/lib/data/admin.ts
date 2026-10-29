@@ -437,10 +437,8 @@ export async function getInventory(): Promise<InventoryItem[]> {
     const names = canonicalProductNames({
       slug,
       categorySlug,
-      size: String(row.size ?? ""),
       nameEn: String(row.name),
       nameAr: String(row.name_ar),
-      variantLabelAr: getStaticProduct(slug)?.variantLabelAr,
     });
     return {
       productId: String(row.id),

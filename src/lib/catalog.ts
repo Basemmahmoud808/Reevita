@@ -91,8 +91,6 @@ function toProduct(raw: RawProduct): Product {
   const names = canonicalProductNames({
     slug: raw.slug,
     categorySlug: raw.category,
-    size: raw.size,
-    variantLabelAr: raw.variantLabelAr,
     nameEn: raw.nameEn,
     nameAr: raw.nameAr,
   });

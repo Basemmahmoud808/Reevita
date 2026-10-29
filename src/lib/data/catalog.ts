@@ -59,8 +59,6 @@ function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Pr
   const names = canonicalProductNames({
     slug: row.slug,
     categorySlug: row.category?.slug ?? meta?.categorySlug,
-    size: row.size ?? meta?.size,
-    variantLabelAr: meta?.variantLabelAr,
     nameEn: row.name,
     nameAr: row.name_ar,
   });
