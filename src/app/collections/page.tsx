@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight } from "lucide-react";
+import { CuratedCollectionCover } from "@/components/collection/curated-collection-cover";
 import { getCollections } from "@/lib/data/catalog";
 
 export const metadata: Metadata = {
@@ -36,9 +36,7 @@ export default async function CollectionsPage() {
             return (
               <article key={collection.id} className="card-luxe group flex h-full flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <Link href={`/collections/${collection.slug}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
-                  <div className="relative overflow-hidden bg-cream" style={{ aspectRatio: collection.coverAspectRatio ?? "1 / 1" }}>
-                    <Image src={collection.image} alt={`${collection.nameEn} collection`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw" className="collections-cover-image transition-transform duration-700 group-hover:scale-[1.02]" />
-                  </div>
+                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw" />
                 </Link>
                 <div className="flex flex-1 flex-col p-6">
                   <p className="eyebrow">COLLECTION</p>

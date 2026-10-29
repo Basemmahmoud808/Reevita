@@ -6,6 +6,7 @@ import { ArrowRight, Heart } from "lucide-react";
 import { GroupedProductCard } from "@/components/product/product-card";
 import { SocialIconLinks } from "@/components/ui/social-icon";
 import { CartButton } from "@/components/cart/cart-button";
+import { CuratedCollectionCover } from "@/components/collection/curated-collection-cover";
 import { blurForSlug } from "@/lib/images";
 import { featuredCollections } from "@/lib/catalog";
 import { useMemo, useState } from "react";
@@ -80,16 +81,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
             <div className="curated-home-grid" aria-label="Curated REEVITA collections">
               {collectionSlides.map((collection) => (
                 <Link key={collection.slug} href={`/collections/${collection.slug}`} className="curated-home-card group">
-                  <div className="curated-home-card-image" style={{ aspectRatio: collection.coverAspectRatio ?? "1 / 1" }}>
-                    <Image
-                      src={collection.image}
-                      alt={`${collection.nameEn} collection`}
-                      fill
-                      quality={90}
-                      sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw"
-                      className="object-cover transition-transform duration-700 group-hover:scale-[1.025]"
-                    />
-                  </div>
+                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
                   <div className="curated-home-card-copy">
                     <span className="reference-collection-eyebrow">{collection.setCount} SETS</span>
                     <span className="curated-home-card-title">{collection.nameEn}</span>

@@ -1664,11 +1664,33 @@
   scroll-snap-align: start;
 }
 
-.curated-home-card-image {
+.curated-collection-cover {
   position: relative;
+  width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
   background: var(--color-cream);
+}
+
+.curated-collection-cover-backdrop {
+  transform: scale(1.08);
+  filter: blur(16px) brightness(0.92);
+}
+
+.curated-collection-cover-image {
+  transition: transform 700ms ease;
+}
+
+.curated-collection-cover-image.is-cropped {
+  object-fit: cover;
+}
+
+.curated-collection-cover-image.is-contained {
+  object-fit: contain;
+}
+
+.curated-home-card:hover .curated-collection-cover-image {
+  transform: scale(1.025);
 }
 
 .curated-home-card-copy {
