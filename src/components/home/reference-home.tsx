@@ -4,29 +4,28 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Heart } from "lucide-react";
 import { GroupedProductCard } from "@/components/product/product-card";
-import { CollectionAddToBag } from "@/components/collection/collection-actions";
-import { Price } from "@/components/ui/price";
 import { SocialIconLinks } from "@/components/ui/social-icon";
 import { CartButton } from "@/components/cart/cart-button";
 import { blurForSlug } from "@/lib/images";
 import { featuredCollections } from "@/lib/catalog";
-import { useEffect, useState } from "react";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import type { Collection, Product } from "@/lib/types";
 
 const storyImage = "/images/reevita-story.jpg";
-const collectionSlides = featuredCollections;
+
+function imageSource(url: string | undefined) {
+  if (!url) return null;
+  return url.startsWith("/") || url.startsWith("http://") || url.startsWith("https://") ? url : `/${url}`;
+}
 
 export function ReferenceHome({ products, collections = [] }: { products: Product[]; collections?: Collection[] }) {
   const [wishlist, setWishlist] = useState(false);
-  const [activeCollection, setActiveCollection] = useState(0);
-  const [isCollectionPaused, setIsCollectionPaused] = useState(false);
-  const slides = useMemo(
-    () => (collections.length > 0 ? collections : collectionSlides).map((collection) => ({
+  const collectionCards = useMemo(
+    () => (collections.length > 0 ? collections : featuredCollections).map((collection) => ({
       ...collection,
-      href: `/collections/${collection.slug}`,
-      taglineAr: collection.descriptionAr,
-      products: products.filter((product) => collection.productIds?.includes(product.id)),
+      products: (collection.productIds ?? [])
+        .map((id) => products.find((product) => product.id === id))
+        .filter((product): product is Product => Boolean(product)),
     })),
     [collections, products],
   );
@@ -37,18 +36,6 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
       .filter((variants) => variants.length > 0);
   }, [products]);
 
-  useEffect(() => {
-    if (isCollectionPaused || slides.length < 2) return;
-    const timer = window.setInterval(() => {
-      setActiveCollection((current) => (current + 1) % slides.length);
-    }, 5500);
-    return () => window.clearInterval(timer);
-  }, [isCollectionPaused, slides.length]);
-
-  const selectedCollection = slides[activeCollection] ?? slides[0]!;
-  const collectionEyebrow = /collection$/i.test(selectedCollection.nameEn)
-    ? selectedCollection.nameEn
-    : `${selectedCollection.nameEn} collection`;
   return (
     <div className="reference-home">
       <header className="reference-header">
@@ -77,31 +64,23 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
             />
             <div className="reference-hero-overlay" aria-hidden="true" />
           </div>
-          <div className="reference-container reference-hero-content relative flex min-h-[480px] items-center py-12 md:min-h-[520px] md:py-0">
-            <div className="reference-hero-copy relative z-10 max-w-lg translate-y-4 md:translate-y-7">
+          <div className="reference-container reference-hero-content relative flex items-center">
+            <div className="reference-hero-copy relative z-10 max-w-lg">
               <p className="reference-kicker">SKINCARE · HAIRCARE · BEAUTY</p>
               <h1>Natural Beauty<br />for a Healthier You</h1>
               <p className="mt-4 max-w-sm text-sm leading-6 text-[#67665d]">
                 Premium skincare and haircare products crafted with nature&apos;s finest ingredients.
               </p>
-          <a href="#collections" className="reference-button mt-6">Shop The Collection <ArrowRight className="size-4" /></a>
-              <a href="#story" className="reference-outline-button ms-2 mt-6">Learn More</a>
+              <div className="reference-hero-actions">
+                <a href="#collections" className="reference-button">Shop The Collection <ArrowRight className="size-4" /></a>
+                <a href="#story" className="reference-outline-button">Learn More</a>
+              </div>
             </div>
             <p className="reference-hero-slogan absolute bottom-7 end-5 max-w-[120px] font-serif text-base italic leading-5 text-[#33423a] md:bottom-10 md:end-8">Real Care.<br />Lasting Beauty.</p>
           </div>
         </section>
 
-        <section
-          id="collections"
-          aria-labelledby="collection-slider-title"
-          className="reference-collection-slider reference-container scroll-mt-20 py-10 md:py-14"
-          onMouseEnter={() => setIsCollectionPaused(true)}
-          onMouseLeave={() => setIsCollectionPaused(false)}
-          onFocus={() => setIsCollectionPaused(true)}
-          onBlur={(event) => {
-            if (!event.currentTarget.contains(event.relatedTarget)) setIsCollectionPaused(false);
-          }}
-        >
+        <section id="collections" aria-labelledby="collection-slider-title" className="reference-collection-slider reference-container scroll-mt-20 py-10 md:py-14">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
               <p className="reference-kicker">REEVITA COLLECTIONS</p>
@@ -112,60 +91,38 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
             </Link>
           </div>
 
-          <div className="reference-collection-slide">
-            <div className="reference-collection-copy">
-              <p className="reference-collection-eyebrow">{collectionEyebrow.toUpperCase()}</p>
-              <h3>{selectedCollection.nameEn}</h3>
-              <p className="reference-collection-description">{selectedCollection.taglineAr}</p>
-              <div className="reference-collection-facts">
-                <span>{selectedCollection.products.reduce((count, product) => count + (selectedCollection.productQuantities?.[product.id] ?? 1), 0)} products</span>
-                <span className="reference-collection-price">
-                  <Price price={selectedCollection.products.reduce((total, product) => total + product.price * (selectedCollection.productQuantities?.[product.id] ?? 1), 0)} />
-                </span>
-              </div>
-              <div className="reference-collection-actions">
-                <Link href={selectedCollection.href} className="reference-collection-link">
-                  Explore collection <ArrowRight className="size-4" />
-                </Link>
-                <CollectionAddToBag purchaseReady={selectedCollection.purchaseReady} products={selectedCollection.products} quantities={selectedCollection.productQuantities} className="reference-collection-cart" />
-              </div>
-              <div className="reference-collection-arrows" aria-label="Collection navigation">
-                <button type="button" className="reference-slider-button" aria-label="Previous collection" onClick={() => setActiveCollection((activeCollection - 1 + slides.length) % slides.length)}>
-                  <ArrowRight className="size-4 rotate-180" />
-                </button>
-                <button type="button" className="reference-slider-button" aria-label="Next collection" onClick={() => setActiveCollection((activeCollection + 1) % slides.length)}>
-                  <ArrowRight className="size-4" />
-                </button>
-              </div>
-            </div>
-            <div className="reference-collection-art">
-              <Image
-                key={selectedCollection.slug}
-                src={selectedCollection.image}
-                alt={`${selectedCollection.nameEn} collection`}
-                fill
-                sizes="(max-width: 700px) 100vw, 58vw"
-                placeholder="blur"
-                blurDataURL={blurForSlug(selectedCollection.image.split("/").pop()?.replace(".webp", ""))}
-                className="object-cover"
-              />
-            </div>
+          <div className="reference-collection-grid">
+            {collectionCards.map((collection) => {
+              const cover = collection.products[0];
+              const coverImage = imageSource(cover?.images[0]?.url) ?? imageSource(collection.image);
+              const productCount = collection.products.reduce((count, product) => count + (collection.productQuantities?.[product.id] ?? 1), 0);
+              return (
+                <article key={collection.id} className="reference-home-collection-card group">
+                  <Link href={`/collections/${collection.slug}`} className="reference-home-collection-image" aria-label={`Explore ${collection.nameEn}`}>
+                    {coverImage ? (
+                      <Image
+                        src={coverImage}
+                        alt={cover?.images[0]?.alt || `${collection.nameEn} product`}
+                        fill
+                        sizes="(max-width: 640px) 46vw, (max-width: 1024px) 30vw, 22vw"
+                        placeholder="blur"
+                        blurDataURL={blurForSlug(cover?.slug)}
+                        className="object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+                      />
+                    ) : <span className="text-sm text-muted">REEVITA</span>}
+                    <span className="reference-home-collection-count">{productCount} products</span>
+                  </Link>
+                  <div className="reference-home-collection-copy">
+                    <p className="reference-collection-eyebrow">COLLECTION</p>
+                    <h3><Link href={`/collections/${collection.slug}`}>{collection.nameEn}</Link></h3>
+                    <p>{collection.descriptionAr}</p>
+                    <Link href={`/collections/${collection.slug}`} className="reference-home-collection-link">Explore collection <ArrowRight className="size-4" /></Link>
+                  </div>
+                </article>
+              );
+            })}
           </div>
-          <div className="mt-4 flex items-center justify-between gap-4">
-            <div className="flex items-center gap-2" aria-label="Choose collection">
-              {slides.map((fragrance, index) => (
-                <button
-                  key={fragrance.slug}
-                  type="button"
-                  aria-label={`Show ${fragrance.nameEn} collection`}
-                  aria-current={index === activeCollection}
-                  onClick={() => setActiveCollection(index)}
-                  className={`reference-slider-dot ${index === activeCollection ? "is-active" : ""}`}
-                />
-              ))}
-            </div>
-            <Link href="/collections" className="text-[0.7rem] text-[#77776f] md:hidden">View all collections</Link>
-          </div>
+          <Link href="/collections" className="reference-home-all-collections md:hidden">View all collections <ArrowRight className="size-3.5" /></Link>
         </section>
 
         <section id="best-sellers" className="reference-container scroll-mt-20 py-12 md:py-16">
@@ -189,18 +146,17 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
         <section id="story" className="reference-container scroll-mt-20 pb-12 md:pb-16">
           <div className="reference-story">
             <div className="reference-story-media">
-              <Image src={storyImage} alt="REEVITA Ruby Musk hair mist" fill quality={80} sizes="(max-width: 767px) 100vw, 50vw" loading="lazy" placeholder="blur" blurDataURL={blurForSlug("story")} className="object-contain" />
+              <Image src={storyImage} alt="REEVITA Ruby Musk hair mist" fill quality={80} sizes="(max-width: 767px) 38vw, 50vw" loading="lazy" placeholder="blur" blurDataURL={blurForSlug("story")} className="object-cover" />
             </div>
             <div className="reference-story-copy">
               <p className="reference-kicker">OUR PHILOSOPHY</p>
               <h2 className="mt-3">Skincare<br />That Works</h2>
               <p className="mt-3 text-sm leading-6 text-[#67665d]">Clean, effective, and gentle formulas for your natural glow.</p>
-                <a href="#collections" className="reference-outline-button mt-5">Discover REEVITA <ArrowRight className="size-4" /></a>
+              <a href="#collections" className="reference-outline-button mt-5">Discover REEVITA <ArrowRight className="size-4" /></a>
             </div>
           </div>
         </section>
-
-        </main>
+      </main>
 
       <footer className="reference-footer">
         <div className="reference-container grid gap-8 py-10 md:grid-cols-[1.2fr_1fr_1fr_1.2fr]">

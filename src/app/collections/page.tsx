@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight } from "lucide-react";
-import { CollectionAddToBag } from "@/components/collection/collection-actions";
-import { Price } from "@/components/ui/price";
 import { getCollections, getProducts } from "@/lib/data/catalog";
 import type { Collection, Product } from "@/lib/types";
 
@@ -20,8 +18,13 @@ const merchandisingCollectionOrder = [
 ];
 
 function collectionProducts(collection: Collection, products: Product[]) {
-  const ids = new Set(collection.productIds ?? []);
-  return products.filter((product) => ids.has(product.id));
+  const productMap = new Map(products.map((product) => [product.id, product]));
+  return (collection.productIds ?? []).map((id) => productMap.get(id)).filter((product): product is Product => Boolean(product));
+}
+
+function imageSource(url: string | undefined) {
+  if (!url) return null;
+  return url.startsWith("/") || url.startsWith("http://") || url.startsWith("https://") ? url : `/${url}`;
 }
 
 export default async function CollectionsPage() {
@@ -42,13 +45,14 @@ export default async function CollectionsPage() {
         <div className="grid gap-5 md:auto-rows-fr md:grid-cols-2 lg:grid-cols-3">
           {collections.map((collection) => {
             const includedProducts = collectionProducts(collection, products);
-            const total = includedProducts.reduce((sum, product) => sum + product.price * (collection.productQuantities?.[product.id] ?? 1), 0);
             const quantity = includedProducts.reduce((sum, product) => sum + (collection.productQuantities?.[product.id] ?? 1), 0);
+            const cover = includedProducts[0];
+            const coverImage = imageSource(cover?.images[0]?.url) ?? imageSource(collection.image);
             return (
               <article key={collection.id} className="card-luxe group flex h-full flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1">
                 <Link href={`/collections/${collection.slug}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
                   <div className="relative aspect-[4/3] overflow-hidden bg-cream">
-                    {collection.image ? <Image src={collection.image} alt={`${collection.nameEn} collection`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-contain transition-transform duration-700 group-hover:scale-[1.02]" /> : null}
+                    {coverImage ? <Image src={coverImage} alt={cover?.images[0]?.alt || `${collection.nameEn} product`} fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" className="object-contain transition-transform duration-700 group-hover:scale-[1.02]" /> : null}
                   </div>
                 </Link>
                 <div className="flex flex-1 flex-col p-6">
@@ -57,13 +61,12 @@ export default async function CollectionsPage() {
                   <p className="mt-1 min-h-5 text-xs font-semibold tracking-wide text-muted" dir="ltr">&nbsp;</p>
                   <p className="mt-2 min-h-21 line-clamp-3 text-sm leading-7 text-muted">{collection.descriptionAr}</p>
                   <div className="mt-auto flex min-h-11 flex-wrap items-center justify-between gap-2 pt-4 text-xs text-muted">
-                    {quantity > 0 ? <><span>{quantity} products</span><Price price={total} size="sm" /></> : <span className="font-semibold text-plum">Bundle contents are being prepared</span>}
+                    {quantity > 0 ? <span>{quantity} products</span> : <span className="font-semibold text-plum">Bundle contents are being prepared</span>}
                   </div>
-                  <div className="mt-4 flex min-h-25 flex-col items-start gap-3">
+                  <div className="mt-4 flex min-h-10 flex-col items-start gap-3">
                     <Link href={`/collections/${collection.slug}`} className="inline-flex items-center gap-2 text-sm font-bold text-plum group-hover:text-gold-deep">
-                      View collection <ArrowRight className="size-4" aria-hidden />
+                      Explore collection <ArrowRight className="size-4" aria-hidden />
                     </Link>
-                    {includedProducts.length > 0 ? <CollectionAddToBag purchaseReady={collection.purchaseReady} products={includedProducts} quantities={collection.productQuantities} /> : null}
                   </div>
                 </div>
               </article>
