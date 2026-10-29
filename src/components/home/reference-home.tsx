@@ -14,7 +14,7 @@ import { useEffect, useState } from "react";
 import { useMemo } from "react";
 import type { Collection, Product } from "@/lib/types";
 
-const storyImage = "/images/reevita-hero.png";
+const storyImage = "/images/reevita-story.jpg";
 const collectionSlides = featuredCollections;
 
 export function ReferenceHome({ products, collections = [] }: { products: Product[]; collections?: Collection[] }) {
@@ -215,3 +215,4 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
     </div>
   );
 }
+
