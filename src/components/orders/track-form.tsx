@@ -84,8 +84,8 @@ export function TrackForm({ initialOrder = "" }: { initialOrder?: string }) {
         ) : result.found ? (
           <div className="rounded-2xl border border-line bg-white/80 p-6 shadow-card sm:p-7">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-[0.62rem] font-bold tracking-[0.2em] text-gold-deep uppercase">ORDER STATUS</p>
+              <div className="min-w-0">
+                <p className="text-[0.62rem] font-bold tracking-[0.16em] text-gold-deep">حالة الطلب</p>
                 <p dir="ltr" className="latin mt-1 text-xl font-semibold text-plum">
                   {result.orderNumber}
                 </p>
@@ -105,15 +105,16 @@ export function TrackForm({ initialOrder = "" }: { initialOrder?: string }) {
             </p>
 
             {!isNegative && (
-              <div className="mt-7">
-                <ol className="flex items-start justify-between gap-1">
+              <div className="mt-7 pb-1">
+                <ol className="relative grid grid-cols-5 gap-1">
+                  <span className="pointer-events-none absolute inset-x-[10%] top-4 h-0.5 bg-line" aria-hidden />
                   {TRACKING_STEPS.map((step, index) => {
                     const done = currentStep >= index;
                     return (
-                      <li key={step.key} className="flex flex-1 flex-col items-center text-center">
+                      <li key={step.key} className="relative z-10 flex min-w-0 flex-col items-center text-center">
                         <span
                           className={cn(
-                            "flex size-8 items-center justify-center rounded-full border-2 text-[0.7rem] font-bold",
+                            "flex size-8 shrink-0 items-center justify-center rounded-full border-2 text-[0.7rem] font-bold",
                             done
                               ? "border-gold bg-gold text-plum-deep"
                               : "border-line bg-white text-muted",
@@ -121,14 +122,13 @@ export function TrackForm({ initialOrder = "" }: { initialOrder?: string }) {
                         >
                           {done ? <Check className="size-4" aria-hidden /> : index + 1}
                         </span>
-                        <span className={cn("mt-2 text-[0.62rem] font-semibold", done ? "text-plum" : "text-muted")}>
+                        <span className={cn("mt-2 min-h-8 max-w-full break-words text-[0.62rem] font-semibold leading-4", done ? "text-plum" : "text-muted")}>
                           {step.ar}
                         </span>
                       </li>
                     );
                   })}
                 </ol>
-                <div className="relative mt-[-46px] mb-9 -z-0 h-0.5 w-full bg-line" aria-hidden />
               </div>
             )}
 
