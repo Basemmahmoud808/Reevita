@@ -14,6 +14,7 @@ import { brand } from "@/lib/catalog";
 import { getProductBySlug, getProductsByCategory } from "@/lib/data/catalog";
 import { blurForSlug } from "@/lib/images";
 import { siteUrl } from "@/lib/env";
+import { productScentLabel } from "@/lib/product-labels";
 
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
@@ -168,7 +169,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             />
 
             <section className="product-detail-info">
-              <p className="product-detail-kicker">{product.fragranceNameEn || product.categoryNameEn}</p>
+              <p className="product-detail-kicker">{productScentLabel(product, "en") || product.categoryNameEn}</p>
               <h1 className="product-detail-title">{product.nameEn}</h1>
               <p className="product-detail-size">{product.size}</p>
 

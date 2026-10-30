@@ -9,6 +9,7 @@ import { blurForSlug } from "@/lib/images";
 import { cn } from "@/lib/format";
 import type { Product } from "@/lib/types";
 import { useI18n } from "@/lib/i18n";
+import { productScentLabel } from "@/lib/product-labels";
 
 function productImage(product: Product) {
   const image = product.images[0];
@@ -64,11 +65,9 @@ function ProductImage({ product, priority }: { product: Product; priority: boole
   );
 }
 
-export function ProductCard({ product, priority = false, className, groupName }: { product: Product; priority?: boolean; className?: string; groupName?: string }) {
+export function ProductCard({ product, priority = false, className }: { product: Product; priority?: boolean; className?: string; groupName?: string }) {
   const { t, locale } = useI18n();
-  const scentName = locale === "ar"
-    ? product.variantLabelAr || product.fragranceNameAr
-    : product.fragranceNameEn;
+  const scentName = productScentLabel(product, locale);
 
   return (
     <article className={cn("group relative flex flex-col", className)}>
@@ -81,7 +80,7 @@ export function ProductCard({ product, priority = false, className, groupName }:
       </div>
       <div className="flex flex-1 flex-col px-0.5 pt-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[0.58rem] font-bold tracking-[0.12em] text-muted uppercase">{scentName || groupName || product.categoryNameEn}</p>
+          {scentName && <p className="text-[0.58rem] font-bold tracking-[0.12em] text-muted uppercase">{scentName}</p>}
           {product.reviews > 0 && <Rating rating={product.rating} reviews={product.reviews} />}
         </div>
         <h3 className="mt-2 text-[0.98rem] font-bold leading-7 text-plum">
@@ -104,9 +103,7 @@ export function GroupedProductCard({ products, priority = false, className }: { 
   const { t, locale } = useI18n();
   const product = products[0];
   if (!product) return null;
-  const scentName = locale === "ar"
-    ? product.variantLabelAr || product.fragranceNameAr
-    : product.fragranceNameEn;
+  const scentName = productScentLabel(product, locale);
 
   return (
     <article className={cn("group relative flex flex-col", className)}>
@@ -120,7 +117,7 @@ export function GroupedProductCard({ products, priority = false, className }: { 
       </div>
       <div className="relative flex flex-1 flex-col px-0.5 pt-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-[0.58rem] font-bold tracking-[0.12em] text-muted uppercase">{scentName || product.categoryNameEn}</p>
+          {scentName && <p className="text-[0.58rem] font-bold tracking-[0.12em] text-muted uppercase">{scentName}</p>}
           {product.reviews > 0 && <Rating rating={product.rating} reviews={product.reviews} />}
         </div>
         <h3 className="mt-2 text-[0.98rem] font-bold leading-7 text-plum">

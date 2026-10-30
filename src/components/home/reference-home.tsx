@@ -101,7 +101,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
               <p className="reference-kicker">OUR COLLECTION</p>
               <h2>Best Sellers</h2>
             </div>
-            <Link href="/shop" className="hidden items-center gap-2 text-[0.7rem] md:flex">Explore all products <ArrowRight className="size-3.5" /></Link>
+            <Link href="/shop" className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap text-[0.68rem] sm:text-xs">View all products <ArrowRight className="size-3.5" /></Link>
           </div>
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
