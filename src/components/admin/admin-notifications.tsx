@@ -25,6 +25,8 @@ export function AdminNotifications({ newOrderCount, newOrders, lowStockCount, lo
   const [pushEnabled, setPushEnabled] = useState(false);
   const [pushBusy, setPushBusy] = useState(false);
   const [pushMessage, setPushMessage] = useState("");
+  const [telegramBusy, setTelegramBusy] = useState(false);
+  const [telegramMessage, setTelegramMessage] = useState("");
   const router = useRouter();
   const total = newOrderCount + lowStockCount;
 
@@ -100,6 +102,21 @@ export function AdminNotifications({ newOrderCount, newOrders, lowStockCount, lo
     }
   }
 
+  async function sendTelegramTest() {
+    setTelegramBusy(true);
+    setTelegramMessage("");
+    try {
+      const response = await fetch("/api/admin/telegram-test", { method: "POST" });
+      const result = (await response.json()) as { success?: boolean; message?: string; error?: string };
+      if (!response.ok) throw new Error(result.error ?? "تعذّر اختبار إشعار Telegram.");
+      setTelegramMessage(result.message ?? "أُرسلت رسالة الاختبار. راجع Telegram.");
+    } catch (error) {
+      setTelegramMessage(error instanceof Error ? error.message : "تعذّر اختبار إشعار Telegram.");
+    } finally {
+      setTelegramBusy(false);
+    }
+  }
+
   return (
     <div className="relative">
       <button
@@ -139,6 +156,15 @@ export function AdminNotifications({ newOrderCount, newOrders, lowStockCount, lo
               {pushBusy ? "جارٍ تحديث إعدادات الهاتف…" : pushEnabled ? "إيقاف إشعارات هذا الجهاز" : "تفعيل إشعارات الهاتف"}
             </button>
             {pushMessage && <p role="status" className="mt-2 text-[0.68rem] leading-5 text-muted">{pushMessage}</p>}
+            <button
+              type="button"
+              disabled={telegramBusy}
+              onClick={sendTelegramTest}
+              className="mt-2 w-full rounded-xl border border-line bg-white px-3 py-2.5 text-xs font-bold text-plum transition-colors hover:bg-cream disabled:opacity-60"
+            >
+              {telegramBusy ? "جارٍ اختبار Telegram…" : "إرسال رسالة اختبار إلى Telegram"}
+            </button>
+            {telegramMessage && <p role="status" className="mt-2 text-[0.68rem] leading-5 text-muted">{telegramMessage}</p>}
           </div>
 
           {total === 0 ? (
