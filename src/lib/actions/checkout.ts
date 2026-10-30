@@ -8,6 +8,7 @@ import { ORDER_ERROR_MESSAGES, OrderError, placeOrder, trackOrder } from "@/lib/
 import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
 import type { TrackedOrder } from "@/lib/types";
 import { notifyAdminOfNewOrder } from "@/lib/notifications/admin-push";
+import { notifyAdminViaTelegram } from "@/lib/notifications/admin-telegram";
 
 export interface CheckoutFormState {
   error?: string;
@@ -119,15 +120,18 @@ export async function placeOrderAction(
     );
 
     if (!order.isDuplicate) {
-      try {
-        await notifyAdminOfNewOrder({
-          orderId: order.orderId,
-          orderNumber: order.orderNumber,
-          total: order.total,
-        });
-      } catch {
+      const notice = {
+        orderId: order.orderId,
+        orderNumber: order.orderNumber,
+        total: order.total,
+      };
+      const notifications = await Promise.allSettled([
+        notifyAdminOfNewOrder(notice),
+        notifyAdminViaTelegram(notice),
+      ]);
+      if (notifications.some((result) => result.status === "rejected")) {
         // Notification delivery must never prevent a completed order from being confirmed.
-        console.error("[reevita] admin order push notification failed");
+        console.error("[reevita] one or more admin order notifications failed");
       }
     }
 

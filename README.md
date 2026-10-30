@@ -122,6 +122,15 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 NEXT_PUBLIC_ENABLE_ONLINE_PAYMENTS=false
 ```
 
+### إشعارات الطلبات المجانية عبر Telegram
+لإرسال تنبيه إلى تطبيق Telegram عند إنشاء طلب جديد:
+1. أنشئ بوتًا عبر `@BotFather`، ثم افتح محادثة البوت من حساب الإدارة واضغط **Start** وأرسل `/start`.
+2. أضف `TELEGRAM_BOT_TOKEN` إلى `.env.local` محليًا (ولا تشاركه أو تضعه في الواجهة).
+3. استخرج رقم المحادثة بأمان من الطرفية عبر `node --env-file=.env.local scripts/get-telegram-admin-chat-id.mjs`.
+4. أضف `TELEGRAM_BOT_TOKEN` و`TELEGRAM_ADMIN_CHAT_ID` في Vercel → Project → Settings → Environment Variables لبيئة Production، ثم أعد النشر.
+
+يرسل التنبيه رقم الطلب وإجماليه ورابط لوحة الإدارة. يجب أن يكون اتصال الإنترنت وإشعارات Telegram متاحين على الهاتف لوصول التنبيه.
+
 ### 4. تشغيل خادم التطوير
 ```bash
 npm run dev
