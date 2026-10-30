@@ -5,10 +5,10 @@ import { Check, CircleHelp, MessageCircle, PackageCheck, Truck } from "lucide-re
 import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
 import { getPlacedDemoOrder } from "@/lib/data/orders";
 import { ClearCartOnMount } from "@/components/cart/clear-cart-on-mount";
-import { brand } from "@/lib/catalog";
 import { formatDateTimeAr, formatEGP } from "@/lib/format";
 import { statusMeta } from "@/lib/orders/status";
 import type { PlacedOrder } from "@/lib/types";
+import { depositPayment } from "@/lib/payment";
 
 export const metadata: Metadata = {
   title: "تم استلام طلبك",
@@ -84,7 +84,7 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
               {statusMeta(order.status).ar}
             </span>
             <span className="rounded-full bg-gold/15 px-3 py-1 text-[0.68rem] font-bold text-gold-deep">
-              الدفع عند الاستلام
+              الدفع عند الاستلام أو تحويل عربون
             </span>
             <span className="rounded-full bg-white px-3 py-1 text-[0.68rem] font-bold text-plum">
               {order.governorateAr ?? ""}
@@ -120,10 +120,13 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
                 </dd>
               </div>
               <div className="flex justify-between border-t border-line pt-3 text-base">
-                <dt className="font-bold text-plum">المبلغ المستحق عند الاستلام</dt>
+                <dt className="font-bold text-plum">إجمالي الطلب</dt>
                 <dd className="font-bold text-plum">{formatEGP(order.total)}</dd>
               </div>
             </dl>
+            <p className="mt-3 text-xs leading-6 text-muted">
+              بعد تأكيد الإدارة لصورة التحويل، يُخصم العربون من المبلغ المتبقي عند الاستلام.
+            </p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -157,7 +160,8 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
               {[
                 "سنتصل بك لتأكيد الطلب والكمية.",
                 "نجهّز الشحنة ونرسلها مع شركة الشحن.",
-                "يتم التواصل معك قبل التسليم، وتدفعين عند الاستلام.",
+                "إذا أرسلت عربونًا، أرفقي صورة التحويل ورقم الطلب على واتساب ليتم تأكيده.",
+                "يتم التواصل معك قبل التسليم ودفع المتبقي عند الاستلام بعد تأكيد العربون.",
               ].map((step, index) => (
                 <li key={step} className="flex gap-3 text-[0.8rem] leading-7 text-muted">
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-cream text-[0.65rem] font-bold text-plum">
@@ -168,14 +172,18 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
               ))}
             </ol>
             <a
-              href={`https://wa.me/${brand.whatsapp}?text=${encodeURIComponent(`أهلًا ريفيتا، بخصوص طلبي ${order.orderNumber}`)}`}
+              href={`https://wa.me/${depositPayment.phoneInternational}?text=${encodeURIComponent(`أهلًا ريفيتا، أرسلت عربون طلبي رقم ${order.orderNumber}. سأرفق صورة التحويل هنا.`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-outline mt-5 w-full"
+              className="btn btn-primary mt-5 w-full justify-center"
             >
               <MessageCircle className="size-4" aria-hidden />
-              استفسار على واتساب
+              إرسال صورة التحويل على واتساب
             </a>
+            <p className="mt-2 text-center text-[0.68rem] leading-6 text-muted">
+              فودافون كاش / إنستا باي: <span dir="ltr" className="font-bold text-plum">{depositPayment.phone}</span>
+              <br />أرفقي صورة التحويل بعد فتح المحادثة.
+            </p>
             <Link href={`/track?order=${encodeURIComponent(order.orderNumber)}`} className="btn btn-primary mt-2.5 w-full">
               تتبّع حالة الطلب
             </Link>

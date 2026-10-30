@@ -22,6 +22,9 @@ type Props = {
 
 export function AdminNotifications({ newOrderCount, newOrders, lowStockCount, lowStockItems }: Props) {
   const [open, setOpen] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMessage, setPushMessage] = useState("");
   const router = useRouter();
   const total = newOrderCount + lowStockCount;
 
@@ -29,6 +32,73 @@ export function AdminNotifications({ newOrderCount, newOrders, lowStockCount, lo
     const timer = window.setInterval(() => router.refresh(), 60_000);
     return () => window.clearInterval(timer);
   }, [router]);
+
+  useEffect(() => {
+    if (!("serviceWorker" in navigator) || typeof Notification === "undefined" || Notification.permission !== "granted") return;
+    void navigator.serviceWorker.getRegistration().then(async (registration) => {
+      const subscription = await registration?.pushManager.getSubscription();
+      setPushEnabled(Boolean(subscription));
+    });
+  }, []);
+
+  async function togglePushNotifications() {
+    setPushBusy(true);
+    setPushMessage("");
+    try {
+      if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
+        setPushMessage("هذا المتصفح لا يدعم الإشعارات. على iPhone ثبّتي الموقع على الشاشة الرئيسية أولًا.");
+        return;
+      }
+
+      const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+      if (!publicKey) {
+        setPushMessage("إعداد إشعارات الهاتف غير مكتمل بعد.");
+        return;
+      }
+
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      const existing = await registration.pushManager.getSubscription();
+      if (existing) {
+        const response = await fetch("/api/admin/push-subscription", {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ endpoint: existing.endpoint }),
+        });
+        if (!response.ok) throw new Error("تعذّر إيقاف الإشعارات على هذا الجهاز.");
+        await existing.unsubscribe();
+        setPushEnabled(false);
+        setPushMessage("تم إيقاف إشعارات هذا الجهاز.");
+        return;
+      }
+
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        setPushMessage(permission === "denied" ? "اسمحي بالإشعارات من إعدادات المتصفح لتفعيلها." : "لم يتم السماح بالإشعارات.");
+        return;
+      }
+
+      const keyBytes = Uint8Array.from(window.atob(publicKey.replace(/-/g, "+").replace(/_/g, "/")), (char) => char.charCodeAt(0));
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: keyBytes,
+      });
+      const response = await fetch("/api/admin/push-subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(subscription),
+      });
+      if (!response.ok) {
+        await subscription.unsubscribe();
+        throw new Error("تم السماح بالإشعارات، لكن تعذّر حفظ الجهاز. أعيدي المحاولة.");
+      }
+      setPushEnabled(true);
+      setPushMessage("تم تفعيل إشعارات الطلبات الجديدة على هذا الجهاز.");
+    } catch (error) {
+      setPushMessage(error instanceof Error ? error.message : "تعذّر تفعيل الإشعارات.");
+    } finally {
+      setPushBusy(false);
+    }
+  }
 
   return (
     <div className="relative">
@@ -57,6 +127,18 @@ export function AdminNotifications({ newOrderCount, newOrders, lowStockCount, lo
           <div className="flex items-center justify-between border-b border-line pb-3">
             <h2 className="text-sm font-bold text-plum">الإشعارات</h2>
             <span className="text-[0.68rem] text-muted">تتحدث تلقائيًا كل دقيقة</span>
+          </div>
+
+          <div className="border-b border-line py-3">
+            <button
+              type="button"
+              disabled={pushBusy}
+              onClick={togglePushNotifications}
+              className="w-full rounded-xl bg-plum px-3 py-2.5 text-xs font-bold text-ivory transition-colors hover:bg-plum/90 disabled:opacity-60"
+            >
+              {pushBusy ? "جارٍ تحديث إعدادات الهاتف…" : pushEnabled ? "إيقاف إشعارات هذا الجهاز" : "تفعيل إشعارات الهاتف"}
+            </button>
+            {pushMessage && <p role="status" className="mt-2 text-[0.68rem] leading-5 text-muted">{pushMessage}</p>}
           </div>
 
           {total === 0 ? (

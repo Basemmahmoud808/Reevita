@@ -7,6 +7,7 @@ import { clientIp, rateLimit } from "@/lib/security/rate-limit";
 import { ORDER_ERROR_MESSAGES, OrderError, placeOrder, trackOrder } from "@/lib/data/orders";
 import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
 import type { TrackedOrder } from "@/lib/types";
+import { notifyAdminOfNewOrder } from "@/lib/notifications/admin-push";
 
 export interface CheckoutFormState {
   error?: string;
@@ -116,6 +117,19 @@ export async function placeOrderAction(
       },
       ip,
     );
+
+    if (!order.isDuplicate) {
+      try {
+        await notifyAdminOfNewOrder({
+          orderId: order.orderId,
+          orderNumber: order.orderNumber,
+          total: order.total,
+        });
+      } catch {
+        // Notification delivery must never prevent a completed order from being confirmed.
+        console.error("[reevita] admin order push notification failed");
+      }
+    }
 
     const cookieStore = await cookies();
     cookieStore.set(

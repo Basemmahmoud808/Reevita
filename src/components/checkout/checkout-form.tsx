@@ -6,6 +6,7 @@ import { AlertCircle, ArrowLeft, Loader2, Lock, ShieldCheck, Truck } from "lucid
 import { useCart } from "@/components/cart/cart-provider";
 import { placeOrderAction, type CheckoutFormState } from "@/lib/actions/checkout";
 import { formatEGP } from "@/lib/format";
+import { depositPayment } from "@/lib/payment";
 import type { Governorate } from "@/lib/types";
 
 export function CheckoutForm({
@@ -301,9 +302,14 @@ export function CheckoutForm({
               <div>
                 <p className="text-sm font-bold text-plum">Cash on delivery (COD)</p>
                 <p className="mt-1 text-[0.75rem] leading-6 text-muted">
-                  ادفعي نقدًا للمندوب عند استلام الشحنة. لا يتم تحصيل أي مبلغ مقدم، ولن نطلب بيانات أي
-                  بطاقة بنكية.
+                  يمكنك الدفع للمندوب عند الاستلام، أو إرسال العربون المتفق عليه عبر فودافون كاش أو إنستا باي. بعد إنشاء الطلب أرسلي صورة التحويل ورقم الطلب على واتساب، وسيتم خصم العربون المؤكد من المبلغ المتبقي.
                 </p>
+                <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg bg-white/80 px-3 py-2 text-xs">
+                  <span className="font-semibold text-muted">Vodafone Cash / InstaPay</span>
+                  <a href={`tel:${depositPayment.phone}`} dir="ltr" className="font-bold text-plum underline decoration-gold/60 underline-offset-4">
+                    {depositPayment.phone}
+                  </a>
+                </div>
               </div>
             </div>
 
