@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Check, MessageCircle, ShoppingBag } from "lucide-react";
+import { Check, MessageCircle, ShoppingBag, Star } from "lucide-react";
 import { useCart, type AddableProduct } from "@/components/cart/cart-provider";
 import { QuantityStepper } from "@/components/cart/quantity-stepper";
 import { Price } from "@/components/ui/price";
@@ -10,7 +10,7 @@ import { brand } from "@/lib/catalog";
 import { siteUrl } from "@/lib/env";
 import { formatEGP } from "@/lib/format";
 
-export function ProductPurchase({ product }: { product: AddableProduct }) {
+export function ProductPurchase({ product, rating = 0, reviews = 0 }: { product: AddableProduct; rating?: number; reviews?: number }) {
   const { addItem, openCart } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [selection, setSelection] = useState({ baseProductId: product.id, selectedProductId: product.id });
@@ -42,6 +42,17 @@ export function ProductPurchase({ product }: { product: AddableProduct }) {
 
   return (
     <div className="space-y-5">
+      <div className="product-detail-price-row">
+        <Price price={selectedProduct.price} compareAtPrice={selectedProduct.compareAtPrice} size="detail" />
+        {reviews > 0 && (
+          <span className="product-detail-rating" aria-label={`Rated ${rating.toFixed(1)} out of 5`}>
+            <span>{rating.toFixed(1)}</span>
+            <Star className="size-4 fill-current" aria-hidden />
+          </span>
+        )}
+      </div>
+      <div className="product-detail-divider" aria-hidden />
+
       {options.length > 1 && (
         <fieldset>
           <legend className="mb-2 text-xs font-bold text-plum">Pack size</legend>
@@ -60,8 +71,6 @@ export function ProductPurchase({ product }: { product: AddableProduct }) {
           </div>
         </fieldset>
       )}
-
-      <Price price={selectedProduct.price} compareAtPrice={selectedProduct.compareAtPrice} size="lg" />
 
       <div className="flex flex-wrap items-center gap-3">
         <QuantityStepper value={quantity} onChange={setQuantity} max={10} label="Quantity" />

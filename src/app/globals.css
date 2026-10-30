@@ -2240,3 +2240,246 @@ body {
     font-size: clamp(16px, 1.3vw, 20px);
   }
 }
+
+/* Product detail layout inspired by the clean, image-led reference. */
+.product-page-shell {
+  width: 100%;
+  overflow-x: clip;
+  padding: 24px 16px 48px;
+  background: #1a1a1a;
+}
+
+.product-page-container {
+  width: 100%;
+  max-width: 560px;
+  margin-inline: auto;
+}
+
+.product-detail-card {
+  overflow: hidden;
+  background: #fff;
+  color: #252b27;
+}
+
+.product-detail-layout {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.product-gallery {
+  min-width: 0;
+}
+
+.product-gallery-main {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #f2eee8;
+}
+
+.product-gallery-main-image {
+  object-fit: cover;
+  transition: opacity 200ms ease;
+  animation: product-image-fade 200ms ease both;
+}
+
+.product-gallery-thumbnails {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding: 16px 20px 18px;
+  scrollbar-width: none;
+}
+
+.product-gallery-thumbnails::-webkit-scrollbar {
+  display: none;
+}
+
+.product-gallery-thumbnail {
+  position: relative;
+  width: 70px;
+  height: 70px;
+  flex: 0 0 70px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  opacity: 0.7;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.product-gallery-thumbnail:hover,
+.product-gallery-thumbnail.is-active {
+  opacity: 1;
+}
+
+.product-gallery-thumbnail:active {
+  transform: scale(0.97);
+}
+
+.product-gallery-thumbnail::after {
+  position: absolute;
+  right: 0;
+  bottom: -8px;
+  left: 0;
+  height: 2px;
+  background: transparent;
+  content: "";
+}
+
+.product-gallery-thumbnail.is-active::after {
+  background: #29382d;
+}
+
+.product-gallery-thumbnail-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #f2eee8;
+}
+
+.product-detail-info {
+  min-width: 0;
+  padding: 12px 20px 24px;
+}
+
+.product-detail-kicker {
+  color: #6b6b6b;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.product-detail-title {
+  margin-top: 10px;
+  color: #171917;
+  font-family: var(--font-latin);
+  font-size: clamp(26px, 7vw, 34px);
+  font-weight: 800;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.product-detail-size {
+  margin-top: 6px;
+  color: #6b6b6b;
+  font-size: 14px;
+}
+
+.product-detail-info > .space-y-5 {
+  margin-top: 14px;
+}
+
+.product-detail-price-row {
+  display: flex;
+  min-height: 32px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.product-detail-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #f5a623;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.product-detail-divider {
+  height: 1px;
+  margin-top: 18px;
+  background: #e5e5e5;
+}
+
+.product-detail-info fieldset button {
+  min-height: 44px;
+}
+
+.product-detail-info .btn {
+  min-height: 48px;
+}
+
+.product-scent-options {
+  margin-top: 26px;
+  border: 1px solid #e5e5e5;
+  border-radius: 10px;
+  background: #fff;
+  padding: 12px;
+}
+
+.product-detail-accordion {
+  margin-top: 26px;
+}
+
+.product-page-container > section[aria-label="Product benefits"],
+.product-page-container > section[aria-label="REEVITA services"],
+.product-page-container > section.border-t {
+  color: #252b27;
+  border-color: #e5e5e5;
+  background: #fff;
+}
+
+.product-page-container > section[aria-label="Product benefits"] {
+  padding-inline: 20px;
+}
+
+.product-page-container > section[aria-label="REEVITA services"] {
+  margin-top: 16px;
+}
+
+.product-page-container > section.border-t {
+  margin-top: 24px;
+  border-radius: 10px;
+  padding: 24px 20px;
+}
+
+@keyframes product-image-fade {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+@media (min-width: 640px) {
+  .product-page-shell {
+    padding: 40px 24px 64px;
+  }
+
+  .product-detail-info {
+    padding: 14px 24px 28px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-page-container {
+    max-width: 1180px;
+  }
+
+  .product-detail-layout {
+    grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+    align-items: start;
+  }
+
+  .product-detail-info {
+    padding: clamp(28px, 4vw, 56px);
+  }
+
+  .product-gallery-thumbnails {
+    padding-inline: 24px;
+  }
+
+  .product-detail-info > .space-y-5 {
+    margin-top: 22px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .product-gallery-main-image,
+  .product-gallery-thumbnail {
+    animation: none;
+    transition: none;
+  }
+}

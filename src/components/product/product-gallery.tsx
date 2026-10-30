@@ -22,54 +22,53 @@ export function ProductGallery({
   const current = gallery[Math.min(active, gallery.length - 1)];
 
   return (
-    <div className="grid gap-3 md:grid-cols-[84px_1fr]">
-      <div className="order-2 flex gap-2 overflow-x-auto md:order-1 md:flex-col md:overflow-visible">
+    <div className="product-gallery">
+      <div className="product-gallery-main">
+        {current?.url && (
+          <Image
+            key={current.url}
+            src={current.url}
+            alt={current.alt || name}
+            fill
+            priority={priority}
+            quality={85}
+            sizes="(max-width: 1023px) 100vw, 55vw"
+            unoptimized={current.url.startsWith("/")}
+            placeholder="blur"
+            blurDataURL={blurForSlug(slug)}
+            className="product-gallery-main-image"
+          />
+        )}
+      </div>
+
+      <div className="product-gallery-thumbnails" role="group" aria-label="Product images">
         {gallery.map((image, index) => (
           <button
             key={`${image.url}-${index}`}
             type="button"
             onClick={() => setActive(index)}
-            aria-label={`عرض صورة ${index + 1} — ${name}`}
+            aria-label={`View product image ${index + 1} — ${name}`}
             aria-current={active === index ? "true" : undefined}
             className={cn(
-              "relative h-20 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-cream transition-all md:h-24 md:w-full",
-              active === index ? "border-gold" : "border-transparent opacity-75 hover:opacity-100",
+              "product-gallery-thumbnail",
+              active === index ? "is-active" : "",
             )}
           >
-            <Image
-              src={image.url}
-              alt=""
-              fill
-              quality={60}
-              sizes="96px"
-              unoptimized={image.url.startsWith("/")}
-              placeholder="blur"
-              blurDataURL={blurForSlug(slug)}
-              className="object-cover"
-            />
+            <span className="product-gallery-thumbnail-image">
+              <Image
+                src={image.url}
+                alt=""
+                fill
+                quality={60}
+                sizes="70px"
+                unoptimized={image.url.startsWith("/")}
+                placeholder="blur"
+                blurDataURL={blurForSlug(slug)}
+                className="object-cover"
+              />
+            </span>
           </button>
         ))}
-      </div>
-
-      <div className="order-1 md:order-2">
-        <div className="relative aspect-[4/5] overflow-hidden rounded-[1.5rem] border border-line bg-cream">
-          {current?.url && (
-            <Image
-              key={current.url}
-              src={current.url}
-              alt={current.alt || name}
-              fill
-              priority={priority}
-              quality={85}
-              sizes="(max-width: 1024px) 100vw, 45vw"
-              unoptimized={current.url.startsWith("/")}
-              placeholder="blur"
-              blurDataURL={blurForSlug(slug)}
-              className="object-cover animate-fade"
-            />
-          )}
-          <div className="pointer-events-none absolute inset-0 rounded-[1.5rem] ring-1 ring-inset ring-plum/5" aria-hidden />
-        </div>
       </div>
     </div>
   );

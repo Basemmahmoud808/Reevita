@@ -156,58 +156,26 @@ export default async function ProductPage({ params }: ProductPageProps) {
     <>
       <JsonLd data={productJsonLd} />
 
-      <main className="container-luxe w-full min-w-0 overflow-x-clip px-4 py-6 sm:px-6 sm:py-10 lg:px-8 lg:py-14">
-        <nav
-          aria-label="Breadcrumb"
-          className="mb-6 min-w-0 text-xs text-muted sm:mb-8"
-        >
-          <ol className="flex min-w-0 flex-wrap items-center gap-2">
-            <li className="shrink-0">
-              <Link
-                href="/"
-                className="transition-colors hover:text-gold-deep"
-              >
-                Home
-              </Link>
-            </li>
-
-            <li aria-hidden className="shrink-0">
-              /
-            </li>
-
-            <li className="min-w-0 max-w-full">
-              <Link
-                href={`/shop?category=${product.categorySlug}`}
-                className="break-words transition-colors hover:text-gold-deep"
-              >
-                {product.categoryNameEn}
-              </Link>
-            </li>
-
-            <li aria-hidden className="shrink-0">
-              /
-            </li>
-
-            <li
-              className="min-w-0 max-w-full break-words text-plum"
-              aria-current="page"
-            >
-              {product.nameEn}
-            </li>
-          </ol>
-        </nav>
-
+      <main className="product-page-shell">
+        <div className="product-page-container">
         {/* Product image and information */}
-        <div className="grid w-full min-w-0 grid-cols-1 items-start gap-7 sm:gap-9 md:gap-10 lg:grid-cols-2 lg:gap-12 xl:gap-16">
-          <div className="w-full min-w-0">
+        <div className="product-detail-card">
+          <div className="product-detail-layout">
             <ProductGallery
               images={product.images}
               name={product.nameEn}
               slug={product.slug}
             />
 
-            {relatedProducts.length > 0 && (
-              <div className="mt-5 rounded-2xl border border-line bg-cream/60 p-3 sm:mt-6 sm:p-4">
+            <section className="product-detail-info">
+              <p className="product-detail-kicker">{product.fragranceNameEn || product.categoryNameEn}</p>
+              <h1 className="product-detail-title">{product.nameEn}</h1>
+              <p className="product-detail-size">{product.size}</p>
+
+              <ProductPurchase product={product} rating={product.rating} reviews={product.reviews} />
+
+              {relatedProducts.length > 0 && (
+              <div className="product-scent-options">
                 <div className="flex items-center justify-between gap-3">
                   <p className="eyebrow">CHOOSE YOUR SCENT</p>
                   <span className="text-[0.68rem] text-muted">{relatedProducts.length + 1} options</span>
@@ -252,45 +220,13 @@ export default async function ProductPage({ params }: ProductPageProps) {
                   })}
                 </div>
               </div>
-            )}
-          </div>
-
-          <section className="w-full min-w-0 lg:pt-2 xl:pt-5">
-            <p className="eyebrow">{product.categoryNameEn}</p>
-
-            <h1 className="display-xl mt-3 break-words text-2xl leading-tight sm:text-3xl lg:text-4xl xl:text-5xl">
-              {product.nameEn}
-            </h1>
-
-            <div className="mt-4 flex min-w-0 flex-wrap items-center gap-3 sm:mt-3">
-              {product.reviews > 0 && (
-                <Rating
-                  rating={product.rating}
-                  reviews={product.reviews}
-                />
               )}
 
-              <span className="break-words text-sm text-muted">
-                {product.size}
-              </span>
-            </div>
-
-            <p
-              dir="rtl"
-              lang="ar"
-              className="mt-4 break-words text-sm leading-7 text-muted sm:mt-6 sm:text-base sm:leading-8"
-            >
-              {product.descriptionAr}
-            </p>
-
-            <div className="mt-6 w-full min-w-0 sm:mt-7">
-              <ProductPurchase product={product} />
-            </div>
-
-            <div className="mt-8 min-w-0 sm:mt-9">
+              <div className="product-detail-accordion">
               <Accordion items={accordionItems} />
-            </div>
-          </section>
+              </div>
+            </section>
+          </div>
         </div>
 
         {/* Product benefits */}
@@ -390,6 +326,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
             />
           </section>
         )}
+        </div>
       </main>
     </>
   );
