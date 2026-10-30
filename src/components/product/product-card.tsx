@@ -72,7 +72,9 @@ export function ProductCard({ product, priority = false, className }: { product:
   return (
     <article className={cn("group relative flex flex-col", className)}>
       <div className="relative overflow-hidden rounded-[0.75rem] border border-line/70 bg-ivory shadow-card transition-shadow duration-500 group-hover:shadow-luxe">
-        <ProductImage product={product} priority={priority} />
+        <Link href={`/products/${product.slug}`} aria-label={`View ${product.nameEn}`} className="block rounded-[0.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
+          <ProductImage product={product} priority={priority} />
+        </Link>
         <ProductBadge product={product} />
         <div className="absolute inset-x-3 bottom-3 z-10 flex justify-center opacity-100 transition-all duration-300 md:pointer-events-none md:translate-y-2 md:opacity-0 md:group-focus-within:pointer-events-auto md:group-focus-within:translate-y-0 md:group-focus-within:opacity-100 md:group-hover:pointer-events-auto md:group-hover:translate-y-0 md:group-hover:opacity-100">
           <AddToCartButton product={product} variant="compact" label={t("addToCart")} className="w-full" />
