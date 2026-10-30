@@ -2246,7 +2246,7 @@ body {
   width: 100%;
   overflow-x: clip;
   padding: 24px 16px 48px;
-  background: #1a1a1a;
+  background: var(--color-ivory);
 }
 
 .product-page-container {
