@@ -15,8 +15,8 @@ export const curatedCollectionDefinitions = [
   {
     slug: "soft-glow-bundle",
     name: "Soft & glow Bundle",
-    coverSetIndex: 0,
-    coverFit: "contain",
+    coverSetIndex: 1,
+    coverFit: "cover",
     sets: [
       { image: "/images/curated-collections/soft-glow-bundle/set-01.jpg", aspectRatio: "1 / 1", productSlugs: ["body-lotion-queen", "body-splash-queen", "body-butter-queen"] },
       { image: "/images/curated-collections/soft-glow-bundle/set-02.jpg", aspectRatio: "2 / 3", productSlugs: ["body-lotion-queen", "body-splash-queen", "body-butter-queen", "body-lotion-sexy", "body-splash-sexy", "body-butter-sexy", "body-lotion-ruby-musk", "body-splash-ruby-musk", "body-butter-ruby-musk"] },
@@ -38,8 +38,8 @@ export const curatedCollectionDefinitions = [
   {
     slug: "fresh-all-day-bundle",
     name: "Fresh All Day Bundle",
-    coverSetIndex: 0,
-    coverFit: "contain",
+    coverSetIndex: 3,
+    coverFit: "cover",
     sets: [
       { image: "/images/curated-collections/fresh-all-day-bundle/set-01.jpg", aspectRatio: "1 / 1", productSlugs: ["shower-gel-dove", "body-lotion-queen", "body-splash-queen"] },
       { image: "/images/curated-collections/fresh-all-day-bundle/set-02.jpg", aspectRatio: "1 / 1", productSlugs: ["shower-gel-bubble-gum", "body-lotion-sexy", "body-splash-sexy"] },
