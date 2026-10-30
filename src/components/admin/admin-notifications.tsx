@@ -46,7 +46,7 @@ export function AdminNotifications({ newOrderCount, newOrders, lowStockCount, lo
     setPushMessage("");
     try {
       if (!("serviceWorker" in navigator) || !("PushManager" in window) || !("Notification" in window)) {
-        setPushMessage("هذا المتصفح لا يدعم الإشعارات. على iPhone ثبّتي الموقع على الشاشة الرئيسية أولًا.");
+        setPushMessage("هذا المتصفح لا يدعم Web Push. جرّب متصفحًا حديثًا، أو ثبّت الموقع كتطبيق إذا كان جهازك يشترط ذلك.");
         return;
       }
 
