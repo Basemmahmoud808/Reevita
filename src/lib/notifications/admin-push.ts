@@ -32,7 +32,7 @@ export async function notifyAdminOfNewOrder(order: NewOrderNotice): Promise<void
   if (!data?.length) return;
 
   webPush.setVapidDetails(
-    process.env.PUSH_VAPID_SUBJECT || "mailto:support@reevita-store.com",
+    process.env.PUSH_VAPID_SUBJECT || "mailto:mahmoudsalem2572020@gmail.com",
     publicKey,
     privateKey,
   );
