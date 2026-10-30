@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, MapPin, Phone, User } from "lucide-react";
+import { ArrowRight, MapPin, MessageCircle, Phone, User } from "lucide-react";
 import { getAdminOrder } from "@/lib/data/admin";
 import { AdminStatusForm } from "@/components/admin/admin-status-form";
-import { formatDateAr, formatEGP } from "@/lib/format";
+import { formatDateAr, formatEGP, whatsappLink } from "@/lib/format";
 import { statusMeta } from "@/lib/orders/status";
+import { normalizeEgyptianPhone } from "@/lib/phone";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   if (!order) notFound();
 
   const meta = statusMeta(order.status);
+  const whatsappPhone = normalizeEgyptianPhone(order.customerPhone);
+  const confirmationMessage = `أهلًا ${order.customerName}، نؤكد استلام طلبك رقم ${order.orderNumber} بإجمالي ${formatEGP(order.total)}. مدة التوصيل المتوقعة من يومين إلى 3 أيام عمل. هل تؤكد الطلب؟`;
 
   return (
     <div className="space-y-5">
@@ -104,6 +107,32 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
         </div>
 
         <aside className="space-y-5">
+          {order.status === "new" && (
+            <section className="rounded-2xl border border-line bg-white/80 p-5">
+              <h2 className="display-md text-lg">تأكيد الطلب</h2>
+              {whatsappPhone ? (
+                <>
+                  <p className="mb-3 mt-1 text-[0.68rem] leading-6 text-muted">
+                    افتحي رسالة التأكيد على واتساب لمراجعتها وإرسالها للعميل.
+                  </p>
+                  <a
+                    href={whatsappLink(whatsappPhone, confirmationMessage)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary w-full justify-center"
+                  >
+                    <MessageCircle className="size-4" aria-hidden />
+                    تأكيد الطلب عبر واتساب
+                  </a>
+                </>
+              ) : (
+                <p className="mt-2 text-xs leading-6 text-berry">
+                  لا يمكن تجهيز رسالة واتساب لأن رقم العميل غير صالح.
+                </p>
+              )}
+            </section>
+          )}
+
           <section className="rounded-2xl border border-line bg-white/80 p-5">
             <h2 className="display-md text-lg">تحديث الحالة</h2>
             <p className="mb-4 mt-1 text-[0.65rem] leading-5 text-muted">

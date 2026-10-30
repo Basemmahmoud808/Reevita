@@ -3,11 +3,19 @@ import { LogOut, ShieldCheck } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/session";
 import { demoAdminSignOutAction, signOutAction } from "@/lib/actions/auth";
 import { AdminNav } from "@/components/admin/admin-nav";
+import { AdminNotifications } from "@/components/admin/admin-notifications";
 import { Logo } from "@/components/brand/logo";
 import { isDemoMode } from "@/lib/env";
+import { getAdminMetrics, getAdminOrders } from "@/lib/data/admin";
 
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();
+  const [metricsResult, ordersResult] = await Promise.allSettled([
+    getAdminMetrics(),
+    getAdminOrders({ status: "new", limit: 5 }),
+  ]);
+  const metrics = metricsResult.status === "fulfilled" ? metricsResult.value : null;
+  const orders = ordersResult.status === "fulfilled" ? ordersResult.value : { orders: [], total: 0 };
 
   return (
     <div className="min-h-screen bg-[#f6f0ea]">
@@ -20,6 +28,12 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <AdminNotifications
+              newOrderCount={metrics?.orders_by_status?.new ?? orders.total}
+              newOrders={orders.orders}
+              lowStockCount={metrics?.low_stock_count ?? 0}
+              lowStockItems={metrics?.low_stock_items ?? []}
+            />
             <div className="hidden text-end sm:block">
               <p className="text-xs font-bold text-plum">{admin.fullName}</p>
               <p className="text-[0.62rem] text-muted">{admin.email}</p>
