@@ -2074,6 +2074,209 @@ body {
   color: #29382d;
 }
 
+/* The homepage hero keeps copy inside the photo, over its open left side. */
+.reference-hero {
+  position: relative;
+  display: block;
+  min-height: clamp(34rem, 82svh, 45rem);
+  margin: 0.75rem 1rem 0;
+  overflow: hidden;
+  border: 1px solid rgba(226, 219, 207, 0.82);
+  border-radius: 0.85rem;
+  background: #33443a;
+  isolation: isolate;
+}
+
+.reference-hero-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.reference-hero-image {
+  object-position: 67% center;
+}
+
+.reference-hero-overlay {
+  display: block;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(24, 42, 34, 0.76) 0%, rgba(24, 42, 34, 0.62) 34%, rgba(24, 42, 34, 0.24) 61%, rgba(24, 42, 34, 0.02) 82%),
+    linear-gradient(0deg, rgba(24, 42, 34, 0.2), transparent 44%);
+}
+
+.reference-hero-content {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  width: 100%;
+  min-height: 0;
+  align-items: center;
+  padding: clamp(1.25rem, 5vw, 4rem);
+}
+
+.reference-hero-copy {
+  width: min(100%, 35rem);
+  max-width: 35rem;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  color: #fffdf8;
+}
+
+.reference-hero-copy .reference-kicker {
+  color: #ead3a2;
+  font-size: 0.68rem;
+}
+
+.reference-hero h1 {
+  max-width: 12ch;
+  color: #fffdf8;
+  font-size: clamp(2.35rem, 5.4vw, 4.5rem);
+  line-height: 1.03;
+  text-wrap: balance;
+  text-shadow: 0 2px 22px rgba(14, 26, 20, 0.2);
+}
+
+.reference-hero-copy > p:not(.reference-kicker) {
+  max-width: 34rem;
+  margin-top: 1rem;
+  color: rgba(255, 253, 248, 0.94);
+  font-size: clamp(0.95rem, 1.25vw, 1.1rem);
+  line-height: 1.65;
+  text-shadow: 0 1px 14px rgba(14, 26, 20, 0.22);
+}
+
+.reference-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.reference-hero-copy .reference-button,
+.reference-hero-copy .reference-outline-button {
+  display: inline-flex;
+  width: auto;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.8rem 1.2rem;
+  font-size: 0.85rem;
+}
+
+.reference-hero-copy .reference-button {
+  border: 1px solid #f7f3eb;
+  background: #f7f3eb;
+  color: #293b31;
+}
+
+.reference-hero-copy .reference-button:hover {
+  border-color: #fffdf8;
+  background: #fffdf8;
+  color: #293b31;
+}
+
+.reference-hero-copy .reference-outline-button {
+  border-color: rgba(255, 253, 248, 0.8);
+  background: rgba(28, 43, 36, 0.12);
+  color: #fffdf8;
+}
+
+.reference-hero-copy .reference-outline-button:hover {
+  background: rgba(255, 253, 248, 0.14);
+  color: #fffdf8;
+}
+
+@media (max-width: 639px) {
+  .reference-hero {
+    min-height: clamp(34rem, 82svh, 43rem);
+    margin: 0.55rem 0.65rem 0;
+  }
+
+  .reference-hero-image {
+    object-position: 60% center;
+  }
+
+  .reference-hero-overlay {
+    background:
+      linear-gradient(90deg, rgba(24, 42, 34, 0.74) 0%, rgba(24, 42, 34, 0.58) 52%, rgba(24, 42, 34, 0.12) 86%),
+      linear-gradient(0deg, rgba(24, 42, 34, 0.28), transparent 55%);
+  }
+
+  .reference-hero-content {
+    padding: 1.35rem 1.1rem;
+  }
+
+  .reference-hero-copy {
+    width: min(74%, 22rem);
+  }
+
+  .reference-hero h1 {
+    max-width: 16ch;
+    font-size: clamp(2rem, 8vw, 2.6rem);
+    line-height: 1.06;
+  }
+
+  .reference-hero-copy > p:not(.reference-kicker) {
+    max-width: 24rem;
+    margin-top: 0.8rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+  }
+
+  .reference-hero-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.65rem;
+    margin-top: 1.1rem;
+  }
+
+  .reference-hero-copy .reference-button,
+  .reference-hero-copy .reference-outline-button {
+    width: min(100%, 16rem);
+    min-height: 48px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .reference-hero-copy {
+    width: min(52%, 27rem);
+  }
+
+  .reference-hero h1 {
+    max-width: 16ch;
+    font-size: clamp(2.3rem, 4.5vw, 3rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .reference-hero {
+    min-height: clamp(36rem, calc(100svh - 74px), 48rem);
+    margin: 1rem clamp(24px, 4vw, 56px);
+  }
+
+  .reference-hero-image {
+    object-position: 60% center;
+  }
+
+  .reference-hero-content {
+    padding: clamp(2.5rem, 6vw, 6rem);
+  }
+
+  .reference-hero-copy {
+    width: min(48%, 35rem);
+  }
+}
+
 .curated-home-grid,
 .curated-collection-list-grid {
   display: grid;
