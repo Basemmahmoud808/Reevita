@@ -31,12 +31,12 @@ const zoneCost: Record<string, number> = {
 };
 
 const zoneDays: Record<string, [number, number]> = {
-  greater_cairo: [1, 2],
-  alexandria: [1, 2],
+  greater_cairo: [2, 3],
+  alexandria: [2, 3],
   delta: [2, 3],
   canal: [2, 3],
-  upper_egypt: [3, 4],
-  frontier: [4, 6],
+  upper_egypt: [2, 3],
+  frontier: [2, 3],
 };
 
 const GOVERNORATES: Array<[string, string, string, string]> = [
@@ -79,7 +79,7 @@ export function demoGovernorates(): Governorate[] {
     shippingCost: zoneCost[zone] ?? 65,
     freeShippingThreshold: zone === "frontier" ? 1500 : zone === "upper_egypt" ? 1200 : 1000,
     estimatedDaysMin: zoneDays[zone]?.[0] ?? 2,
-    estimatedDaysMax: zoneDays[zone]?.[1] ?? 4,
+    estimatedDaysMax: zoneDays[zone]?.[1] ?? 3,
   }));
 }
 
