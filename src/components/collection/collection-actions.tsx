@@ -14,11 +14,12 @@ export interface PurchasableCollectionComponent {
 
 export interface PurchasableCollectionSet {
   id: string;
+  offerKey: string;
   components: PurchasableCollectionComponent[];
 }
 
-export function CollectionAddToBag({ sets, label, className }: { sets: PurchasableCollectionSet[]; label: string; className?: string }) {
-  const { addItems } = useCart();
+export function CollectionAddToBag({ sets, label, offerKey, discountPercent, className }: { sets: PurchasableCollectionSet[]; label: string; offerKey: string; discountPercent: number; className?: string }) {
+  const { addCuratedItems } = useCart();
   const [isAdding, setIsAdding] = useState(false);
   const components = sets.flatMap((set) => set.components);
   const missing = components.filter((component) => !component.product);
@@ -35,7 +36,7 @@ export function CollectionAddToBag({ sets, label, className }: { sets: Purchasab
     const products = components.flatMap((component) =>
       Array.from({ length: component.quantity }, () => component.product!),
     );
-    addItems(products);
+    addCuratedItems(products, offerKey);
     window.setTimeout(() => setIsAdding(false), 700);
   };
 
@@ -48,7 +49,7 @@ export function CollectionAddToBag({ sets, label, className }: { sets: Purchasab
         className={cn("btn btn-primary inline-flex gap-2 px-4 py-3 text-xs disabled:cursor-not-allowed disabled:opacity-55", className)}
       >
         <ShoppingBag className="size-4" aria-hidden />
-        {isAdding ? "Adding to cart…" : disabled ? `${label} unavailable` : label}
+        {isAdding ? "Adding to cart…" : disabled ? `${label} unavailable` : `${label} · ${discountPercent}% off`}
       </button>
       {blockers.length > 0 ? <p className="curated-unavailable-copy">Unavailable: {blockers.join(", ")}</p> : null}
     </div>

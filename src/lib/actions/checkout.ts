@@ -50,8 +50,10 @@ export async function placeOrderAction(
   }
 
   let items: unknown = null;
+  let curatedOffers: unknown = [];
   try {
     items = JSON.parse(String(formData.get("items") ?? "[]"));
+    curatedOffers = JSON.parse(String(formData.get("curatedOffers") ?? "[]"));
   } catch {
     return { error: "سلة المشتريات غير صالحة. يرجى تحديث الصفحة.", code: "INVALID_ITEM", values };
   }
@@ -87,6 +89,7 @@ export async function placeOrderAction(
     landmark: formData.get("landmark") ?? "",
     orderNotes: formData.get("orderNotes") ?? "",
     items,
+    curatedOffers,
     terms: formData.get("terms") === "on",
     idempotencyKey: formData.get("idempotencyKey") || undefined,
   });
@@ -114,6 +117,7 @@ export async function placeOrderAction(
         landmark: parsed.data.landmark,
         orderNotes: parsed.data.orderNotes,
         items: parsed.data.items,
+        curatedOffers: parsed.data.curatedOffers,
         idempotencyKey: parsed.data.idempotencyKey,
       },
       ip,

@@ -11,6 +11,7 @@ export const ORDER_ERROR_MESSAGES: Record<string, string> = {
   INVALID_LOCATION: "المحافظة المختارة غير متاحة حاليًا. يرجى اختيار محافظة أخرى.",
   INVALID_ITEM: "أحد المنتجات في السلة غير صالح. يرجى تحديث السلة والمحاولة مرة أخرى.",
   PRODUCT_UNAVAILABLE: "أحد المنتجات لم يعد متاحًا. يرجى تحديث السلة.",
+  INVALID_BUNDLE_OFFER: "تعذّر التحقق من خصم المجموعة. حدّث السلة وحاول مرة أخرى.",
   INSUFFICIENT_STOCK: "عذرًا، الكمية المطلوبة غير متوفرة حاليًا في المخزون.",
   ORDER_REJECTED: "عذرًا، لا يمكن إتمام الطلب. يرجى التواصل مع خدمة العملاء للمساعدة.",
   RATE_LIMITED: "عدد الطلبات من هذا الرقم كبير. يرجى المحاولة بعد قليل.",
@@ -48,6 +49,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
         landmark: payload.landmark,
         orderNotes: payload.orderNotes,
         items: payload.items,
+        curatedOffers: payload.curatedOffers,
         idempotencyKey: payload.idempotencyKey,
       });
     } catch (error) {
@@ -59,7 +61,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
   const supabase = await createSupabaseServerClient();
   if (!supabase) throw new OrderError("UNKNOWN");
 
-  const { data, error } = await supabase.rpc("place_order", {
+  const { data, error } = await supabase.rpc("place_order_with_curated_offers", {
     p_customer_name: payload.customerName,
     p_customer_phone: payload.customerPhone,
     p_customer_email: payload.customerEmail ?? null,
@@ -69,6 +71,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     p_landmark: payload.landmark ?? null,
     p_order_notes: payload.orderNotes ?? null,
     p_items: payload.items,
+    p_curated_offers: (payload.curatedOffers ?? []).map(({ offerKey, quantity }) => ({ offer_key: offerKey, quantity })),
     p_ip_address: ipAddress,
     p_idempotency_key: payload.idempotencyKey ?? null,
   });
@@ -82,6 +85,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     customer_name: string;
     customer_phone: string;
     subtotal: number;
+    discount_amount?: number;
     shipping_fee: number;
     cod_fee: number;
     total: number;
@@ -96,6 +100,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     customerName: result.customer_name,
     customerPhone: result.customer_phone,
     subtotal: Number(result.subtotal),
+    discountAmount: Number(result.discount_amount ?? 0),
     shippingFee: Number(result.shipping_fee),
     codFee: Number(result.cod_fee),
     total: Number(result.total),

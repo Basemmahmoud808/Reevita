@@ -165,6 +165,7 @@ export interface CheckoutPayload {
   landmark?: string | null;
   orderNotes?: string | null;
   items: { product_id: string; quantity: number }[];
+  curatedOffers?: { offerKey: string; quantity: number }[];
   idempotencyKey?: string | null;
 }
 
@@ -175,6 +176,7 @@ export interface PlacedOrder {
   customerName: string;
   customerPhone: string;
   subtotal: number;
+  discountAmount?: number;
   shippingFee: number;
   codFee: number;
   total: number;

@@ -1752,6 +1752,15 @@
   box-shadow: var(--shadow-card);
 }
 
+.curated-collection-hero-text-only {
+  align-items: stretch;
+}
+
+.curated-collection-hero-text-only .curated-collection-hero-copy {
+  width: 100%;
+  max-width: 62rem;
+}
+
 .curated-collection-hero-image {
   position: relative;
   width: min(100%, 42rem);

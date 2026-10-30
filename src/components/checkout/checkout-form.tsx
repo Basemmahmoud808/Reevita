@@ -16,7 +16,7 @@ export function CheckoutForm({
   governorates: Governorate[];
   isDemo: boolean;
 }) {
-  const { lines, subtotal, ready } = useCart();
+  const { lines, curatedOffers, subtotal, discountAmount, subtotalAfterDiscount, ready } = useCart();
   const [state, formAction, pending] = useActionState<CheckoutFormState | null, FormData>(
     placeOrderAction,
     null,
@@ -46,10 +46,11 @@ export function CheckoutForm({
       ? 0
       : governorate.shippingCost
     : 0;
-  const total = subtotal + shippingFee;
+  const total = subtotalAfterDiscount + shippingFee;
   const itemsJson = JSON.stringify(
     lines.map((line) => ({ product_id: line.productId, quantity: line.quantity })),
   );
+  const curatedOffersJson = JSON.stringify(curatedOffers);
 
   const errorFor = (field: string) => state?.fieldErrors?.[field]?.[0];
 
@@ -97,6 +98,7 @@ export function CheckoutForm({
       <form action={formAction} className="grid gap-8 lg:grid-cols-[1.35fr_1fr]">
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <input type="hidden" name="items" value={itemsJson} />
+        <input type="hidden" name="curatedOffers" value={curatedOffersJson} />
         <input
           type="hidden"
           name="cartSnapshot"
@@ -370,6 +372,12 @@ export function CheckoutForm({
                 <dt className="text-muted">Subtotal</dt>
                 <dd className="font-semibold text-plum">{formatEGP(subtotal)}</dd>
               </div>
+              {discountAmount > 0 && (
+                <div className="flex items-center justify-between text-emerald-800">
+                  <dt>Bundle savings</dt>
+                  <dd className="font-bold">−{formatEGP(discountAmount)}</dd>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <dt className="text-muted">Shipping</dt>
                 <dd className="font-semibold text-plum">

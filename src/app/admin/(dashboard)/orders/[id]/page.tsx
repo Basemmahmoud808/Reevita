@@ -61,6 +61,12 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
                 <dt className="text-muted">الإجمالي الفرعي</dt>
                 <dd className="font-semibold text-plum">{formatEGP(order.subtotal)}</dd>
               </div>
+              {(order.discountAmount ?? 0) > 0 && (
+                <div className="flex justify-between text-success">
+                  <dt>خصم المجموعات</dt>
+                  <dd className="font-bold">−{formatEGP(order.discountAmount ?? 0)}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
                 <dt className="text-muted">الشحن</dt>
                 <dd className="font-semibold text-plum">

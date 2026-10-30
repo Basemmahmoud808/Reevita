@@ -38,6 +38,14 @@ export const checkoutSchema = z.object({
     )
     .min(1, { message: "سلة المشتريات فارغة" })
     .max(20),
+  curatedOffers: z
+    .array(z.object({
+      offerKey: z.string().trim().min(1).max(100).regex(/^[a-z0-9-]+:(?:collection|set:\d+)$/),
+      quantity: z.number().int().min(1).max(10),
+    }))
+    .max(20)
+    .optional()
+    .default([]),
   terms: z.literal(true, { error: "يجب الموافقة على الشروط وسياسة الاسترجاع." }),
   idempotencyKey: z.string().trim().max(128).optional().transform((value) => value || null),
 });

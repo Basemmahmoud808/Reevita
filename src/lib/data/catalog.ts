@@ -119,7 +119,8 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
   const products = await getProducts();
   const productBySlug = new Map(products.map((product) => [product.slug, product]));
   return curatedCollectionDefinitions.map((definition, index) => {
-    const productSlugs = [...new Set(definition.sets.flatMap((set) => set.productSlugs))];
+    const purchasableSets = definition.sets.filter((_, setIndex) => setIndex !== definition.coverSetIndex);
+    const productSlugs = [...new Set(purchasableSets.flatMap((set) => set.productSlugs))];
     const productIds = productSlugs
       .map((productSlug) => productBySlug.get(productSlug)?.id)
       .filter((id): id is string => Boolean(id));
@@ -136,7 +137,7 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
       isPublished: true,
       purchaseReady: true,
       productIds,
-      setCount: definition.sets.length,
+      setCount: purchasableSets.length,
     };
   });
 });
@@ -144,7 +145,7 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
 export const getCollectionBySlug = cache(async (slug: string): Promise<{
   collection: Collection;
   products: Product[];
-  sets: { id: string; image: string; aspectRatio: string; components: { slug: string; product: Product | null; quantity: number }[] }[];
+  sets: { id: string; offerKey: string; image: string; aspectRatio: string; components: { slug: string; product: Product | null; quantity: number }[] }[];
 } | null> => {
   const collections = await getCollections();
   const collection = collections.find((item) => item.slug === slug);
@@ -156,12 +157,13 @@ export const getCollectionBySlug = cache(async (slug: string): Promise<{
   return {
     collection,
     products: (collection.productIds ?? []).map((id) => products.find((product) => product.id === id)).filter((product): product is Product => Boolean(product)),
-    sets: definition.sets.map((set, index) => ({
+    sets: definition.sets.flatMap((set, index) => index === definition.coverSetIndex ? [] : [{
       id: `${definition.slug}-set-${index + 1}`,
+      offerKey: `${definition.slug}:set:${index + 1}`,
       image: set.image,
       aspectRatio: set.aspectRatio,
       components: set.productSlugs.map((productSlug) => ({ slug: productSlug, product: productMap.get(productSlug) ?? null, quantity: 1 })),
-    })),
+    }]),
   };
 });
 export const getProducts = cache(async (): Promise<Product[]> => {

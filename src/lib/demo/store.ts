@@ -10,6 +10,7 @@ import type {
   Collection,
 } from "@/lib/types";
 import { STATUS_META } from "@/lib/orders/status";
+import { getCuratedOfferDefinition } from "@/lib/curated-collections";
 
 /**
  * Demo mode store.
@@ -183,6 +184,7 @@ export interface DemoOrder {
   paymentMethod: "cod";
   paymentStatus: "pending" | "paid";
   subtotal: number;
+  discountAmount: number;
   shippingFee: number;
   codFee: number;
   total: number;
@@ -214,6 +216,7 @@ export function demoPlaceOrder(input: {
   landmark?: string | null;
   orderNotes?: string | null;
   items: { product_id: string; quantity: number }[];
+  curatedOffers?: { offerKey: string; quantity: number }[];
   idempotencyKey?: string | null;
 }): PlacedOrder {
   if (input.idempotencyKey) {
@@ -244,8 +247,25 @@ export function demoPlaceOrder(input: {
   });
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const quantitiesBySlug = new Map(items.map(({ product, quantity }) => [product.slug, quantity]));
+  const claimedBySlug = new Map<string, number>();
+  let discountAmount = 0;
+  for (const offer of input.curatedOffers ?? []) {
+    const definition = getCuratedOfferDefinition(offer.offerKey);
+    if (!definition || offer.quantity < 1 || offer.quantity > 10) throw new Error("INVALID_BUNDLE_OFFER: Invalid collection discount");
+    const requirements = new Map<string, number>();
+    for (const slug of definition.productSlugs) requirements.set(slug, (requirements.get(slug) ?? 0) + offer.quantity);
+    for (const [slug, required] of requirements) {
+      const next = (claimedBySlug.get(slug) ?? 0) + required;
+      if (next > (quantitiesBySlug.get(slug) ?? 0)) throw new Error("INVALID_BUNDLE_OFFER: Collection contents do not match the bag");
+      claimedBySlug.set(slug, next);
+    }
+    const productBySlug = new Map(items.map(({ product }) => [product.slug, product]));
+    const offerTotal = definition.productSlugs.reduce((sum, slug) => sum + (productBySlug.get(slug)?.price ?? 0), 0) * offer.quantity;
+    discountAmount += Math.round(offerTotal * definition.discountPercent / 100);
+  }
   const shippingFee = subtotal >= governorate.freeShippingThreshold ? 0 : governorate.shippingCost;
-  const total = subtotal + shippingFee;
+  const total = subtotal - discountAmount + shippingFee;
   orderSequence += 1;
   const createdAt = new Date().toISOString();
   const order: DemoOrder = {
@@ -264,6 +284,7 @@ export function demoPlaceOrder(input: {
     paymentMethod: "cod",
     paymentStatus: "pending",
     subtotal,
+    discountAmount,
     shippingFee,
     codFee: 0,
     total,
@@ -301,6 +322,7 @@ export function toPlacedOrder(order: DemoOrder): PlacedOrder {
     customerName: order.customerName,
     customerPhone: order.customerPhone,
     subtotal: order.subtotal,
+    discountAmount: order.discountAmount,
     shippingFee: order.shippingFee,
     codFee: order.codFee,
     total: order.total,

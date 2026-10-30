@@ -15,6 +15,8 @@ export function CartDrawer() {
     lines,
     count,
     subtotal,
+    discountAmount,
+    subtotalAfterDiscount,
     freeShippingRemaining,
     freeShippingThreshold,
   } = useCart();
@@ -119,6 +121,18 @@ export function CartDrawer() {
               <span className="text-muted">Subtotal</span>
               <span className="text-lg font-bold text-plum">{formatEGP(subtotal)}</span>
             </div>
+            {discountAmount > 0 && (
+              <div className="mt-2 flex items-center justify-between text-sm text-emerald-800">
+                <span>Bundle savings</span>
+                <span className="font-bold">−{formatEGP(discountAmount)}</span>
+              </div>
+            )}
+            {discountAmount > 0 && (
+              <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-sm">
+                <span className="font-bold text-plum">After discount</span>
+                <span className="font-bold text-plum">{formatEGP(subtotalAfterDiscount)}</span>
+              </div>
+            )}
             <p className="mt-1 text-[0.7rem] text-muted">
               Shipping and cash on delivery are calculated at checkout.
             </p>

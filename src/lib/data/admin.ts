@@ -60,6 +60,7 @@ export interface AdminOrder {
   paymentMethod: string;
   paymentStatus: string;
   subtotal: number;
+  discountAmount?: number;
   shippingFee: number;
   total: number;
   currency: string;
@@ -109,6 +110,7 @@ function mapDemoOrder(order: ReturnType<typeof demoOrders>[number]): AdminOrder 
     paymentMethod: order.paymentMethod,
     paymentStatus: order.paymentStatus,
     subtotal: order.subtotal,
+    discountAmount: order.discountAmount,
     shippingFee: order.shippingFee,
     total: order.total,
     currency: order.currency,
@@ -224,7 +226,7 @@ export async function getAdminOrder(orderId: string): Promise<AdminOrder | null>
     .from("orders")
     .select(
       `id, order_number, customer_name, customer_phone, customer_email, status, payment_method, payment_status,
-       subtotal, shipping_fee, total, currency, shipping_carrier, tracking_number, created_at,
+       subtotal, discount_amount, shipping_fee, total, currency, shipping_carrier, tracking_number, created_at,
        shipping_address_snapshot, governorate:governorates ( name_ar ),
        order_items ( product_name, quantity, unit_price, total_price )`,
     )
@@ -247,6 +249,7 @@ export async function getAdminOrder(orderId: string): Promise<AdminOrder | null>
     paymentMethod: String(order.payment_method),
     paymentStatus: String(order.payment_status),
     subtotal: Number(order.subtotal),
+    discountAmount: Number(order.discount_amount ?? 0),
     shippingFee: Number(order.shipping_fee),
     total: Number(order.total),
     currency: String(order.currency),

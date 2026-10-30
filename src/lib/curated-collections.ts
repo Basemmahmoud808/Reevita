@@ -50,3 +50,50 @@ export const curatedCollectionDefinitions = [
 ] as const;
 
 export type CuratedCollectionDefinition = (typeof curatedCollectionDefinitions)[number];
+
+export type CuratedOfferDefinition = {
+  offerKey: string;
+  kind: "set" | "collection";
+  discountPercent: number;
+  productSlugs: readonly string[];
+};
+
+export function getCuratedSetOfferKey(collectionSlug: string, setNumber: number): string {
+  return `${collectionSlug}:set:${setNumber}`;
+}
+
+export function getCuratedCollectionOfferKey(collectionSlug: string): string {
+  return `${collectionSlug}:collection`;
+}
+
+export function getCuratedSetDiscountPercent(productCount: number): number {
+  if (productCount === 2) return 11;
+  if (productCount >= 3) return 15;
+  return 0;
+}
+
+/** The cover artwork is for choosing a collection; only the remaining photos are purchasable sets. */
+export function getCuratedOfferDefinition(offerKey: string): CuratedOfferDefinition | null {
+  for (const collection of curatedCollectionDefinitions) {
+    if (offerKey === getCuratedCollectionOfferKey(collection.slug)) {
+      const productSlugs = collection.sets
+        .filter((_, index) => index !== collection.coverSetIndex)
+        .flatMap((set) => set.productSlugs);
+      return { offerKey, kind: "collection", discountPercent: 25, productSlugs };
+    }
+
+    const match = offerKey.match(new RegExp(`^${collection.slug}:set:(\\d+)$`));
+    if (!match) continue;
+    const setNumber = Number(match[1]);
+    const setIndex = setNumber - 1;
+    const set = collection.sets[setIndex];
+    if (!set || setIndex === collection.coverSetIndex) return null;
+    return {
+      offerKey,
+      kind: "set",
+      discountPercent: getCuratedSetDiscountPercent(set.productSlugs.length),
+      productSlugs: set.productSlugs,
+    };
+  }
+  return null;
+}
