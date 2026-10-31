@@ -11,6 +11,10 @@ import { curatedCollectionDefinitions } from "@/lib/curated-collections";
 const catalog = catalogJson;
 
 export function getSuppliedProductImage(slug: string, name: string) {
+  if (slug.replace(/-\d+$/, "") === "shampoo-dove") {
+    return { url: "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jpg", alt: `${name} — ${brand.name}` };
+  }
+
   // Product assets are pre-compressed WebP files. Avoid falling back to the
   // original multi-megabyte supplied JPEGs in the static/demo catalogue.
   return { url: `/images/products/${slug.replace(/-\d+$/, "")}.webp`, alt: `${name} — ${brand.name}` };

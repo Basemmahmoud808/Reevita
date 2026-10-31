@@ -49,6 +49,13 @@ function mapStock(status: string | undefined): StockStatus {
   return "in_stock";
 }
 
+function catalogueFallback(): Product[] {
+  // The static product feed has no live inventory, so its seeded zero values
+  // must not be presented as a real stock result when Supabase is temporarily
+  // unavailable. The checkout still verifies availability in the database.
+  return attachProductSizeOptions(staticProducts.map((product) => ({ ...product, stockStatus: "in_stock" })));
+}
+
 function mapProduct(row: ProductRow, availability: Map<string, StockStatus>): Product {
   const meta = getStaticProduct(row.slug);
   const category = staticCategories.find((item) => item.slug === row.category?.slug);
@@ -178,7 +185,7 @@ export const getProducts = cache(async (): Promise<Product[]> => {
 
   if (error) {
     console.error("[reevita] product query failed, serving static catalogue", error.message);
-    return staticProducts;
+    return catalogueFallback();
   }
 
   const availability = new Map<string, StockStatus>();

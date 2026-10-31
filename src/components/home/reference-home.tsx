@@ -27,12 +27,12 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
         <section className="reference-hero">
           <div className="reference-hero-media">
             <Image
-              src="/images/reevita-hero.webp"
+              src="/images/reevita-hero.png"
               alt="REEVITA hair mist surrounded by botanical ingredients"
               fill
               preload
-              quality={90}
-              sizes="100vw"
+              quality={100}
+              sizes="(max-width: 639px) 100vw, 100vw"
               className="reference-hero-image object-cover"
             />
             <div className="reference-hero-overlay" aria-hidden="true" />
@@ -66,17 +66,15 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
 
           {collectionSlides.length > 0 ? (
             <div className="curated-home-grid" aria-label="Curated REEVITA collections">
-              {collectionSlides.map((collection, index) => (
-                <ScrollReveal key={collection.slug} className="h-full" delayMs={index * 70}>
-                <Link href={`/collections/${collection.slug}`} className="curated-home-card group h-full">
-                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 50vw, 25vw" />
+              {collectionSlides.map((collection) => (
+                <Link key={collection.slug} href={`/collections/${collection.slug}`} className="curated-home-card group">
+                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
                   <div className="curated-home-card-copy">
                     <span className="reference-collection-eyebrow">{collection.setCount} SETS</span>
                     <span className="curated-home-card-title">{collection.nameEn}</span>
                     <span className="curated-home-card-link">Explore collection <ArrowRight className="size-4" aria-hidden /></span>
                   </div>
                 </Link>
-                </ScrollReveal>
               ))}
             </div>
           ) : (

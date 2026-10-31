@@ -2812,7 +2812,8 @@ body {
 
 @media (max-width: 639px) {
   .reference-hero-image {
-    object-position: 60% center;
+    /* Keep the hair mist centred in the narrow portrait crop. */
+    object-position: 74% center;
   }
 
   .reference-hero-content {
