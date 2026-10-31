@@ -8,7 +8,8 @@ import { getAdminSession } from "@/lib/auth/session";
 import { isDemoMode } from "@/lib/env";
 
 export const metadata: Metadata = {
-  title: "دخول لوحة الإدارة",
+  title: "دخول إدارة متجر REEVITA",
+  description: "صفحة دخول خاصة بإدارة متجر REEVITA.",
   robots: { index: false, follow: false },
 };
 

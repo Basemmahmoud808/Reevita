@@ -85,7 +85,7 @@ export function Hero({ product }: { product: Product }) {
                   src={image.url}
                   alt={`${locale === "en" ? product.nameEn : product.nameAr} — REEVITA`}
                   fill
-                  priority
+                  preload
                   sizes="(max-width: 768px) 88vw, 40vw"
                   placeholder="blur"
                   blurDataURL={blurForSlug(product.slug)}

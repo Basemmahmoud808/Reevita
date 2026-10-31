@@ -4,7 +4,8 @@ import { RegisterForm } from "@/components/account/auth-forms";
 import { isDemoMode } from "@/lib/env";
 
 export const metadata: Metadata = {
-  title: "Create an account",
+  title: "Create Your REEVITA Customer Account",
+  description: "Create a private REEVITA account to keep your order details together.",
   robots: { index: false, follow: false },
 };
 

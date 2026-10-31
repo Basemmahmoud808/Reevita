@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
   devIndicators: false,
   reactStrictMode: true,
   compress: true,
+  experimental: {
+    // Adds SHA-384 integrity attributes to emitted Next.js chunks at build
+    // time, so browsers can reject a modified script before it executes.
+    sri: { algorithm: "sha384" },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     qualities: [60, 70, 75, 80, 85, 90, 100],

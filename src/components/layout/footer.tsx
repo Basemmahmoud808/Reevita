@@ -6,11 +6,15 @@ import { SocialIconLinks } from "@/components/ui/social-icon";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
 
 const links = [
-  { href: "/checkout", label: "Checkout" },
+  { href: "/shop", label: "Shop all products" },
+  { href: "/collections", label: "Curated collections" },
+  { href: "/faq", label: "Frequently asked questions" },
 ];
 
 const careLinks = [
-  { href: "/checkout", label: "Complete your order" },
+  { href: "/contact", label: "Contact customer care" },
+  { href: "/track", label: "Track an order" },
+  { href: "/checkout", label: "Secure checkout" },
 ];
 
 export function Footer() {
@@ -19,7 +23,7 @@ export function Footer() {
     <footer className="reference-footer">
       <div className="reference-container grid gap-8 py-10 md:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
         <div>
-          <Link href="/" className="reference-wordmark">REEVITA</Link>
+          <Link href="/" aria-label="REEVITA home" className="reference-wordmark">REEVITA</Link>
           <p className="mt-2 text-xs text-[#77766e]">Pure Care. Lasting Beauty.</p>
           <SocialIconLinks className="mt-5" />
         </div>

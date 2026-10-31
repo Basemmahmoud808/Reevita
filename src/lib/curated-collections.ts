@@ -27,7 +27,8 @@ export const curatedCollectionDefinitions = [
   {
     slug: "complete-care-bundle",
     name: "Complete Care Bundle",
-    coverSetIndex: 0,
+    coverImage: "/images/collections/complete-care-bundle.jpg",
+    coverAspectRatio: "4 / 3",
     coverFit: "contain",
     sets: [
       { image: "/images/curated-collections/complete-care-bundle/set-01.jpg", aspectRatio: "3 / 2", productSlugs: ["shampoo-blueberry", "shower-gel-blueberry", "body-butter-ruby-musk", "body-lotion-ruby-musk", "body-splash-ruby-musk", "hair-mist-ruby-musk"] },
@@ -66,10 +67,9 @@ export function getCuratedCollectionOfferKey(collectionSlug: string): string {
   return `${collectionSlug}:collection`;
 }
 
-export function getCuratedSetDiscountPercent(productCount: number): number {
-  if (productCount === 2) return 11;
-  if (productCount >= 3) return 15;
-  return 0;
+export function getCuratedSetDiscountPercent(_productCount: number, collectionSlug?: string): number {
+  if (collectionSlug === "complete-care-bundle") return 25;
+  return 11;
 }
 
 /** The cover artwork is for choosing a collection; only the remaining photos are purchasable sets. */
@@ -77,9 +77,9 @@ export function getCuratedOfferDefinition(offerKey: string): CuratedOfferDefinit
   for (const collection of curatedCollectionDefinitions) {
     if (offerKey === getCuratedCollectionOfferKey(collection.slug)) {
       const productSlugs = collection.sets
-        .filter((_, index) => index !== collection.coverSetIndex)
+        .filter((_, index) => "coverImage" in collection || index !== collection.coverSetIndex)
         .flatMap((set) => set.productSlugs);
-      return { offerKey, kind: "collection", discountPercent: 25, productSlugs };
+      return { offerKey, kind: "collection", discountPercent: collection.slug === "complete-care-bundle" ? 25 : 11, productSlugs };
     }
 
     const match = offerKey.match(new RegExp(`^${collection.slug}:set:(\\d+)$`));
@@ -87,11 +87,11 @@ export function getCuratedOfferDefinition(offerKey: string): CuratedOfferDefinit
     const setNumber = Number(match[1]);
     const setIndex = setNumber - 1;
     const set = collection.sets[setIndex];
-    if (!set || setIndex === collection.coverSetIndex) return null;
+    if (!set || (!("coverImage" in collection) && setIndex === collection.coverSetIndex)) return null;
     return {
       offerKey,
       kind: "set",
-      discountPercent: getCuratedSetDiscountPercent(set.productSlugs.length),
+      discountPercent: getCuratedSetDiscountPercent(set.productSlugs.length, collection.slug),
       productSlugs: set.productSlugs,
     };
   }

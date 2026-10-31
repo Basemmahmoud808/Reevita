@@ -63,6 +63,9 @@ export function MobileMenu() {
           aria-label={t("closeMenu")}
         />
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={t("openMenu")}
           onClick={closeOnLinkClick}
           inert={!open}
           className={cn(

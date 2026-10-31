@@ -14,7 +14,7 @@ export function NavLinks({ onNavigate, className }: { onNavigate?: () => void; c
     { href: "/shop?category=body-lotion", label: t("bodyCare"), category: "body-lotion" },
     { href: "/shop?category=shampoo", label: t("hairCare"), category: "shampoo" },
     { href: "/#story", label: t("ourStory") },
-    { href: "/checkout", label: t("contact") },
+    { href: "/contact", label: t("contact") },
   ];
 
   return (

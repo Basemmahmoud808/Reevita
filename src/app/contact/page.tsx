@@ -4,8 +4,9 @@ import { Mail, MessageCircle, Phone } from "lucide-react";
 import { brand } from "@/lib/catalog";
 
 export const metadata: Metadata = {
-  title: "Contact us",
-  description: "Contact REEVITA customer care.",
+  title: "Contact REEVITA Customer Care in Egypt",
+  description: "Contact REEVITA customer care for help with products, delivery, your order or finding the right body and hair care ritual.",
+  alternates: { canonical: "/contact" },
 };
 
 export default function ContactPage() {

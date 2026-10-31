@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { TrackForm } from "@/components/orders/track-form";
 
 export const metadata: Metadata = {
-  title: "تتبع الطلب",
-  description: "تابع حالة طلب REEVITA باستخدام رقم الطلب ورقم الهاتف المسجل عند الشراء.",
+  title: "تتبع طلب REEVITA في مصر",
+  description: "تابع حالة طلب REEVITA بأمان باستخدام رقم الطلب ورقم الهاتف المسجل عند الشراء.",
+  robots: { index: false, follow: false },
 };
 
 export default async function TrackPage({ searchParams }: { searchParams: Promise<{ order?: string | string[] }> }) {

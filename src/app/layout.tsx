@@ -26,7 +26,6 @@ export const metadata: Metadata = {
   authors: [{ name: "REEVITA Cosmetics" }],
   creator: "REEVITA Cosmetics",
   publisher: "REEVITA Cosmetics",
-  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "en_US",

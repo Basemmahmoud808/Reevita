@@ -119,7 +119,7 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
   const products = await getProducts();
   const productBySlug = new Map(products.map((product) => [product.slug, product]));
   return curatedCollectionDefinitions.map((definition, index) => {
-    const purchasableSets = definition.sets.filter((_, setIndex) => setIndex !== definition.coverSetIndex);
+    const purchasableSets = definition.sets.filter((_, setIndex) => "coverImage" in definition || setIndex !== definition.coverSetIndex);
     const productSlugs = [...new Set(purchasableSets.flatMap((set) => set.productSlugs))];
     const productIds = productSlugs
       .map((productSlug) => productBySlug.get(productSlug)?.id)
@@ -130,8 +130,8 @@ export const getCollections = cache(async (): Promise<Collection[]> => {
       nameEn: definition.name,
       nameAr: definition.name,
       descriptionAr: "",
-      image: definition.sets[definition.coverSetIndex]!.image,
-      coverAspectRatio: definition.sets[definition.coverSetIndex]!.aspectRatio,
+      image: "coverImage" in definition ? definition.coverImage : definition.sets[definition.coverSetIndex]!.image,
+      coverAspectRatio: "coverAspectRatio" in definition ? definition.coverAspectRatio : definition.sets[definition.coverSetIndex]!.aspectRatio,
       coverFit: definition.coverFit,
       displayOrder: index + 1,
       isPublished: true,
@@ -157,7 +157,7 @@ export const getCollectionBySlug = cache(async (slug: string): Promise<{
   return {
     collection,
     products: (collection.productIds ?? []).map((id) => products.find((product) => product.id === id)).filter((product): product is Product => Boolean(product)),
-    sets: definition.sets.flatMap((set, index) => index === definition.coverSetIndex ? [] : [{
+    sets: definition.sets.flatMap((set, index) => !("coverImage" in definition) && index === definition.coverSetIndex ? [] : [{
       id: `${definition.slug}-set-${index + 1}`,
       offerKey: `${definition.slug}:set:${index + 1}`,
       image: set.image,

@@ -6,10 +6,10 @@ import { CollectionAddToBag, type PurchasableCollectionSet } from "@/components/
 import { getCuratedSetDiscountPercent } from "@/lib/curated-collections";
 import { formatEGP } from "@/lib/format";
 
-export function CuratedSetCard({ set, index, collectionName }: { set: PurchasableCollectionSet & { image: string; aspectRatio: string }; index: number; collectionName: string }) {
+export function CuratedSetCard({ set, index, collectionName, collectionSlug }: { set: PurchasableCollectionSet & { image: string; aspectRatio: string }; index: number; collectionName: string; collectionSlug: string }) {
   const total = set.components.reduce((sum, component) => sum + (component.product?.price ?? 0) * component.quantity, 0);
   const componentCount = set.components.reduce((sum, component) => sum + component.quantity, 0);
-  const discountPercent = getCuratedSetDiscountPercent(componentCount);
+  const discountPercent = getCuratedSetDiscountPercent(componentCount, collectionSlug);
   const discountedTotal = total - Math.round(total * discountPercent / 100);
 
   return (
@@ -26,7 +26,7 @@ export function CuratedSetCard({ set, index, collectionName }: { set: Purchasabl
         <span className="curated-set-number">SET {String(index + 1).padStart(2, "0")}</span>
       </div>
       <div className="curated-set-content">
-        <h2>Set {String(index + 1).padStart(2, "0")}</h2>
+        <h3>Set {String(index + 1).padStart(2, "0")}</h3>
         <ul className="curated-set-components">
           {set.components.map((component, componentIndex) => (
             <li key={`${component.slug}-${componentIndex}`}>
@@ -49,8 +49,8 @@ export function CuratedSetCard({ set, index, collectionName }: { set: Purchasabl
             <span className="curated-total-label">Set total</span>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
               <Price price={discountedTotal} size="lg" showDiscount={false} />
-              <span className="text-xs text-muted line-through">{formatEGP(total)}</span>
-              <span className="rounded-full bg-gold/20 px-2 py-1 text-[0.65rem] font-bold text-plum">Save {discountPercent}%</span>
+              {discountPercent > 0 ? <span className="text-xs text-muted line-through">{formatEGP(total)}</span> : null}
+              {discountPercent > 0 ? <span className="rounded-full bg-gold/20 px-2 py-1 text-[0.65rem] font-bold text-plum">Save {discountPercent}%</span> : null}
             </div>
           </div>
           <CollectionAddToBag sets={[set]} label="Add set to cart" offerKey={set.offerKey} discountPercent={discountPercent} />

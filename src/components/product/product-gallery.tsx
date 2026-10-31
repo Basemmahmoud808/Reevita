@@ -30,10 +30,10 @@ export function ProductGallery({
             src={current.url}
             alt={current.alt || name}
             fill
-            priority={priority}
+            loading={priority ? "eager" : "lazy"}
+            fetchPriority={priority ? "high" : "auto"}
             quality={85}
             sizes="(max-width: 1023px) 100vw, 55vw"
-            unoptimized={current.url.startsWith("/")}
             placeholder="blur"
             blurDataURL={blurForSlug(slug)}
             className="product-gallery-main-image"
@@ -61,7 +61,6 @@ export function ProductGallery({
                 fill
                 quality={60}
                 sizes="70px"
-                unoptimized={image.url.startsWith("/")}
                 placeholder="blur"
                 blurDataURL={blurForSlug(slug)}
                 className="object-cover"

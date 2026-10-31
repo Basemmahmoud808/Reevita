@@ -33,13 +33,15 @@ export async function generateMetadata({
     };
   }
 
+  const description = `${product.nameEn} by REEVITA — ${product.categoryNameEn.toLowerCase()} in ${product.size}${product.fragranceNameEn ? ` with ${product.fragranceNameEn} scent` : ""}. Shop body and hair care made in Egypt.`;
+
   return {
-    title: product.nameEn,
-    description: product.shortAr,
+    title: `${product.nameEn} | ${product.categoryNameEn}`,
+    description,
     alternates: { canonical: `${siteUrl}/products/${product.slug}` },
     openGraph: {
       title: product.nameEn,
-      description: product.shortAr,
+      description,
       url: `${siteUrl}/products/${product.slug}`,
       type: "website",
       images: product.images[0]?.url

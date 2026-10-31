@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { LogOut, ShieldCheck } from "lucide-react";
 import { requireAdmin } from "@/lib/auth/session";
 import { demoAdminSignOutAction, signOutAction } from "@/lib/actions/auth";
@@ -7,6 +8,12 @@ import { AdminNotifications } from "@/components/admin/admin-notifications";
 import { Logo } from "@/components/brand/logo";
 import { isDemoMode } from "@/lib/env";
 import { getAdminMetrics, getAdminOrders } from "@/lib/data/admin";
+
+export const metadata: Metadata = {
+  title: "REEVITA Store Administration",
+  description: "Private REEVITA store administration area.",
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const admin = await requireAdmin();

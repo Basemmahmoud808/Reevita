@@ -6,6 +6,9 @@ import { Footer } from "@/components/layout/footer";
 
 export function SiteChrome({ part }: { part: "header" | "footer" }) {
   const pathname = usePathname();
-  if (pathname === "/" || pathname.startsWith("/admin")) return null;
+  // The root layout owns the public chrome. Keeping it here (rather than
+  // duplicating it in individual pages) gives assistive technology one header,
+  // one footer and one set of social links on every storefront route.
+  if (pathname.startsWith("/admin")) return null;
   return part === "header" ? <Header /> : <Footer />;
 }

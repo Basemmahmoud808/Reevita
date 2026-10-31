@@ -4,7 +4,8 @@ import { LoginForm } from "@/components/account/auth-forms";
 import { isDemoMode } from "@/lib/env";
 
 export const metadata: Metadata = {
-  title: "Sign in",
+  title: "Sign In to Your REEVITA Account",
+  description: "Securely sign in to your private REEVITA customer account.",
   robots: { index: false, follow: false },
 };
 

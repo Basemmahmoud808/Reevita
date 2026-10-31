@@ -2,19 +2,17 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Heart } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { GroupedProductCard } from "@/components/product/product-card";
-import { SocialIconLinks } from "@/components/ui/social-icon";
-import { CartButton } from "@/components/cart/cart-button";
+import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { CuratedCollectionCover } from "@/components/collection/curated-collection-cover";
 import { blurForSlug } from "@/lib/images";
 import { featuredCollections } from "@/lib/catalog";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Collection, Product } from "@/lib/types";
 
 const storyImage = "/images/reevita-story.jpg";
 export function ReferenceHome({ products, collections = [] }: { products: Product[]; collections?: Collection[] }) {
-  const [wishlist, setWishlist] = useState(false);
   const collectionSlides = useMemo(() => collections.length > 0 ? collections : featuredCollections, [collections]);
   const groupedBestSellers = useMemo(() => {
     const categoryOrder = ["shampoo", "body-lotion", "body-butter", "body-splash", "hair-mist", "shower-gel"];
@@ -25,27 +23,15 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
 
   return (
     <div className="reference-home">
-      <header className="reference-header">
-        <div className="reference-container flex h-[74px] items-center justify-between">
-          <Link href="/" className="reference-wordmark">REEVITA</Link>
-          <div className="flex items-center gap-4">
-            <button type="button" aria-label="Wishlist" aria-pressed={wishlist} onClick={() => setWishlist((value) => !value)} className="reference-header-icon hidden sm:inline-flex">
-              <Heart className={`size-[17px] ${wishlist ? "fill-current" : ""}`} />
-            </button>
-            <CartButton className="reference-header-icon" />
-          </div>
-        </div>
-      </header>
-
       <main>
         <section className="reference-hero">
           <div className="reference-hero-media">
             <Image
-              src="/images/reevita-hero.png"
+              src="/images/reevita-hero.webp"
               alt="REEVITA hair mist surrounded by botanical ingredients"
               fill
-              priority
-              quality={90}
+              preload
+              quality={100}
               sizes="100vw"
               className="reference-hero-image object-cover"
             />
@@ -66,6 +52,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
           </div>
         </section>
 
+        <ScrollReveal>
         <section id="collections" aria-labelledby="collection-slider-title" className="reference-collection-slider reference-container scroll-mt-20 py-10 md:py-14">
           <div className="mb-5 flex items-end justify-between gap-4">
             <div>
@@ -79,8 +66,9 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
 
           {collectionSlides.length > 0 ? (
             <div className="curated-home-grid" aria-label="Curated REEVITA collections">
-              {collectionSlides.map((collection) => (
-                <Link key={collection.slug} href={`/collections/${collection.slug}`} className="curated-home-card group">
+              {collectionSlides.map((collection, index) => (
+                <ScrollReveal key={collection.slug} className="h-full" delayMs={index * 70}>
+                <Link href={`/collections/${collection.slug}`} className="curated-home-card group h-full">
                   <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
                   <div className="curated-home-card-copy">
                     <span className="reference-collection-eyebrow">{collection.setCount} SETS</span>
@@ -88,13 +76,16 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
                     <span className="curated-home-card-link">Explore collection <ArrowRight className="size-4" aria-hidden /></span>
                   </div>
                 </Link>
+                </ScrollReveal>
               ))}
             </div>
           ) : (
             <div className="reference-collection-empty">Collections are coming soon.</div>
           )}
         </section>
+        </ScrollReveal>
 
+        <ScrollReveal>
         <section id="best-sellers" className="reference-container scroll-mt-20 py-12 md:py-16">
           <div className="mb-7 flex items-end justify-between">
             <div>
@@ -106,17 +97,21 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
 
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
             {groupedBestSellers.map((variants, index) => (
-              <div key={variants[0]!.categorySlug} className="reference-product-card">
-                <GroupedProductCard products={variants} priority={index < 4} />
+              <ScrollReveal key={variants[0]!.categorySlug} className="h-full" delayMs={index * 55}>
+              <div className="reference-product-card">
+                <GroupedProductCard products={variants} />
               </div>
+              </ScrollReveal>
             ))}
           </div>
         </section>
+        </ScrollReveal>
 
+        <ScrollReveal>
         <section id="story" className="reference-container scroll-mt-20 pb-12 md:pb-16">
           <div className="reference-story">
             <div className="reference-story-media">
-              <Image src={storyImage} alt="REEVITA Ruby Musk hair mist" fill quality={80} sizes="(max-width: 767px) 38vw, 50vw" loading="lazy" placeholder="blur" blurDataURL={blurForSlug("story")} className="object-cover" />
+              <Image src={storyImage} alt="REEVITA Ruby Musk hair mist" fill quality={90} sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1200px) 50vw, 38rem" loading="lazy" placeholder="blur" blurDataURL={blurForSlug("story")} className="object-cover" />
             </div>
             <div className="reference-story-copy">
               <p className="reference-kicker">OUR PHILOSOPHY</p>
@@ -126,20 +121,9 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
             </div>
           </div>
         </section>
+        </ScrollReveal>
       </main>
 
-      <footer className="reference-footer">
-        <div className="reference-container grid gap-8 py-10 md:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
-          <div>
-            <p className="reference-wordmark">REEVITA</p>
-            <p className="mt-2 text-xs text-[#77766e]">Pure Care. Lasting Beauty.</p>
-            <SocialIconLinks className="mt-4" />
-          </div>
-          <div><p className="reference-footer-title">Quick Links</p><div className="mt-3 space-y-2 text-xs text-[#77766e]"><Link className="block" href="/">Home</Link><Link className="block" href="/checkout">Checkout</Link></div></div>
-          <div><p className="reference-footer-title">Customer Care</p><div className="mt-3 space-y-2 text-xs text-[#77766e]"><Link className="block" href="/checkout">Complete your order</Link></div></div>
-        </div>
-        <div className="reference-container flex justify-between border-t border-[#ded8cc] py-4 text-[0.6rem] text-[#99958a]"><span>© 2026 REEVITA. All rights reserved.</span><a href="https://www.facebook.com/share/1CWMusi43s/" target="_blank" rel="noreferrer" className="transition-colors hover:text-[#34483d]">Powered by Basem</a></div>
-      </footer>
     </div>
   );
 }

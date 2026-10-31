@@ -5,8 +5,9 @@ import { getProducts } from "@/lib/data/catalog";
 import { cn } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Shop",
-  description: "Shop REEVITA body care, hair care and beauty essentials.",
+  title: "Shop Body & Hair Care Products in Egypt",
+  description: "Explore REEVITA body lotions, body butters, shampoos, shower gels and signature mists for your everyday care ritual.",
+  alternates: { canonical: "/shop" },
 };
 
 type SearchParams = Promise<Record<string, string | string[] | undefined>>;

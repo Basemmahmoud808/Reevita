@@ -4,7 +4,7 @@ import { isDemoMode } from "@/lib/env";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
 
 export const metadata: Metadata = {
-  title: "Checkout — Cash on delivery",
+  title: "Secure REEVITA Checkout — Cash on Delivery",
   description: "Complete your REEVITA order with cash on delivery across Egypt.",
   robots: { index: false, follow: false },
 };

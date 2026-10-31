@@ -4,7 +4,8 @@ import { signOutAction } from "@/lib/actions/auth";
 import { getSessionUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
-  title: "My account",
+  title: "My REEVITA Account",
+  description: "View your private REEVITA account and order information.",
   robots: { index: false, follow: false },
 };
 

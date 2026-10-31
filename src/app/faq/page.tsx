@@ -3,8 +3,9 @@ import { Accordion } from "@/components/ui/accordion";
 import { faqs } from "@/lib/catalog";
 
 export const metadata: Metadata = {
-  title: "Frequently asked questions",
-  description: "Answers about REEVITA delivery, payment and returns.",
+  title: "REEVITA Delivery, Payment & Product FAQs",
+  description: "Find answers to common REEVITA questions about body and hair care products, cash on delivery, shipping and order support in Egypt.",
+  alternates: { canonical: "/faq" },
 };
 
 export default function FaqPage() {

@@ -10,26 +10,10 @@ import { curatedCollectionDefinitions } from "@/lib/curated-collections";
  */
 const catalog = catalogJson;
 
-const suppliedProductImages: Record<string, string> = {
-  "shampoo-dove": "/images/supplied/Gemini_Generated_Image_ozjt9ozjt9ozjt9o.jpg",
-  "shampoo-blueberry": "/images/supplied/Gemini_Generated_Image_echqdaechqdaechq.jpg",
-  "body-lotion-queen": "/images/supplied/Gemini_Generated_Image_gyp61agyp61agyp6.jpg",
-  "body-lotion-ruby-musk": "/images/supplied/Gemini_Generated_Image_odogaoodogaoodog.jpg",
-  "body-lotion-sexy": "/images/supplied/s.jpg",
-  "body-butter-sexy": "/images/supplied/Gemini_Generated_Image_yow1joyow1joyow1.jpg",
-  "body-butter-queen": "/images/supplied/Gemini_Generated_Image_bp52xsbp52xsbp52.jpg",
-  "body-butter-ruby-musk": "/images/supplied/Gemini_Generated_Image_x8eg2wx8eg2wx8eg.jpg",
-  "body-splash-sexy": "/images/supplied/Gemini_Generated_Image_z6nj55z6nj55z6nj.jpg",
-  "body-splash-queen": "/images/supplied/Gemini_Generated_Image_ko6hg2ko6hg2ko6h.jpg",
-  "body-splash-ruby-musk": "/images/supplied/Gemini_Generated_Image_rsfpt0rsfpt0rsfp.jpg",
-  "hair-mist-sexy": "/images/supplied/Gemini_Generated_Image_kj1ed5kj1ed5kj1e.jpg",
-  "hair-mist-queen": "/images/supplied/Gemini_Generated_Image_6q61gp6q61gp6q61.jpg",
-  "hair-mist-ruby-musk": "/images/supplied/Gemini_Generated_Image_b2l3jab2l3jab2l3.jpg",
-};
-
 export function getSuppliedProductImage(slug: string, name: string) {
-  const image = suppliedProductImages[slug] ?? suppliedProductImages[slug.replace(/-\d+$/, "")];
-  return image ? { url: image, alt: `${name} — ${brand.name}` } : undefined;
+  // Product assets are pre-compressed WebP files. Avoid falling back to the
+  // original multi-megabyte supplied JPEGs in the static/demo catalogue.
+  return { url: `/images/products/${slug.replace(/-\d+$/, "")}.webp`, alt: `${name} — ${brand.name}` };
 }
 
 export const brand = catalog.brand as Brand;
@@ -170,23 +154,26 @@ export const staticProducts: Product[] = attachProductSizeOptions(
   (catalog.products as RawProduct[]).filter((product) => product.isActive !== false).map(toProduct),
 );
 
-const curatedStaticCollections: Collection[] = curatedCollectionDefinitions.map((definition, index) => ({
-  id: `static-${definition.slug}`,
-  slug: definition.slug,
-  nameEn: definition.name,
-  nameAr: definition.name,
-  descriptionAr: "",
-  image: definition.sets[definition.coverSetIndex]!.image,
-  coverAspectRatio: definition.sets[definition.coverSetIndex]!.aspectRatio,
-  coverFit: definition.coverFit,
-  displayOrder: index + 1,
-  isPublished: true,
-  purchaseReady: true,
-  setCount: definition.sets.length,
-  productIds: [...new Set(definition.sets.flatMap((set) => set.productSlugs))]
-    .map((slug) => staticProducts.find((product) => product.slug === slug)?.id)
-    .filter((id): id is string => Boolean(id)),
-}));
+const curatedStaticCollections: Collection[] = curatedCollectionDefinitions.map((definition, index) => {
+  const purchasableSets = definition.sets.filter((_, setIndex) => "coverImage" in definition || setIndex !== definition.coverSetIndex);
+  return {
+    id: `static-${definition.slug}`,
+    slug: definition.slug,
+    nameEn: definition.name,
+    nameAr: definition.name,
+    descriptionAr: "",
+    image: "coverImage" in definition ? definition.coverImage : definition.sets[definition.coverSetIndex]!.image,
+    coverAspectRatio: "coverAspectRatio" in definition ? definition.coverAspectRatio : definition.sets[definition.coverSetIndex]!.aspectRatio,
+    coverFit: definition.coverFit,
+    displayOrder: index + 1,
+    isPublished: true,
+    purchaseReady: true,
+    setCount: purchasableSets.length,
+    productIds: [...new Set(purchasableSets.flatMap((set) => set.productSlugs))]
+      .map((slug) => staticProducts.find((product) => product.slug === slug)?.id)
+      .filter((id): id is string => Boolean(id)),
+  };
+});
 
 export const staticCollections: Collection[] = curatedStaticCollections;
 export const featuredCollections: Collection[] = curatedStaticCollections;
