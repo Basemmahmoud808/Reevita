@@ -126,8 +126,8 @@ NEXT_PUBLIC_ENABLE_ONLINE_PAYMENTS=false
 لإرسال تنبيه إلى تطبيق Telegram عند إنشاء طلب جديد:
 1. أنشئ بوتًا عبر `@BotFather`، ثم افتح محادثة البوت من حساب الإدارة واضغط **Start** وأرسل `/start`.
 2. أضف `TELEGRAM_BOT_TOKEN` إلى `.env.local` محليًا (ولا تشاركه أو تضعه في الواجهة).
-3. لكل شخص يجب أن يستلم الطلبات: افتح البوت من حسابه واضغط **Start** ثم أرسل `/start`، وبعدها استخرج أرقام المحادثات بأمان من الطرفية عبر `node --env-file=.env.local scripts/get-telegram-admin-chat-id.mjs`.
-4. أضف `TELEGRAM_BOT_TOKEN` و`TELEGRAM_ADMIN_CHAT_IDS` في Vercel → Project → Settings → Environment Variables لبيئة Production. اكتب كل أرقام المحادثات مفصولة بفاصلة، مثل `123456,789012`، ثم أعد النشر. يبقى `TELEGRAM_ADMIN_CHAT_ID` مدعومًا إذا كان هناك مستلم واحد فقط.
+3. بعد التفعيل لمرة واحدة، أي شخص يفتح البوت ويضغط **Start** أو يرسل `/start` يُضاف تلقائيًا إلى إشعارات الطلبات. ويمكنه الإيقاف بنفسه عبر `/stop`.
+4. تبقى `TELEGRAM_ADMIN_CHAT_IDS` و`TELEGRAM_ADMIN_CHAT_ID` مدعومة للمستلمين الثابتين عند الحاجة، لكن لم تعد مطلوبة لإضافة كل هاتف يدويًا.
 
 يرسل التنبيه رقم الطلب وإجماليه ورابط لوحة الإدارة. يجب أن يكون اتصال الإنترنت وإشعارات Telegram متاحين على الهاتف لوصول التنبيه.
 

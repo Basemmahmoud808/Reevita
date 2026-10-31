@@ -1,7 +1,9 @@
 import "server-only";
 
+import { timingSafeEqual } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
 import { formatEGP } from "@/lib/format";
-import { siteUrl } from "@/lib/env";
+import { isSupabaseConfigured, siteUrl, supabaseAnonKey, supabaseUrl } from "@/lib/env";
 
 type NewOrderNotice = {
   orderId: string;
@@ -22,7 +24,18 @@ export class TelegramNotificationError extends Error {
   }
 }
 
-function telegramCredentials() {
+type TelegramSubscriber = {
+  chat_id: string;
+};
+
+type TelegramChat = {
+  id?: number | string;
+  type?: string;
+  first_name?: string;
+  username?: string;
+};
+
+function configuredChatIds(): string[] {
   const chatIds = [
     process.env.TELEGRAM_ADMIN_CHAT_ID,
     process.env.TELEGRAM_ADMIN_CHAT_IDS,
@@ -31,15 +44,42 @@ function telegramCredentials() {
     .map((value) => value.trim())
     .filter(Boolean);
 
-  return {
-    token: process.env.TELEGRAM_BOT_TOKEN?.trim(),
-    chatIds: [...new Set(chatIds)],
-  };
+  return [...new Set(chatIds)];
 }
 
-export function telegramAdminConfigured(): boolean {
-  const { token, chatIds } = telegramCredentials();
-  return Boolean(token && chatIds.length > 0);
+function telegramToken(): string | undefined {
+  return process.env.TELEGRAM_BOT_TOKEN?.trim();
+}
+
+function telegramWorkerClient() {
+  const workerSecret = process.env.PUSH_WORKER_SECRET?.trim();
+  if (!isSupabaseConfigured || !workerSecret) return null;
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: { "x-reevita-push-secret": workerSecret } },
+  });
+}
+
+async function subscribedChatIds(): Promise<string[]> {
+  const supabase = telegramWorkerClient();
+  if (!supabase) return [];
+  const { data, error } = await supabase
+    .from("admin_telegram_subscribers")
+    .select("chat_id")
+    .eq("is_active", true);
+  if (error) {
+    console.error("[reevita] Telegram subscriber lookup failed");
+    return [];
+  }
+  return (data as TelegramSubscriber[] | null ?? []).map((subscriber) => subscriber.chat_id);
+}
+
+async function recipientChatIds(): Promise<string[]> {
+  return [...new Set([...configuredChatIds(), ...await subscribedChatIds()])];
+}
+
+export async function telegramAdminConfigured(): Promise<boolean> {
+  return Boolean(telegramToken() && (await recipientChatIds()).length > 0);
 }
 
 export function telegramNotificationErrorMessage(error: unknown): string {
@@ -58,7 +98,7 @@ async function sendTelegramMessage(
   text: string,
   button?: { label: string; url: string },
 ): Promise<void> {
-  const { token } = telegramCredentials();
+  const token = telegramToken();
   if (!token) throw new TelegramNotificationError("not_configured");
 
   let response: Response;
@@ -100,7 +140,8 @@ async function sendTelegramAdminMessage(
   text: string,
   button?: { label: string; url: string },
 ): Promise<number> {
-  const { token, chatIds } = telegramCredentials();
+  const token = telegramToken();
+  const chatIds = await recipientChatIds();
   if (!token || chatIds.length === 0) throw new TelegramNotificationError("not_configured");
 
   const results = await Promise.allSettled(
@@ -120,9 +161,48 @@ async function sendTelegramAdminMessage(
   return delivered;
 }
 
+/** Stores a private Telegram chat after its owner presses Start in the bot. */
+export async function registerTelegramSubscriber(chat: TelegramChat, active = true): Promise<boolean> {
+  if (chat.type !== "private" || chat.id === undefined) return false;
+  const supabase = telegramWorkerClient();
+  if (!supabase) return false;
+  const { error } = await supabase.from("admin_telegram_subscribers").upsert(
+    {
+      chat_id: String(chat.id),
+      first_name: chat.first_name?.slice(0, 120) ?? null,
+      username: chat.username?.slice(0, 120) ?? null,
+      is_active: active,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "chat_id" },
+  );
+  if (error) {
+    console.error("[reevita] Telegram subscriber update failed");
+    return false;
+  }
+  return true;
+}
+
+export function hasTelegramWebhookSecret(value: string | null): boolean {
+  const secret = process.env.PUSH_WORKER_SECRET?.trim();
+  if (!secret || !value) return false;
+  const expected = Buffer.from(secret);
+  const received = Buffer.from(value);
+  return expected.length === received.length && timingSafeEqual(expected, received);
+}
+
+export async function sendTelegramSubscriptionReply(chatId: string, text: string): Promise<void> {
+  try {
+    await sendTelegramMessage(chatId, text);
+  } catch (error) {
+    const code = error instanceof TelegramNotificationError ? error.code : "network";
+    console.error("[reevita] Telegram subscription reply failed", { code });
+  }
+}
+
 /** Sends a private Telegram message to every configured admin chat. */
 export async function notifyAdminViaTelegram(order: NewOrderNotice): Promise<void> {
-  if (!telegramAdminConfigured()) return;
+  if (!await telegramAdminConfigured()) return;
   try {
     await sendTelegramAdminMessage(
       `طلب جديد من ReeVita\nرقم الطلب: ${order.orderNumber}\nالإجمالي: ${formatEGP(order.total)}`,
@@ -140,7 +220,7 @@ export async function notifyAdminViaTelegram(order: NewOrderNotice): Promise<voi
 
 /** Sends a one-time configuration test from the authenticated admin dashboard. */
 export async function sendTelegramAdminTest(): Promise<number> {
-  if (!telegramAdminConfigured()) throw new TelegramNotificationError("not_configured");
+  if (!await telegramAdminConfigured()) throw new TelegramNotificationError("not_configured");
   return sendTelegramAdminMessage(
     "رسالة اختبار من ReeVita: إعداد إشعارات الطلبات يعمل.",
   );
