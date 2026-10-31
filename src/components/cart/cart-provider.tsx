@@ -49,6 +49,9 @@ interface CartContextValue {
   count: number;
   subtotal: number;
   discountAmount: number;
+  bundleDiscountAmount: number;
+  volumeDiscountAmount: number;
+  volumeDiscountPercent: number;
   subtotalAfterDiscount: number;
   freeShippingRemaining: number;
   freeShippingThreshold: number;
@@ -169,18 +172,27 @@ function sanitizeCart(value: unknown): CartState {
   return { lines, curatedOffers: pruneOffers(sanitizeOffers(stored.curatedOffers), lines) };
 }
 
-function getOfferDiscount(offers: CuratedOfferSelection[], lines: CartLine[]): number {
+function getDiscountBreakdown(offers: CuratedOfferSelection[], lines: CartLine[]) {
   const lineBySlug = new Map(lines.map((line) => [line.slug, line]));
-  const discount = offers.reduce((sum, offer) => {
+  const covered = new Map<string, number>();
+  const bundleDiscountAmount = offers.reduce((sum, offer) => {
     const definition = getCuratedOfferDefinition(offer.offerKey);
     if (!definition) return sum;
+    for (const slug of definition.productSlugs) covered.set(slug, (covered.get(slug) ?? 0) + offer.quantity);
     const offerTotal = definition.productSlugs.reduce(
       (offerSum, slug) => offerSum + (lineBySlug.get(slug)?.price ?? 0),
       0,
     ) * offer.quantity;
     return sum + Math.round(offerTotal * definition.discountPercent / 100);
   }, 0);
-  return Math.min(discount, lines.reduce((sum, line) => sum + line.price * line.quantity, 0));
+  const count = lines.reduce((sum, line) => sum + line.quantity, 0);
+  const volumeDiscountPercent = count >= 3 ? 15 : count === 2 ? 11 : 0;
+  const uncoveredSubtotal = lines.reduce((sum, line) =>
+    sum + line.price * Math.max(0, line.quantity - (covered.get(line.slug) ?? 0)), 0);
+  const volumeDiscountAmount = Math.round(uncoveredSubtotal * volumeDiscountPercent / 100);
+  const subtotal = lines.reduce((sum, line) => sum + line.price * line.quantity, 0);
+  const discountAmount = Math.min(bundleDiscountAmount + volumeDiscountAmount, subtotal);
+  return { discountAmount, bundleDiscountAmount, volumeDiscountAmount, volumeDiscountPercent };
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
@@ -325,7 +337,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clear = useCallback(() => setCart({ lines: [], curatedOffers: [] }), []);
 
   const subtotal = useMemo(() => lines.reduce((sum, line) => sum + line.price * line.quantity, 0), [lines]);
-  const discountAmount = useMemo(() => getOfferDiscount(curatedOffers, lines), [curatedOffers, lines]);
+  const discounts = useMemo(() => getDiscountBreakdown(curatedOffers, lines), [curatedOffers, lines]);
+  const { discountAmount, bundleDiscountAmount, volumeDiscountAmount, volumeDiscountPercent } = discounts;
   const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
   const count = useMemo(() => lines.reduce((sum, line) => sum + line.quantity, 0), [lines]);
   const freeShippingThreshold = brand.freeShippingThreshold;
@@ -338,6 +351,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       count,
       subtotal,
       discountAmount,
+      bundleDiscountAmount,
+      volumeDiscountAmount,
+      volumeDiscountPercent,
       subtotalAfterDiscount,
       freeShippingRemaining,
       freeShippingThreshold,
@@ -358,6 +374,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       count,
       subtotal,
       discountAmount,
+      bundleDiscountAmount,
+      volumeDiscountAmount,
+      volumeDiscountPercent,
       subtotalAfterDiscount,
       freeShippingRemaining,
       freeShippingThreshold,

@@ -27,9 +27,9 @@ export const curatedCollectionDefinitions = [
   {
     slug: "complete-care-bundle",
     name: "Complete Care Bundle",
-    coverImage: "/images/collections/complete-care-bundle.jpg",
-    coverAspectRatio: "4 / 3",
-    coverFit: "contain",
+    coverImage: "/images/curated-collections/complete-care-bundle/set-01.jpg",
+    coverAspectRatio: "3 / 2",
+    coverFit: "cover",
     sets: [
       { image: "/images/curated-collections/complete-care-bundle/set-01.jpg", aspectRatio: "3 / 2", productSlugs: ["shampoo-blueberry", "shower-gel-blueberry", "body-butter-ruby-musk", "body-lotion-ruby-musk", "body-splash-ruby-musk", "hair-mist-ruby-musk"] },
       { image: "/images/curated-collections/complete-care-bundle/set-02.jpg", aspectRatio: "3 / 2", productSlugs: ["shampoo-dove", "shower-gel-dove", "body-butter-queen", "body-lotion-queen", "body-splash-queen", "hair-mist-sexy"] },
@@ -67,9 +67,10 @@ export function getCuratedCollectionOfferKey(collectionSlug: string): string {
   return `${collectionSlug}:collection`;
 }
 
-export function getCuratedSetDiscountPercent(_productCount: number, collectionSlug?: string): number {
-  if (collectionSlug === "complete-care-bundle") return 25;
-  return 11;
+export function getCuratedSetDiscountPercent(productCount: number, _collectionSlug?: string): number {
+  if (productCount >= 3) return 15;
+  if (productCount === 2) return 11;
+  return 0;
 }
 
 /** The cover artwork is for choosing a collection; only the remaining photos are purchasable sets. */

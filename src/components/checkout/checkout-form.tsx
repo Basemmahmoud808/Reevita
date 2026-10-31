@@ -16,7 +16,7 @@ export function CheckoutForm({
   governorates: Governorate[];
   isDemo: boolean;
 }) {
-  const { lines, curatedOffers, subtotal, discountAmount, subtotalAfterDiscount, ready } = useCart();
+  const { lines, curatedOffers, subtotal, bundleDiscountAmount, volumeDiscountAmount, volumeDiscountPercent, subtotalAfterDiscount, ready } = useCart();
   const [state, formAction, pending] = useActionState<CheckoutFormState | null, FormData>(
     placeOrderAction,
     null,
@@ -372,10 +372,16 @@ export function CheckoutForm({
                 <dt className="text-muted">Subtotal</dt>
                 <dd className="font-semibold text-plum">{formatEGP(subtotal)}</dd>
               </div>
-              {discountAmount > 0 && (
+              {volumeDiscountAmount > 0 && (
+                <div className="flex items-center justify-between text-emerald-800">
+                  <dt>Multi-buy discount ({volumeDiscountPercent}%)</dt>
+                  <dd className="font-bold">−{formatEGP(volumeDiscountAmount)}</dd>
+                </div>
+              )}
+              {bundleDiscountAmount > 0 && (
                 <div className="flex items-center justify-between text-emerald-800">
                   <dt>Bundle savings</dt>
-                  <dd className="font-bold">−{formatEGP(discountAmount)}</dd>
+                  <dd className="font-bold">−{formatEGP(bundleDiscountAmount)}</dd>
                 </div>
               )}
               <div className="flex items-center justify-between">

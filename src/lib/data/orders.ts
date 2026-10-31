@@ -61,7 +61,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
   const supabase = await createSupabaseServerClient();
   if (!supabase) throw new OrderError("UNKNOWN");
 
-  const { data, error } = await supabase.rpc("place_order_with_curated_offers", {
+  const { data, error } = await supabase.rpc("place_order_with_volume_discount", {
     p_customer_name: payload.customerName,
     p_customer_phone: payload.customerPhone,
     p_customer_email: payload.customerEmail ?? null,

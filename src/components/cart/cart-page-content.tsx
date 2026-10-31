@@ -7,7 +7,7 @@ import { CartLineItem } from "@/components/cart/cart-line-item";
 import { formatEGP } from "@/lib/format";
 
 export function CartPageContent() {
-  const { lines, subtotal, discountAmount, subtotalAfterDiscount, count, freeShippingRemaining, freeShippingThreshold, ready } = useCart();
+  const { lines, subtotal, bundleDiscountAmount, volumeDiscountAmount, volumeDiscountPercent, subtotalAfterDiscount, count, freeShippingRemaining, freeShippingThreshold, ready } = useCart();
 
   if (!ready) {
     return (
@@ -74,10 +74,16 @@ export function CartPageContent() {
                 <dt className="text-muted">Subtotal</dt>
                 <dd className="font-bold text-plum">{formatEGP(subtotal)}</dd>
               </div>
-              {discountAmount > 0 && (
+              {volumeDiscountAmount > 0 && (
+                <div className="flex items-center justify-between text-emerald-800">
+                  <dt>Multi-buy discount ({volumeDiscountPercent}%)</dt>
+                  <dd className="font-bold">−{formatEGP(volumeDiscountAmount)}</dd>
+                </div>
+              )}
+              {bundleDiscountAmount > 0 && (
                 <div className="flex items-center justify-between text-emerald-800">
                   <dt>Bundle savings</dt>
-                  <dd className="font-bold">−{formatEGP(discountAmount)}</dd>
+                  <dd className="font-bold">−{formatEGP(bundleDiscountAmount)}</dd>
                 </div>
               )}
               <div className="flex items-center justify-between">

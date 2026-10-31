@@ -16,6 +16,9 @@ export function CartDrawer() {
     count,
     subtotal,
     discountAmount,
+    bundleDiscountAmount,
+    volumeDiscountAmount,
+    volumeDiscountPercent,
     subtotalAfterDiscount,
     freeShippingRemaining,
     freeShippingThreshold,
@@ -50,7 +53,7 @@ export function CartDrawer() {
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <header className="flex items-center justify-between border-b border-line px-5 py-5">
+        <div className="flex items-center justify-between border-b border-line px-5 py-5">
           <div>
             <p className="eyebrow-plain text-[0.6rem] text-gold-deep">YOUR RITUAL</p>
             <h2 className="display-md mt-1 flex items-center gap-2">
@@ -68,7 +71,7 @@ export function CartDrawer() {
           >
             <X className="size-5" aria-hidden />
           </button>
-        </header>
+        </div>
 
         {lines.length > 0 && (
           <div className="border-b border-line bg-cream/60 px-5 py-3.5">
@@ -116,15 +119,21 @@ export function CartDrawer() {
         </div>
 
         {lines.length > 0 && (
-          <footer className="border-t border-line bg-white/70 px-5 py-5">
+          <div className="border-t border-line bg-white/70 px-5 py-5">
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted">Subtotal</span>
               <span className="text-lg font-bold text-plum">{formatEGP(subtotal)}</span>
             </div>
-            {discountAmount > 0 && (
+            {volumeDiscountAmount > 0 && (
+              <div className="mt-2 flex items-center justify-between text-sm text-emerald-800">
+                <span>Multi-buy discount ({volumeDiscountPercent}%)</span>
+                <span className="font-bold">−{formatEGP(volumeDiscountAmount)}</span>
+              </div>
+            )}
+            {bundleDiscountAmount > 0 && (
               <div className="mt-2 flex items-center justify-between text-sm text-emerald-800">
                 <span>Bundle savings</span>
-                <span className="font-bold">−{formatEGP(discountAmount)}</span>
+                <span className="font-bold">−{formatEGP(bundleDiscountAmount)}</span>
               </div>
             )}
             {discountAmount > 0 && (
@@ -147,7 +156,7 @@ export function CartDrawer() {
             >
               Continue shopping
             </button>
-          </footer>
+          </div>
         )}
       </aside>
     </div>

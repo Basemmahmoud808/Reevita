@@ -249,6 +249,7 @@ export function demoPlaceOrder(input: {
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const quantitiesBySlug = new Map(items.map(({ product, quantity }) => [product.slug, quantity]));
   const claimedBySlug = new Map<string, number>();
+  const coveredBySlug = new Map<string, number>();
   let discountAmount = 0;
   for (const offer of input.curatedOffers ?? []) {
     const definition = getCuratedOfferDefinition(offer.offerKey);
@@ -259,11 +260,17 @@ export function demoPlaceOrder(input: {
       const next = (claimedBySlug.get(slug) ?? 0) + required;
       if (next > (quantitiesBySlug.get(slug) ?? 0)) throw new Error("INVALID_BUNDLE_OFFER: Collection contents do not match the bag");
       claimedBySlug.set(slug, next);
+      coveredBySlug.set(slug, (coveredBySlug.get(slug) ?? 0) + required);
     }
     const productBySlug = new Map(items.map(({ product }) => [product.slug, product]));
     const offerTotal = definition.productSlugs.reduce((sum, slug) => sum + (productBySlug.get(slug)?.price ?? 0), 0) * offer.quantity;
     discountAmount += Math.round(offerTotal * definition.discountPercent / 100);
   }
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const volumeDiscountPercent = itemCount >= 3 ? 15 : itemCount === 2 ? 11 : 0;
+  const uncoveredSubtotal = items.reduce((sum, item) =>
+    sum + item.product.price * Math.max(0, item.quantity - (coveredBySlug.get(item.product.slug) ?? 0)), 0);
+  discountAmount += Math.round(uncoveredSubtotal * volumeDiscountPercent / 100);
   const shippingFee = subtotal >= governorate.freeShippingThreshold ? 0 : governorate.shippingCost;
   const total = subtotal - discountAmount + shippingFee;
   orderSequence += 1;

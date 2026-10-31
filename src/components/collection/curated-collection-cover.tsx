@@ -19,12 +19,13 @@ export function CuratedCollectionCover({
   return (
     <div className="curated-collection-cover">
       {isContained ? (
-        <Image src={image} alt="" aria-hidden fill sizes={sizes} className="curated-collection-cover-backdrop" />
+        <Image src={image} alt="" aria-hidden fill quality={85} sizes={sizes} className="curated-collection-cover-backdrop" />
       ) : null}
       <Image
         src={image}
         alt={alt}
         fill
+        quality={85}
         sizes={sizes}
         className={`curated-collection-cover-image ${isContained ? "is-contained" : "is-cropped"}`}
       />

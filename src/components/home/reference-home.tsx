@@ -31,7 +31,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
               alt="REEVITA hair mist surrounded by botanical ingredients"
               fill
               preload
-              quality={100}
+              quality={90}
               sizes="100vw"
               className="reference-hero-image object-cover"
             />
@@ -69,7 +69,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
               {collectionSlides.map((collection, index) => (
                 <ScrollReveal key={collection.slug} className="h-full" delayMs={index * 70}>
                 <Link href={`/collections/${collection.slug}`} className="curated-home-card group h-full">
-                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
+                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 639px) 50vw, (max-width: 1023px) 50vw, 25vw" />
                   <div className="curated-home-card-copy">
                     <span className="reference-collection-eyebrow">{collection.setCount} SETS</span>
                     <span className="curated-home-card-title">{collection.nameEn}</span>

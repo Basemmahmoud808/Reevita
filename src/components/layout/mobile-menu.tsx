@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, Menu, X } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
-import { NavLinks } from "@/components/layout/nav-links";
 import { categories } from "@/lib/catalog";
 import { cn } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
@@ -87,10 +86,6 @@ export function MobileMenu() {
           </div>
 
           <div className="flex-1 overflow-y-auto px-5 py-6">
-            <NavLinks onNavigate={() => setOpen(false)} className="flex-col items-start gap-5" />
-
-            <div className="my-6 gold-rule" />
-
             <p className="eyebrow-plain mb-3 text-[0.6rem] text-gold-deep">{t("menuShopByType")}</p>
             <ul className="space-y-2">
               {categories.map((category) => (
