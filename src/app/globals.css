@@ -2739,9 +2739,13 @@ body {
   inset: 0;
   width: 100%;
   height: 100%;
+  overflow: hidden;
 }
 
 .reference-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   object-position: 62% center;
 }
 
