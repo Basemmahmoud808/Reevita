@@ -6,7 +6,9 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get("code");
   const next = url.searchParams.get("next") ?? "/account";
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/account";
+  // These are the only callback destinations used by the storefront. An exact
+  // allowlist avoids URL parser edge cases such as slash-backslash redirects.
+  const safeNext = next === "/admin" ? "/admin" : "/account";
 
   if (code) {
     const supabase = await createSupabaseServerClient();
@@ -28,6 +30,5 @@ export async function GET(request: Request) {
       }
     }
   }
-  const returnToAdmin = new URL(request.url).searchParams.get("next") === "/admin";
-  redirect(returnToAdmin ? "/admin/login?error=callback" : "/account/login?error=callback");
+  redirect(safeNext === "/admin" ? "/admin/login?error=callback" : "/account/login?error=callback");
 }

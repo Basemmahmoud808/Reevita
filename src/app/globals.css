@@ -2695,3 +2695,116 @@ body {
     transition: none;
   }
 }
+
+/* Keep the hero photo edge-to-edge; place dark copy directly on its beige negative space. */
+.reference-hero {
+  display: block;
+  background: transparent;
+}
+
+.reference-hero-media {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.reference-hero-image {
+  object-position: 62% center;
+}
+
+.reference-hero-overlay {
+  display: none;
+}
+
+.reference-hero-content {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  min-height: 0;
+  align-items: center;
+  padding: clamp(1.25rem, 5vw, 4rem);
+  background: transparent;
+}
+
+.reference-hero-copy {
+  width: min(46%, 35rem);
+  max-width: 35rem;
+  transform: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  box-shadow: none;
+  color: #314137;
+}
+
+.reference-hero-copy .reference-kicker {
+  color: #80643b;
+}
+
+.reference-hero h1 {
+  max-width: 18ch;
+  color: #26392e;
+  text-shadow: 0 1px 12px rgba(247, 243, 235, 0.28);
+}
+
+.reference-hero-copy > p:not(.reference-kicker) {
+  color: #3c473f;
+  text-shadow: 0 1px 10px rgba(247, 243, 235, 0.32);
+}
+
+.reference-hero-copy .reference-button {
+  border-color: #34483d;
+  background: #34483d;
+  color: #fffdf8;
+}
+
+.reference-hero-copy .reference-button:hover {
+  border-color: #24362d;
+  background: #24362d;
+  color: #fffdf8;
+}
+
+.reference-hero-copy .reference-outline-button {
+  border-color: rgba(49, 65, 55, 0.82);
+  background: rgba(247, 243, 235, 0.12);
+  color: #26392e;
+}
+
+.reference-hero-copy .reference-outline-button:hover {
+  background: rgba(247, 243, 235, 0.35);
+  color: #26392e;
+}
+
+@media (max-width: 639px) {
+  .reference-hero-image {
+    object-position: 60% center;
+  }
+
+  .reference-hero-content {
+    padding: 1.35rem 1.1rem;
+  }
+
+  .reference-hero-copy {
+    width: min(74%, 22rem);
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .reference-hero-copy {
+    width: min(52%, 27rem);
+  }
+}
+
+@media (min-width: 1024px) {
+  .reference-hero {
+    min-height: clamp(36rem, calc(100svh - 74px), 48rem);
+    margin: 1rem clamp(24px, 4vw, 56px);
+  }
+
+  .reference-hero-content {
+    padding: clamp(2.5rem, 6vw, 6rem);
+  }
+}
