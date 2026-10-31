@@ -53,7 +53,7 @@ export function CuratedSetCard({ set, index, collectionName, collectionSlug }: {
               {discountPercent > 0 ? <span className="rounded-full bg-gold/20 px-2 py-1 text-[0.65rem] font-bold text-plum">Save {discountPercent}%</span> : null}
             </div>
           </div>
-          <CollectionAddToBag sets={[set]} label="Add set to cart" offerKey={set.offerKey} discountPercent={discountPercent} />
+          <CollectionAddToBag set={set} label="Add set to cart" discountPercent={discountPercent} />
         </div>
       </div>
     </article>

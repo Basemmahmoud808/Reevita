@@ -18,8 +18,11 @@ export async function POST(request: Request) {
   if (!isSameOrigin(request)) return NextResponse.json({ error: "طلب غير صالح" }, { status: 403 });
 
   try {
-    await sendTelegramAdminTest();
-    return NextResponse.json({ success: true, message: "تم إرسال رسالة الاختبار إلى Telegram." });
+    const delivered = await sendTelegramAdminTest();
+    return NextResponse.json({
+      success: true,
+      message: `تم إرسال رسالة الاختبار إلى ${delivered} ${delivered === 1 ? "مستلم" : "مستلمين"} على Telegram.`,
+    });
   } catch (error) {
     const message = telegramNotificationErrorMessage(error);
     console.error("[reevita] admin Telegram test failed", {

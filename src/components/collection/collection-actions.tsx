@@ -18,10 +18,10 @@ export interface PurchasableCollectionSet {
   components: PurchasableCollectionComponent[];
 }
 
-export function CollectionAddToBag({ sets, label, offerKey, discountPercent, className }: { sets: PurchasableCollectionSet[]; label: string; offerKey: string; discountPercent: number; className?: string }) {
+export function CollectionAddToBag({ set, label, discountPercent, className }: { set: PurchasableCollectionSet; label: string; discountPercent: number; className?: string }) {
   const { addCuratedItems } = useCart();
   const [isAdding, setIsAdding] = useState(false);
-  const components = sets.flatMap((set) => set.components);
+  const components = set.components;
   const missing = components.filter((component) => !component.product);
   const outOfStock = components.filter((component) => component.product?.stockStatus === "out_of_stock");
   const blockers = [...new Set([
@@ -36,7 +36,7 @@ export function CollectionAddToBag({ sets, label, offerKey, discountPercent, cla
     const products = components.flatMap((component) =>
       Array.from({ length: component.quantity }, () => component.product!),
     );
-    addCuratedItems(products, offerKey);
+    addCuratedItems(products, set.offerKey);
     window.setTimeout(() => setIsAdding(false), 700);
   };
 

@@ -23,15 +23,23 @@ export class TelegramNotificationError extends Error {
 }
 
 function telegramCredentials() {
+  const chatIds = [
+    process.env.TELEGRAM_ADMIN_CHAT_ID,
+    process.env.TELEGRAM_ADMIN_CHAT_IDS,
+  ]
+    .flatMap((value) => value?.split(/[\s,]+/) ?? [])
+    .map((value) => value.trim())
+    .filter(Boolean);
+
   return {
     token: process.env.TELEGRAM_BOT_TOKEN?.trim(),
-    chatId: process.env.TELEGRAM_ADMIN_CHAT_ID?.trim(),
+    chatIds: [...new Set(chatIds)],
   };
 }
 
 export function telegramAdminConfigured(): boolean {
-  const { token, chatId } = telegramCredentials();
-  return Boolean(token && chatId);
+  const { token, chatIds } = telegramCredentials();
+  return Boolean(token && chatIds.length > 0);
 }
 
 export function telegramNotificationErrorMessage(error: unknown): string {
@@ -46,11 +54,12 @@ export function telegramNotificationErrorMessage(error: unknown): string {
 }
 
 async function sendTelegramMessage(
+  chatId: string,
   text: string,
   button?: { label: string; url: string },
 ): Promise<void> {
-  const { token, chatId } = telegramCredentials();
-  if (!token || !chatId) throw new TelegramNotificationError("not_configured");
+  const { token } = telegramCredentials();
+  if (!token) throw new TelegramNotificationError("not_configured");
 
   let response: Response;
   try {
@@ -86,11 +95,36 @@ async function sendTelegramMessage(
   }
 }
 
-/** Sends a private Telegram message to the configured admin chat. */
+/** Delivers a notice independently to every configured Telegram admin chat. */
+async function sendTelegramAdminMessage(
+  text: string,
+  button?: { label: string; url: string },
+): Promise<number> {
+  const { token, chatIds } = telegramCredentials();
+  if (!token || chatIds.length === 0) throw new TelegramNotificationError("not_configured");
+
+  const results = await Promise.allSettled(
+    chatIds.map((chatId) => sendTelegramMessage(chatId, text, button)),
+  );
+  const delivered = results.filter((result) => result.status === "fulfilled").length;
+  if (delivered === 0) {
+    const failure = results.find((result): result is PromiseRejectedResult => result.status === "rejected");
+    throw failure?.reason ?? new TelegramNotificationError("network");
+  }
+  if (delivered !== chatIds.length) {
+    console.error("[reevita] one or more Telegram admin chats could not be notified", {
+      delivered,
+      configured: chatIds.length,
+    });
+  }
+  return delivered;
+}
+
+/** Sends a private Telegram message to every configured admin chat. */
 export async function notifyAdminViaTelegram(order: NewOrderNotice): Promise<void> {
   if (!telegramAdminConfigured()) return;
   try {
-    await sendTelegramMessage(
+    await sendTelegramAdminMessage(
       `طلب جديد من ReeVita\nرقم الطلب: ${order.orderNumber}\nالإجمالي: ${formatEGP(order.total)}`,
       {
         label: "فتح الطلب في لوحة الإدارة",
@@ -105,9 +139,9 @@ export async function notifyAdminViaTelegram(order: NewOrderNotice): Promise<voi
 }
 
 /** Sends a one-time configuration test from the authenticated admin dashboard. */
-export async function sendTelegramAdminTest(): Promise<void> {
+export async function sendTelegramAdminTest(): Promise<number> {
   if (!telegramAdminConfigured()) throw new TelegramNotificationError("not_configured");
-  await sendTelegramMessage(
+  return sendTelegramAdminMessage(
     "رسالة اختبار من ReeVita: إعداد إشعارات الطلبات يعمل.",
   );
 }
