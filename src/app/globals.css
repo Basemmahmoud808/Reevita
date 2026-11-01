@@ -2815,17 +2815,27 @@ body {
 }
 
 @media (max-width: 639px) {
+  .reference-hero {
+    min-height: clamp(34rem, 75svh, 44rem);
+  }
+
   .reference-hero-image {
-    /* Keep the hair mist centred in the narrow portrait crop. */
-    object-position: 74% center;
+    /* Preserve clear space for the copy while keeping the bottle fully visible. */
+    object-position: 58% center;
+  }
+
+  .reference-hero-overlay {
+    display: block;
+    background: linear-gradient(90deg, rgba(247, 243, 235, 0.76) 0%, rgba(247, 243, 235, 0.44) 46%, rgba(247, 243, 235, 0) 76%);
   }
 
   .reference-hero-content {
-    padding: 1.35rem 1.1rem;
+    align-items: flex-start;
+    padding: 2rem 1.1rem;
   }
 
   .reference-hero-copy {
-    width: min(74%, 22rem);
+    width: min(68%, 22rem);
   }
 }
 

@@ -67,7 +67,8 @@ export function getCuratedCollectionOfferKey(collectionSlug: string): string {
   return `${collectionSlug}:collection`;
 }
 
-export function getCuratedSetDiscountPercent(productCount: number, _collectionSlug?: string): number {
+export function getCuratedSetDiscountPercent(productCount: number, collectionSlug?: string): number {
+  if (collectionSlug === "complete-care-bundle") return 25;
   if (productCount >= 3) return 15;
   if (productCount === 2) return 11;
   return 0;
