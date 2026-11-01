@@ -2289,7 +2289,9 @@ body {
 @media (min-width: 1024px) {
   .reference-hero {
     min-height: clamp(36rem, calc(100svh - 74px), 48rem);
-    margin: 1rem clamp(24px, 4vw, 56px);
+    margin: 0;
+    border: 0;
+    border-radius: 0;
   }
 
   .reference-hero-image {
@@ -2848,7 +2850,9 @@ body {
 @media (min-width: 1024px) {
   .reference-hero {
     min-height: clamp(36rem, calc(100svh - 74px), 48rem);
-    margin: 1rem clamp(24px, 4vw, 56px);
+    margin: 0;
+    border: 0;
+    border-radius: 0;
   }
 
   .reference-hero-content {
