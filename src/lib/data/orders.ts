@@ -33,7 +33,7 @@ export class OrderError extends Error {
 
 export function errorFromSupabase(message: string): OrderError {
   const code = message.match(/^([A-Z_]{3,}):/)?.[1] ?? "UNKNOWN";
-  return new OrderError(code);
+  return new OrderError(code, message);
 }
 
 export async function placeOrder(payload: CheckoutPayload, ipAddress: string | null): Promise<PlacedOrder> {

@@ -103,7 +103,7 @@ export async function deleteOrderAction(
       return { error: "الطلب غير موجود أو تم حذفه بالفعل." };
     }
     console.error("[reevita] order deletion failed", error);
-    return { error: "تعذّر حذف الطلب." };
+    return { error: error instanceof OrderError ? `تعذّر حذف الطلب: ${error.message}` : "تعذّر حذف الطلب." };
   }
 }
 
