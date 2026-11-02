@@ -349,6 +349,13 @@ export function demoOrder(orderNumber: string): DemoOrder | undefined {
   return orders.find((order) => order.orderNumber.toLowerCase() === orderNumber.trim().toLowerCase());
 }
 
+export function demoDeleteOrder(orderId: string): boolean {
+  const index = orders.findIndex((order) => order.id === orderId);
+  if (index === -1) return false;
+  orders.splice(index, 1);
+  return true;
+}
+
 export function demoTrackOrder(orderNumber: string, phone: string): TrackedOrder {
   const normalized = normalizeEgyptianPhone(phone);
   const order = demoOrder(orderNumber);

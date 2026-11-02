@@ -7,6 +7,7 @@ import {
   demoMetrics,
   demoOrder,
   demoOrders,
+  demoDeleteOrder,
   demoUpdateInventory,
   demoUpdateOrderStatus,
   demoUpdateShippingRate,
@@ -303,6 +304,23 @@ export async function updateOrderStatus(input: {
     p_tracking_number: input.trackingNumber ?? null,
   });
   if (error) throw errorFromSupabase(error.message);
+}
+
+export async function deleteOrder(orderId: string): Promise<void> {
+  if (!isSupabaseConfigured) {
+    if (!demoDeleteOrder(orderId)) throw new OrderError("ORDER_NOT_FOUND");
+    return;
+  }
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) throw new OrderError("UNKNOWN");
+  const { data, error } = await supabase
+    .from("orders")
+    .delete()
+    .eq("id", orderId)
+    .select("id")
+    .maybeSingle();
+  if (error) throw errorFromSupabase(error.message);
+  if (!data) throw new OrderError("ORDER_NOT_FOUND");
 }
 
 export interface InventoryItem {

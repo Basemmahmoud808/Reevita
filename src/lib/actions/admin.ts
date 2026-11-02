@@ -5,6 +5,7 @@ import { getAdminSession } from "@/lib/auth/session";
 import {
   updateInventory,
   updateOrderStatus,
+  deleteOrder,
   updateProductFlags,
   replaceProductImage,
   archiveProduct,
@@ -76,6 +77,33 @@ export async function updateOrderStatusAction(
     if (error instanceof OrderError) return { error: error.message };
     console.error("[reevita] status update failed", error);
     return { error: "تعذّر تحديث الطلب." };
+  }
+}
+
+export async function deleteOrderAction(
+  _prev: AdminActionState | null,
+  formData: FormData,
+): Promise<AdminActionState> {
+  const denied = await guard();
+  if (denied) return { error: denied };
+
+  const orderId = String(formData.get("orderId") ?? "");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(orderId)) {
+    return { error: "معرف الطلب غير صالح." };
+  }
+
+  try {
+    await deleteOrder(orderId);
+    revalidatePath("/admin");
+    revalidatePath("/admin/orders");
+    revalidatePath(`/admin/orders/${orderId}`);
+    return { ok: true, message: "تم حذف الطلب." };
+  } catch (error) {
+    if (error instanceof OrderError && error.code === "ORDER_NOT_FOUND") {
+      return { error: "الطلب غير موجود أو تم حذفه بالفعل." };
+    }
+    console.error("[reevita] order deletion failed", error);
+    return { error: "تعذّر حذف الطلب." };
   }
 }
 
