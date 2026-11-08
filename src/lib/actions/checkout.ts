@@ -50,9 +50,11 @@ export async function placeOrderAction(
   }
 
   let items: unknown = null;
+  let giftItems: unknown = [];
   let curatedOffers: unknown = [];
   try {
     items = JSON.parse(String(formData.get("items") ?? "[]"));
+    giftItems = JSON.parse(String(formData.get("giftItems") ?? "[]"));
     curatedOffers = JSON.parse(String(formData.get("curatedOffers") ?? "[]"));
   } catch {
     return { error: "سلة المشتريات غير صالحة. يرجى تحديث الصفحة.", code: "INVALID_ITEM", values };
@@ -89,6 +91,7 @@ export async function placeOrderAction(
     landmark: formData.get("landmark") ?? "",
     orderNotes: formData.get("orderNotes") ?? "",
     items,
+    giftItems,
     curatedOffers,
     terms: formData.get("terms") === "on",
     idempotencyKey: formData.get("idempotencyKey") || undefined,
@@ -117,6 +120,7 @@ export async function placeOrderAction(
         landmark: parsed.data.landmark,
         orderNotes: parsed.data.orderNotes,
         items: parsed.data.items,
+        giftItems: parsed.data.giftItems,
         curatedOffers: parsed.data.curatedOffers,
         idempotencyKey: parsed.data.idempotencyKey,
       },

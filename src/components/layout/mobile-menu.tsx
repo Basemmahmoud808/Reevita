@@ -10,7 +10,7 @@ import { useI18n } from "@/lib/i18n";
 
 export function MobileMenu() {
   const [open, setOpen] = useState(false);
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
 
   function closeOnLinkClick(event: React.MouseEvent<HTMLDivElement>) {
     if ((event.target as HTMLElement).closest("a")) setOpen(false);
@@ -68,8 +68,8 @@ export function MobileMenu() {
           onClick={closeOnLinkClick}
           inert={!open}
           className={cn(
-            "absolute inset-y-0 right-0 flex w-[86%] max-w-sm flex-col bg-ivory shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
-            open ? "translate-x-0" : "translate-x-full",
+            "absolute inset-y-0 end-0 flex w-[86%] max-w-sm flex-col bg-ivory shadow-2xl transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+            open ? "translate-x-0" : "rtl:-translate-x-full ltr:translate-x-full",
           )}
         >
           <div className="flex items-center justify-between border-b border-line px-5 py-5">
@@ -95,8 +95,8 @@ export function MobileMenu() {
                     onClick={() => setOpen(false)}
                     className="flex items-center justify-between rounded-xl px-3 py-2.5 text-sm font-semibold text-ink transition-colors hover:bg-cream"
                   >
-                    {category.nameEn}
-                    <ArrowLeft className="size-3.5 text-gold-deep" aria-hidden />
+                    {locale === "ar" ? category.nameAr : category.nameEn}
+                    <ArrowLeft className="size-3.5 text-gold-deep rtl:rotate-180" aria-hidden />
                   </Link>
                 </li>
               ))}
@@ -126,7 +126,7 @@ export function MobileMenu() {
           <div className="border-t border-line bg-cream/60 px-5 py-5">
             <Link href="/shop" onClick={() => setOpen(false)} className="btn btn-primary w-full">
               {t("shopNow")}
-              <ArrowLeft className="size-4" aria-hidden />
+              <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden />
             </Link>
             <p className="mt-3 text-center text-[0.7rem] text-muted">{t("noRisk")} · {t("delivery")}</p>
           </div>

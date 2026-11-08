@@ -44,7 +44,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
             src={collection.image}
             alt={`${collection.nameEn} collection cover`}
             fill
-            quality={90}
+            quality={100}
             sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 42rem"
             className={collection.coverFit === "contain" ? "object-contain" : "object-cover"}
             preload

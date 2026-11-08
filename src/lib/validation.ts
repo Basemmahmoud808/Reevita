@@ -4,28 +4,28 @@ import { isValidEgyptianPhone } from "@/lib/phone";
 const phoneSchema = z
   .string()
   .trim()
-  .min(1, { message: "رقم الهاتف مطلوب" })
+  .min(1, { message: "Phone number is required" })
   .refine(isValidEgyptianPhone, {
-    message: "أدخلي رقم هاتف محمول مصري صحيح (010 / 011 / 012 / 015)",
+    message: "Please enter a valid Egyptian mobile number (010 / 011 / 012 / 015)",
   });
 
 export const checkoutSchema = z.object({
   customerName: z
     .string()
     .trim()
-    .min(2, { message: "الاسم مطلوب (حرفان على الأقل)" })
-    .max(80, { message: "الاسم طويل جدًا" }),
+    .min(2, { message: "Full name is required (at least 2 characters)" })
+    .max(80, { message: "Name is too long" }),
   customerPhone: phoneSchema,
   customerEmail: z
-    .union([z.literal(""), z.string().trim().email({ message: "البريد الإلكتروني غير صحيح" })])
+    .union([z.literal(""), z.string().trim().email({ message: "Invalid email address" })])
     .optional()
     .transform((value) => (value ? value : null)),
   governorateId: z.string().guid({ message: "اختاري المحافظة" }),
-  city: z.string().trim().min(2, { message: "المدينة / الحي مطلوب" }).max(80),
+  city: z.string().trim().min(2, { message: "City / district is required" }).max(80),
   addressLine: z
     .string()
     .trim()
-    .min(5, { message: "العنوان التفصيلي مطلوب (الشارع، رقم العمارة، الشقة)" })
+    .min(5, { message: "Full address is required (street, building, apartment)" })
     .max(240),
   landmark: z.string().trim().max(120).optional().transform((value) => value || null),
   orderNotes: z.string().trim().max(500).optional().transform((value) => value || null),
@@ -36,8 +36,16 @@ export const checkoutSchema = z.object({
         quantity: z.number().int().min(1).max(10),
       }),
     )
-    .min(1, { message: "سلة المشتريات فارغة" })
+    .min(1, { message: "Shopping bag is empty" })
     .max(20),
+  giftItems: z
+    .array(z.object({
+      product_id: z.string().guid(),
+      quantity: z.number().int().min(1).max(10),
+    }))
+    .max(20)
+    .optional()
+    .default([]),
   curatedOffers: z
     .array(z.object({
       offerKey: z.string().trim().min(1).max(100).regex(/^[a-z0-9-]+:(?:collection|set:\d+)$/),
@@ -46,7 +54,7 @@ export const checkoutSchema = z.object({
     .max(20)
     .optional()
     .default([]),
-  terms: z.literal(true, { error: "يجب الموافقة على الشروط وسياسة الاسترجاع." }),
+  terms: z.literal(true, { error: "You must accept the terms and return policy." }),
   idempotencyKey: z.string().trim().max(128).optional().transform((value) => value || null),
 });
 
@@ -56,19 +64,19 @@ export const trackOrderSchema = z.object({
   orderNumber: z
     .string()
     .trim()
-    .min(6, { message: "رقم الطلب مطلوب" })
+    .min(6, { message: "Order number is required" })
     .max(32)
-    .regex(/^RV-\d{4}-\d{5}$/i, { message: "صيغة رقم الطلب غير صحيحة (مثال: RV-2026-10001)" }),
+    .regex(/^RV-\d{4}-\d{5}$/i, { message: "Invalid order number format (e.g. RV-2026-10001)" }),
   phone: phoneSchema,
 });
 
 export const loginSchema = z.object({
-  email: z.string().trim().email({ message: "البريد الإلكتروني غير صحيح" }),
-  password: z.string().min(8, { message: "كلمة المرور 8 أحرف على الأقل" }),
+  email: z.string().trim().email({ message: "Invalid email address" }),
+  password: z.string().min(8, { message: "Password must be at least 8 characters" }),
 });
 
 export const registerSchema = loginSchema.extend({
-  fullName: z.string().trim().min(2, { message: "الاسم مطلوب" }).max(80),
+  fullName: z.string().trim().min(2, { message: "Full name is required" }).max(80),
   phone: phoneSchema,
 });
 
@@ -110,17 +118,17 @@ export const adminShippingSchema = z.object({
 });
 
 export const adminProductSchema = z.object({
-  name: z.string().trim().min(2, "اسم المنتج مطلوب").max(120),
-  nameAr: z.string().trim().min(2, "اسم المنتج بالعربية مطلوب").max(120),
+  name: z.string().trim().min(2, "Product name is required").max(120),
+  nameAr: z.string().trim().min(2, "Arabic name is required").max(120),
   slug: z
     .string()
     .trim()
-    .min(2, "الرابط المختصر مطلوب")
+    .min(2, "Slug is required")
     .max(80)
-    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "الرابط المختصر يجب أن يكون بالإنجليزية وبشرطات فقط"),
-  categorySlug: z.string().trim().min(1, "التصنيف مطلوب").max(80),
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Slug must be lowercase alphanumeric with hyphens"),
+  categorySlug: z.string().trim().min(1, "Category is required").max(80),
   shortDescriptionAr: z.string().trim().max(240).optional(),
-  description: z.string().trim().min(10, "وصف المنتج مطلوب").max(4000),
+  description: z.string().trim().min(10, "Description is required").max(4000),
   price: z.number().finite().min(0).max(1000000),
   compareAtPrice: z.number().finite().min(0).max(1000000).nullable().optional(),
   size: z.string().trim().max(80).optional(),

@@ -124,12 +124,12 @@ type I18nContextValue = { locale: Locale; t: (key: TranslationKey) => string; to
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children, initialLocale = "en" }: { children: ReactNode; initialLocale?: Locale }) {
+export function I18nProvider({ children, initialLocale = "ar" }: { children: ReactNode; initialLocale?: Locale }) {
   const [locale, setLocale] = useState<Locale>(initialLocale);
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.documentElement.dir = "ltr";
+    document.documentElement.dir = locale === "ar" ? "rtl" : "ltr";
     window.localStorage.setItem("reevita-locale", locale);
     document.cookie = `reevita-locale=${locale}; path=/; max-age=31536000; samesite=lax`;
   }, [locale]);

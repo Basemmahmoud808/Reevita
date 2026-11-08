@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Check, Headphones, ShieldCheck, Truck } from "lucide-react";
 import { Accordion, type AccordionItem } from "@/components/ui/accordion";
 import { JsonLd } from "@/components/ui/json-ld";
+import { MetaPixelViewContent } from "@/components/analytics/meta-pixel-events";
 import { ProductGallery } from "@/components/product/product-gallery";
 import { ProductGrid } from "@/components/product/product-grid";
 import { ProductPurchase } from "@/components/product/product-purchase";
@@ -158,6 +159,16 @@ export default async function ProductPage({ params }: ProductPageProps) {
   return (
     <>
       <JsonLd data={productJsonLd} />
+      <MetaPixelViewContent
+        product={{
+          id: product.id,
+          nameAr: product.nameAr,
+          nameEn: product.nameEn,
+          price: product.price,
+          categoryNameAr: product.categoryNameAr,
+          categoryNameEn: product.categoryNameEn,
+        }}
+      />
 
       <main className="product-page-shell">
         <div className="product-page-container">
@@ -206,7 +217,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                               src={image.url}
                               alt={image.alt || option.nameEn}
                               fill
-                              quality={70}
+                              quality={100}
                               sizes="96px"
                               unoptimized={image.url.startsWith("/")}
                               placeholder="blur"

@@ -29,24 +29,31 @@ test("featured bundle membership and totals match verified catalog data", () => 
 
   const softGlow = bundles.get("soft-glow-bundle");
   assert.ok(softGlow);
-  assert.equal(softGlow.productIds?.length, 6);
+  assert.equal(softGlow.productIds?.length, 9);
   assert.equal(softGlow.purchaseReady, true);
-  assert.deepEqual(softGlow.missingProducts, []);
+  assert.deepEqual(softGlow.missingProducts ?? [], []);
 
   const completeCare = bundles.get("complete-care-bundle");
   assert.ok(completeCare);
   assert.equal(completeCare.purchaseReady, true);
-  assert.deepEqual(completeCare.missingProducts, []);
-  assert.equal(completeCare.productIds?.length, 9);
-  assert.equal(completeCare.productIds?.reduce((total, id) => total + (productsById.get(id)?.price ?? 0), 0), 2340);
+  assert.deepEqual(completeCare.missingProducts ?? [], []);
+  assert.equal(completeCare.productIds?.length, 17);
+  assert.equal(completeCare.productIds?.reduce((total, id) => total + (productsById.get(id)?.price ?? 0), 0), 4400);
 
   const hairCare = bundles.get("hair-care-duo-bundle");
   assert.ok(hairCare);
   assert.equal(featuredCollections.filter((collection) => collection.slug === "hair-care-duo-bundle").length, 1);
-  assert.equal(hairCare.nameEn, "Hair Care Duo Bundle");
-  assert.equal(hairCare.image, "/images/collections/hair-care-duo-products.jpg");
+  assert.equal(hairCare.nameEn, "Hair Care Duo bundle");
+  assert.equal(hairCare.image, "/images/curated-collections/hair-care-duo-bundle/set-04.jpg");
   assert.equal(hairCare.isPublished, true);
   assert.equal(hairCare.purchaseReady, true);
-  assert.deepEqual(hairCare.productIds?.map((id) => productsById.get(id)?.slug), ["shampoo-blueberry", "hair-mist-ruby-musk"]);
-  assert.equal(hairCare.productIds?.reduce((total, id) => total + (productsById.get(id)?.price ?? 0), 0), 440);
+  assert.deepEqual(hairCare.productIds?.map((id) => productsById.get(id)?.slug), [
+    "shampoo-dove",
+    "hair-mist-queen",
+    "shampoo-blueberry",
+    "hair-mist-ruby-musk",
+    "shampoo-bubble-gum",
+    "hair-mist-sexy",
+  ]);
+  assert.equal(hairCare.productIds?.reduce((total, id) => total + (productsById.get(id)?.price ?? 0), 0), 1320);
 });

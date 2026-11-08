@@ -5,6 +5,7 @@ import { Providers } from "@/components/providers";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { JsonLd } from "@/components/ui/json-ld";
+import { MetaPixel } from "@/components/analytics/meta-pixel";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -94,22 +95,25 @@ const websiteJsonLd = {
   },
 };
 
-export default async function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       dir="ltr"
       suppressHydrationWarning
     >
+      <head>
+        <MetaPixel />
+      </head>
       <body className="min-h-dvh bg-ivory text-ink">
         <a href="#main" className="skip-link">
           Skip to main content
         </a>
         <Providers initialLocale="en">
           <SiteChrome part="header" />
-          <div id="main" className="site-page min-h-[60vh]">
+          <main id="main" className="site-page min-h-[60vh]">
             {children}
-          </div>
+          </main>
           <SiteChrome part="footer" />
           <CartDrawer />
         </Providers>

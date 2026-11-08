@@ -12,6 +12,7 @@ export const ORDER_ERROR_MESSAGES: Record<string, string> = {
   INVALID_ITEM: "أحد المنتجات في السلة غير صالح. يرجى تحديث السلة والمحاولة مرة أخرى.",
   PRODUCT_UNAVAILABLE: "أحد المنتجات لم يعد متاحًا. يرجى تحديث السلة.",
   INVALID_BUNDLE_OFFER: "تعذّر التحقق من خصم المجموعة. حدّث السلة وحاول مرة أخرى.",
+  INVALID_GIFT_SELECTION: "يرجى مراجعة المنتجات المجانية المختارة في السلة.",
   INSUFFICIENT_STOCK: "عذرًا، الكمية المطلوبة غير متوفرة حاليًا في المخزون.",
   ORDER_REJECTED: "عذرًا، لا يمكن إتمام الطلب. يرجى التواصل مع خدمة العملاء للمساعدة.",
   RATE_LIMITED: "عدد الطلبات من هذا الرقم كبير. يرجى المحاولة بعد قليل.",
@@ -49,6 +50,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
         landmark: payload.landmark,
         orderNotes: payload.orderNotes,
         items: payload.items,
+        giftItems: payload.giftItems,
         curatedOffers: payload.curatedOffers,
         idempotencyKey: payload.idempotencyKey,
       });
@@ -61,7 +63,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
   const supabase = await createSupabaseServerClient();
   if (!supabase) throw new OrderError("UNKNOWN");
 
-  const { data, error } = await supabase.rpc("place_order_with_volume_discount", {
+  const { data, error } = await supabase.rpc("place_order_with_gifts", {
     p_customer_name: payload.customerName,
     p_customer_phone: payload.customerPhone,
     p_customer_email: payload.customerEmail ?? null,
@@ -71,9 +73,9 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     p_landmark: payload.landmark ?? null,
     p_order_notes: payload.orderNotes ?? null,
     p_items: payload.items,
-    p_curated_offers: (payload.curatedOffers ?? []).map(({ offerKey, quantity }) => ({ offer_key: offerKey, quantity })),
     p_ip_address: ipAddress,
     p_idempotency_key: payload.idempotencyKey ?? null,
+    p_gift_items: payload.giftItems ?? [],
   });
 
   if (error) throw errorFromSupabase(error.message);

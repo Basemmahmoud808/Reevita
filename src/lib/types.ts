@@ -165,6 +165,7 @@ export interface CheckoutPayload {
   landmark?: string | null;
   orderNotes?: string | null;
   items: { product_id: string; quantity: number }[];
+  giftItems?: { product_id: string; quantity: number }[];
   curatedOffers?: { offerKey: string; quantity: number }[];
   idempotencyKey?: string | null;
 }

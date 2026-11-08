@@ -32,7 +32,7 @@ export function ProductGallery({
             fill
             loading={priority ? "eager" : "lazy"}
             fetchPriority={priority ? "high" : "auto"}
-            quality={85}
+            quality={100}
             sizes="(max-width: 1023px) 100vw, 55vw"
             placeholder="blur"
             blurDataURL={blurForSlug(slug)}
@@ -59,7 +59,7 @@ export function ProductGallery({
                 src={image.url}
                 alt=""
                 fill
-                quality={60}
+                quality={100}
                 sizes="70px"
                 placeholder="blur"
                 blurDataURL={blurForSlug(slug)}

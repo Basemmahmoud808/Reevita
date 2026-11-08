@@ -15,5 +15,5 @@ export default async function HomePage() {
   const collections = await getCollections();
   const products = liveProducts.length > 0 ? liveProducts : staticProducts;
 
-  return <ReferenceHome products={products.length >= staticProducts.length ? products : staticProducts} collections={collections} />;
+  return <ReferenceHome products={products} collections={collections} />;
 }

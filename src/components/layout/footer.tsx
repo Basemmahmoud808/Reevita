@@ -6,15 +6,15 @@ import { SocialIconLinks } from "@/components/ui/social-icon";
 import { NewsletterForm } from "@/components/layout/newsletter-form";
 
 const links = [
-  { href: "/shop", label: "Shop all products" },
-  { href: "/collections", label: "Curated collections" },
-  { href: "/faq", label: "Frequently asked questions" },
+  { href: "/shop", labelEn: "Shop all products", labelAr: "كل المنتجات" },
+  { href: "/collections", labelEn: "Curated collections", labelAr: "المجموعات المميزة" },
+  { href: "/faq", labelEn: "Frequently asked questions", labelAr: "الأسئلة الشائعة" },
 ];
 
 const careLinks = [
-  { href: "/contact", label: "Contact customer care" },
-  { href: "/track", label: "Track an order" },
-  { href: "/checkout", label: "Secure checkout" },
+  { href: "/contact", labelEn: "Contact customer care", labelAr: "تواصلي معنا" },
+  { href: "/track", labelEn: "Track an order", labelAr: "تتبّع الطلب" },
+  { href: "/checkout", labelEn: "Secure checkout", labelAr: "إتمام الطلب بأمان" },
 ];
 
 export function Footer() {
@@ -24,26 +24,28 @@ export function Footer() {
       <div className="reference-container grid gap-8 py-10 md:grid-cols-[1.2fr_1fr_1fr_1.2fr]">
         <div>
           <Link href="/" aria-label="REEVITA home" className="reference-wordmark">REEVITA</Link>
-          <p className="mt-2 text-xs text-[#77766e]">Pure Care. Lasting Beauty.</p>
+          <p className="mt-2 text-xs text-[#77766e]">
+            {locale === "en" ? "Pure Care. Lasting Beauty." : "عناية نقية · جمال يدوم"}
+          </p>
           <SocialIconLinks className="mt-5" />
         </div>
 
         <div>
-          <p className="reference-footer-title">Quick Links</p>
+          <p className="reference-footer-title">{locale === "en" ? "Quick Links" : "روابط سريعة"}</p>
           <div className="mt-3 space-y-2 text-xs text-[#77766e]">
-            {links.map((link) => <Link key={link.href} className="block hover:text-[#34483d]" href={link.href}>{link.label}</Link>)}
+            {links.map((link) => <Link key={link.href} className="block hover:text-[#34483d]" href={link.href}>{locale === "en" ? link.labelEn : link.labelAr}</Link>)}
           </div>
         </div>
 
         <div>
-          <p className="reference-footer-title">Customer Care</p>
+          <p className="reference-footer-title">{locale === "en" ? "Customer Care" : "خدمة العملاء"}</p>
           <div className="mt-3 space-y-2 text-xs text-[#77766e]">
-            {careLinks.map((link) => <Link key={link.href} className="block hover:text-[#34483d]" href={link.href}>{link.label}</Link>)}
+            {careLinks.map((link) => <Link key={link.href} className="block hover:text-[#34483d]" href={link.href}>{locale === "en" ? link.labelEn : link.labelAr}</Link>)}
           </div>
         </div>
 
         <div>
-          <p className="reference-footer-title">Join Our Newsletter</p>
+          <p className="reference-footer-title">{locale === "en" ? "Join Our Newsletter" : "انضمي لنشرتنا البريدية"}</p>
           <p className="mt-3 text-xs leading-5 text-[#77766e]">
             {locale === "en" ? "Be the first to know about new products, exclusive offers and beauty tips." : "كوني أول من يعرف المنتجات الجديدة والعروض ونصائح العناية."}
           </p>
@@ -51,7 +53,7 @@ export function Footer() {
         </div>
       </div>
       <div className="reference-container flex justify-between border-t border-[#ded8cc] py-4 text-[0.6rem] text-[#99958a]">
-        <span>© {new Date().getFullYear()} REEVITA. All rights reserved.</span>
+        <span>© {new Date().getFullYear()} REEVITA. {locale === "en" ? "All rights reserved." : "جميع الحقوق محفوظة."}</span>
         <a href="https://www.facebook.com/share/1CWMusi43s/" target="_blank" rel="noreferrer" className="transition-colors hover:text-[#34483d]">
           Powered by Basem
         </a>

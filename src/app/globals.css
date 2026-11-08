@@ -2030,12 +2030,15 @@ body {
   inset: auto;
   flex: 0 0 auto;
   width: 100%;
-  height: clamp(300px, 48svh, 480px);
+  aspect-ratio: 1365 / 768;
+  height: auto;
   overflow: hidden;
 }
 
 .reference-hero-image {
-  object-position: 62% center;
+  object-position: center;
+  object-fit: contain;
+  background: #e8ddcb;
 }
 
 .reference-hero-overlay {
@@ -2891,66 +2894,240 @@ body {
   color: #314137;
 }
 
-.reference-hero-copy .reference-kicker {
+/* Final image-only hero sizing. Legacy hero rules above are copy-based. */
+.reference-hero {
+  display: block;
+  min-height: 0 !important;
+  height: auto;
+  width: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: #e8ddcb;
+}
+
+.reference-hero-media {
+  position: relative;
+  inset: auto;
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1365 / 768;
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.reference-hero-image {
+  object-fit: contain !important;
+  object-position: center !important;
+}
+
+.reference-hero-overlay {
+  display: none !important;
+}
+
+.reference-hero-content {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: clamp(1.25rem, 5vw, 4rem);
+  pointer-events: none;
+}
+
+.reference-hero-copy {
+  width: min(30%, 21rem);
+  max-width: 21rem;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  pointer-events: auto;
+}
+
+.reference-hero-copy-enter {
+  animation: reference-hero-copy-enter 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reference-hero-subtitle {
+  margin-top: 0.35rem;
+  color: currentColor;
+  font-family: var(--font-latin);
+  font-size: clamp(0.62rem, 1vw, 0.85rem);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1.25;
+  text-transform: uppercase;
+}
+
+.reference-hero-description {
+  margin-top: 0.6rem;
+}
+
+@keyframes reference-hero-copy-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reference-hero-copy--0 {
+  color: #4a2630;
+}
+
+.reference-hero-copy--0 .reference-kicker {
+  color: #9a6a32;
+}
+
+.reference-hero-copy--0 h1 {
+  color: #6f2636;
+}
+
+.reference-hero-copy--0 > p:not(.reference-kicker) {
+  color: #5b3b38;
+}
+
+.reference-hero-copy--0 .reference-button {
+  border-color: #762c3b;
+  background: #762c3b;
+}
+
+.reference-hero-copy--1 {
+  color: #293d32;
+}
+
+.reference-hero-copy--1 .reference-kicker {
+  color: #6c7d42;
+}
+
+.reference-hero-copy--1 h1 {
+  color: #294d3a;
+}
+
+.reference-hero-copy--1 > p:not(.reference-kicker) {
+  color: #3f5747;
+}
+
+.reference-hero-copy--2 {
+  color: #44332b;
+}
+
+.reference-hero-copy--2 .reference-kicker {
+  color: #936c45;
+}
+
+.reference-hero-copy--2 h1 {
+  color: #684536;
+}
+
+.reference-hero-copy--2 > p:not(.reference-kicker) {
+  color: #5c483d;
+}
+
+:where(.reference-hero-copy) .reference-kicker {
   color: #80643b;
 }
 
 .reference-hero h1 {
-  max-width: 18ch;
+  max-width: 12ch;
+  font-size: clamp(1.7rem, 3.8vw, 3.1rem);
+  line-height: 1.05;
   color: #26392e;
-  text-shadow: 0 1px 12px rgba(247, 243, 235, 0.28);
+  text-shadow: 0 2px 10px rgba(247, 243, 235, 0.8);
 }
 
 .reference-hero-copy > p:not(.reference-kicker) {
+  max-width: 16rem;
+  margin-top: 0.45rem;
+  font-size: clamp(0.65rem, 1vw, 0.85rem);
+  line-height: 1.4;
   color: #3c473f;
-  text-shadow: 0 1px 10px rgba(247, 243, 235, 0.32);
+  text-shadow: 0 1px 8px rgba(247, 243, 235, 0.8);
 }
 
 .reference-hero-copy .reference-button {
   border-color: #34483d;
   background: #34483d;
   color: #fffdf8;
+  box-shadow: 0 4px 12px rgba(41, 56, 45, 0.2);
 }
 
-.reference-hero-copy .reference-button:hover {
+:where(.reference-hero-copy) .reference-button:hover {
   border-color: #24362d;
   background: #24362d;
   color: #fffdf8;
 }
 
-.reference-hero-copy .reference-outline-button {
+:where(.reference-hero-copy) .reference-outline-button {
   border-color: rgba(49, 65, 55, 0.82);
   background: rgba(247, 243, 235, 0.12);
   color: #26392e;
 }
 
-.reference-hero-copy .reference-outline-button:hover {
+:where(.reference-hero-copy) .reference-outline-button:hover {
   background: rgba(247, 243, 235, 0.35);
   color: #26392e;
 }
 
 @media (max-width: 639px) {
-  .reference-hero {
-    min-height: clamp(34rem, 75svh, 44rem);
-  }
-
   .reference-hero-image {
-    /* Preserve clear space for the copy while keeping the bottle fully visible. */
-    object-position: 58% center;
-  }
-
-  .reference-hero-overlay {
-    display: block;
-    background: linear-gradient(90deg, rgba(247, 243, 235, 0.76) 0%, rgba(247, 243, 235, 0.44) 46%, rgba(247, 243, 235, 0) 76%);
+    object-position: center;
   }
 
   .reference-hero-content {
-    align-items: flex-start;
-    padding: 2rem 1.1rem;
+    align-items: center;
+    padding: 1rem;
   }
 
   .reference-hero-copy {
-    width: min(68%, 22rem);
+    width: min(45%, 11rem);
+    padding: 0;
+  }
+
+  .reference-hero-copy .reference-kicker {
+    font-size: 0.43rem;
+    letter-spacing: 0.12em;
+  }
+
+  .reference-hero h1 {
+    max-width: 9ch;
+    font-size: clamp(1rem, 5vw, 1.45rem);
+    line-height: 1.05;
+  }
+
+  .reference-hero-copy > p:not(.reference-kicker) {
+    max-width: 11rem;
+    margin-top: 0.3rem;
+    font-size: 0.55rem;
+    line-height: 1.35;
+  }
+
+  .reference-hero-subtitle {
+    margin-top: 0.2rem;
+    font-size: 0.46rem;
+  }
+
+  .reference-hero-description {
+    margin-top: 0.3rem;
+  }
+
+  .reference-hero-copy .reference-button {
+    min-height: 0;
+    margin-top: 0.45rem;
+    padding: 0.35rem 0.55rem;
+    gap: 0.25rem;
+    font-size: 0.55rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reference-hero-copy-enter {
+    animation: none;
   }
 }
 

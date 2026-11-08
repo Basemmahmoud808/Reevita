@@ -5,11 +5,14 @@ import { Price } from "@/components/ui/price";
 import { CollectionAddToBag, type PurchasableCollectionSet } from "@/components/collection/collection-actions";
 import { getCuratedSetDiscountPercent } from "@/lib/curated-collections";
 import { formatEGP } from "@/lib/format";
+import { PROMOTIONAL_DISCOUNTS_ENABLED } from "@/lib/promotions";
 
 export function CuratedSetCard({ set, index, collectionName, collectionSlug }: { set: PurchasableCollectionSet & { image: string; aspectRatio: string }; index: number; collectionName: string; collectionSlug: string }) {
   const total = set.components.reduce((sum, component) => sum + (component.product?.price ?? 0) * component.quantity, 0);
   const componentCount = set.components.reduce((sum, component) => sum + component.quantity, 0);
-  const discountPercent = getCuratedSetDiscountPercent(componentCount, collectionSlug);
+  const discountPercent = PROMOTIONAL_DISCOUNTS_ENABLED
+    ? getCuratedSetDiscountPercent(componentCount, collectionSlug)
+    : 0;
   const discountedTotal = total - Math.round(total * discountPercent / 100);
 
   return (
@@ -19,7 +22,7 @@ export function CuratedSetCard({ set, index, collectionName, collectionSlug }: {
           src={set.image}
           alt={`${collectionName}, set ${index + 1}`}
           fill
-          quality={90}
+          quality={100}
           sizes="(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 31vw"
           className="object-cover"
         />
@@ -53,7 +56,7 @@ export function CuratedSetCard({ set, index, collectionName, collectionSlug }: {
               {discountPercent > 0 ? <span className="rounded-full bg-gold/20 px-2 py-1 text-[0.65rem] font-bold text-plum">Save {discountPercent}%</span> : null}
             </div>
           </div>
-          <CollectionAddToBag set={set} label="Add set to cart" discountPercent={discountPercent} />
+          <CollectionAddToBag set={set} label="Add set to cart" />
         </div>
       </div>
     </article>

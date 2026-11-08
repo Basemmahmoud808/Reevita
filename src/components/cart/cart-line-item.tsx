@@ -10,7 +10,8 @@ import { blurForSlug } from "@/lib/images";
 import type { CartLine } from "@/lib/types";
 
 export function CartLineItem({ line, compact = false }: { line: CartLine; compact?: boolean }) {
-  const { setQuantity, removeItem, closeCart } = useCart();
+  const { setQuantity, giftQuantities, giftSlots, removeItem, closeCart } = useCart();
+  const giftQuantity = giftQuantities[line.productId] ?? 0;
 
   return (
     <li className="flex gap-3.5 py-4">
@@ -23,7 +24,7 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
           src={line.image}
           alt={line.nameAr}
           fill
-          quality={70}
+          quality={100}
           sizes="80px"
           unoptimized={line.image.startsWith("/")}
           placeholder="blur"
@@ -63,6 +64,13 @@ export function CartLineItem({ line, compact = false }: { line: CartLine; compac
           />
           <span className="text-sm font-bold text-plum">{formatEGP(line.price * line.quantity)}</span>
         </div>
+        {giftSlots > 0 && (
+          <div className="mt-2 flex items-center justify-between gap-2 text-[0.68rem]">
+            <span className={giftQuantity > 0 ? "font-bold text-emerald-800" : "text-muted"}>
+              {giftQuantity > 0 ? `${giftQuantity} gift item${giftQuantity > 1 ? "s" : ""} applied` : "Add more for a free gift"}
+            </span>
+          </div>
+        )}
       </div>
     </li>
   );

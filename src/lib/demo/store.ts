@@ -11,6 +11,7 @@ import type {
 } from "@/lib/types";
 import { STATUS_META } from "@/lib/orders/status";
 import { getCuratedOfferDefinition } from "@/lib/curated-collections";
+import { freeGiftSlots, PROMOTIONAL_DISCOUNTS_ENABLED } from "@/lib/promotions";
 
 /**
  * Demo mode store.
@@ -216,6 +217,7 @@ export function demoPlaceOrder(input: {
   landmark?: string | null;
   orderNotes?: string | null;
   items: { product_id: string; quantity: number }[];
+  giftItems?: { product_id: string; quantity: number }[];
   curatedOffers?: { offerKey: string; quantity: number }[];
   idempotencyKey?: string | null;
 }): PlacedOrder {
@@ -247,11 +249,23 @@ export function demoPlaceOrder(input: {
   });
 
   const subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const giftItemsById = new Map((input.giftItems ?? []).map((item) => [item.product_id, item.quantity]));
+  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+  const giftCount = [...giftItemsById.values()].reduce((sum, quantity) => sum + quantity, 0);
+  if (giftCount > freeGiftSlots(itemCount)) throw new Error("INVALID_GIFT_SELECTION: Too many free gifts selected");
+  for (const [productId, quantity] of giftItemsById) {
+    const item = items.find(({ product }) => product.id === productId);
+    if (!item || quantity < 1 || quantity > item.quantity) throw new Error("INVALID_GIFT_SELECTION: Gift selection does not match the bag");
+  }
+  const giftDiscount = [...giftItemsById].reduce((sum, [productId, quantity]) => {
+    const item = items.find(({ product }) => product.id === productId);
+    return sum + (item?.product.price ?? 0) * quantity;
+  }, 0);
   const quantitiesBySlug = new Map(items.map(({ product, quantity }) => [product.slug, quantity]));
   const claimedBySlug = new Map<string, number>();
   const coveredBySlug = new Map<string, number>();
-  let discountAmount = 0;
-  for (const offer of input.curatedOffers ?? []) {
+  let discountAmount = giftDiscount;
+  for (const offer of PROMOTIONAL_DISCOUNTS_ENABLED ? (input.curatedOffers ?? []) : []) {
     const definition = getCuratedOfferDefinition(offer.offerKey);
     if (!definition || offer.quantity < 1 || offer.quantity > 10) throw new Error("INVALID_BUNDLE_OFFER: Invalid collection discount");
     const requirements = new Map<string, number>();
@@ -266,11 +280,13 @@ export function demoPlaceOrder(input: {
     const offerTotal = definition.productSlugs.reduce((sum, slug) => sum + (productBySlug.get(slug)?.price ?? 0), 0) * offer.quantity;
     discountAmount += Math.round(offerTotal * definition.discountPercent / 100);
   }
-  const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
-  const volumeDiscountPercent = itemCount >= 3 ? 15 : itemCount === 2 ? 11 : 0;
-  const uncoveredSubtotal = items.reduce((sum, item) =>
-    sum + item.product.price * Math.max(0, item.quantity - (coveredBySlug.get(item.product.slug) ?? 0)), 0);
-  discountAmount += Math.round(uncoveredSubtotal * volumeDiscountPercent / 100);
+  if (PROMOTIONAL_DISCOUNTS_ENABLED) {
+    const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
+    const volumeDiscountPercent = itemCount >= 3 ? 15 : itemCount === 2 ? 11 : 0;
+    const uncoveredSubtotal = items.reduce((sum, item) =>
+      sum + item.product.price * Math.max(0, item.quantity - (coveredBySlug.get(item.product.slug) ?? 0)), 0);
+    discountAmount += Math.round(uncoveredSubtotal * volumeDiscountPercent / 100);
+  }
   const shippingFee = subtotal >= governorate.freeShippingThreshold ? 0 : governorate.shippingCost;
   const total = subtotal - discountAmount + shippingFee;
   orderSequence += 1;

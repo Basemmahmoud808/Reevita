@@ -5,6 +5,7 @@ import { Check, CircleHelp, MessageCircle, PackageCheck, Truck } from "lucide-re
 import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
 import { getPlacedDemoOrder } from "@/lib/data/orders";
 import { ClearCartOnMount } from "@/components/cart/clear-cart-on-mount";
+import { MetaPixelPurchase } from "@/components/analytics/meta-pixel-events";
 import { formatDateTimeAr, formatEGP } from "@/lib/format";
 import { statusMeta } from "@/lib/orders/status";
 import type { PlacedOrder } from "@/lib/types";
@@ -60,6 +61,7 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
   return (
     <div className="bg-ivory">
       <ClearCartOnMount />
+      <MetaPixelPurchase order={order} />
       <section className="border-b border-line/70 bg-cream/50 py-12 md:py-16">
         <div className="container-luxe max-w-3xl text-center">
           <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-success/10">

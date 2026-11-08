@@ -48,7 +48,7 @@ export function CollectionProductGallery({ products, collectionName }: { product
               fill
               loading="eager"
               fetchPriority="high"
-              quality={85}
+              quality={100}
               sizes="(max-width: 767px) 100vw, 54vw"
               placeholder="blur"
               blurDataURL={blurForSlug(selected.slug)}
@@ -94,7 +94,7 @@ export function CollectionProductGallery({ products, collectionName }: { product
                 className={`collection-product-thumbnail ${isSelected ? "is-selected" : ""}`}
               >
                 <span className="collection-product-thumbnail-image">
-                  {thumbnail ? <Image src={thumbnail} alt="" fill sizes="88px" className="object-contain" /> : null}
+                  {thumbnail ? <Image src={thumbnail} alt="" fill quality={100} sizes="88px" className="object-contain" /> : null}
                 </span>
                 <span className="collection-product-thumbnail-copy">
                   <span>{product.nameEn}</span>

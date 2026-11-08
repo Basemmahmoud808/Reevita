@@ -16,6 +16,7 @@ export function CartDrawer() {
     count,
     subtotal,
     discountAmount,
+    giftDiscountAmount,
     bundleDiscountAmount,
     volumeDiscountAmount,
     volumeDiscountPercent,
@@ -136,7 +137,13 @@ export function CartDrawer() {
                 <span className="font-bold">−{formatEGP(bundleDiscountAmount)}</span>
               </div>
             )}
-            {discountAmount > 0 && (
+            {giftDiscountAmount > 0 && (
+              <div className="mt-2 flex items-center justify-between text-sm text-emerald-800">
+                <span>White Friday gifts</span>
+                <span className="font-bold">−{formatEGP(giftDiscountAmount)}</span>
+              </div>
+            )}
+            {discountAmount + giftDiscountAmount > 0 && (
               <div className="mt-2 flex items-center justify-between border-t border-line pt-2 text-sm">
                 <span className="font-bold text-plum">After discount</span>
                 <span className="font-bold text-plum">{formatEGP(subtotalAfterDiscount)}</span>

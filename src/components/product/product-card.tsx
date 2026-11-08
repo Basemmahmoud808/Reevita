@@ -52,7 +52,7 @@ function ProductImage({ product, priority }: { product: Product; priority: boole
           src={imageSrc}
           alt={image?.alt ?? product.nameEn}
           fill
-          quality={80}
+          quality={100}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           loading={priority ? "eager" : "lazy"}
           fetchPriority={priority ? "high" : "auto"}

@@ -18,7 +18,7 @@ export interface PurchasableCollectionSet {
   components: PurchasableCollectionComponent[];
 }
 
-export function CollectionAddToBag({ set, label, discountPercent, className }: { set: PurchasableCollectionSet; label: string; discountPercent: number; className?: string }) {
+export function CollectionAddToBag({ set, label, className }: { set: PurchasableCollectionSet; label: string; className?: string }) {
   const { addCuratedItems } = useCart();
   const [isAdding, setIsAdding] = useState(false);
   const components = set.components;
@@ -49,7 +49,7 @@ export function CollectionAddToBag({ set, label, discountPercent, className }: {
         className={cn("btn btn-primary inline-flex gap-2 px-4 py-3 text-xs disabled:cursor-not-allowed disabled:opacity-55", className)}
       >
         <ShoppingBag className="size-4" aria-hidden />
-        {isAdding ? "Adding to cart…" : disabled ? `${label} unavailable` : `${label} · ${discountPercent}% off`}
+        {isAdding ? "Adding to cart…" : disabled ? `${label} unavailable` : label}
       </button>
       {blockers.length > 0 ? <p className="curated-unavailable-copy">Unavailable: {blockers.join(", ")}</p> : null}
     </div>

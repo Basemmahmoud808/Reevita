@@ -12,8 +12,10 @@ import {
 import { brand } from "@/lib/catalog";
 import { canonicalProductNames } from "@/lib/product-names";
 import { getCuratedOfferDefinition } from "@/lib/curated-collections";
+import { freeGiftSlots } from "@/lib/promotions";
 import type { CartLine, Product } from "@/lib/types";
 import { useToast } from "@/components/ui/toast";
+import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
 
 const STORAGE_KEY = "rv_cart_v1";
 const MAX_QUANTITY = 10;
@@ -41,6 +43,19 @@ export interface CuratedOfferSelection {
 interface CartState {
   lines: CartLine[];
   curatedOffers: CuratedOfferSelection[];
+  giftQuantities: Record<string, number>;
+}
+
+function calculateGiftQuantities(lines: CartLine[], giftSlots: number) {
+  const gifts: Record<string, number> = {};
+  let remaining = giftSlots;
+  for (const line of [...lines].sort((a, b) => a.price - b.price)) {
+    if (remaining === 0) break;
+    const quantity = Math.min(line.quantity, remaining);
+    if (quantity > 0) gifts[line.productId] = quantity;
+    remaining -= quantity;
+  }
+  return gifts;
 }
 
 interface CartContextValue {
@@ -52,6 +67,10 @@ interface CartContextValue {
   bundleDiscountAmount: number;
   volumeDiscountAmount: number;
   volumeDiscountPercent: number;
+  giftDiscountAmount: number;
+  giftQuantities: Record<string, number>;
+  giftCount: number;
+  giftSlots: number;
   subtotalAfterDiscount: number;
   freeShippingRemaining: number;
   freeShippingThreshold: number;
@@ -64,6 +83,7 @@ interface CartContextValue {
   addCuratedItems: (products: AddableProduct[], offerKey: string) => void;
   removeItem: (productId: string) => void;
   setQuantity: (productId: string, quantity: number) => void;
+  setGiftQuantity: (productId: string, quantity: number) => void;
   clear: () => void;
 }
 
@@ -165,39 +185,22 @@ function addProducts(lines: CartLine[], products: AddableProduct[], quantity = 1
 
 function sanitizeCart(value: unknown): CartState {
   // The original storage format was just an array of lines. Keep old customer bags intact.
-  if (Array.isArray(value)) return { lines: sanitizeLines(value), curatedOffers: [] };
-  if (!value || typeof value !== "object") return { lines: [], curatedOffers: [] };
+  if (Array.isArray(value)) return { lines: sanitizeLines(value), curatedOffers: [], giftQuantities: {} };
+  if (!value || typeof value !== "object") return { lines: [], curatedOffers: [], giftQuantities: {} };
   const stored = value as Partial<CartState>;
   const lines = sanitizeLines(stored.lines);
-  return { lines, curatedOffers: pruneOffers(sanitizeOffers(stored.curatedOffers), lines) };
+  return { lines, curatedOffers: pruneOffers(sanitizeOffers(stored.curatedOffers), lines), giftQuantities: {} };
 }
 
 function getDiscountBreakdown(offers: CuratedOfferSelection[], lines: CartLine[]) {
-  const lineBySlug = new Map(lines.map((line) => [line.slug, line]));
-  const covered = new Map<string, number>();
-  const bundleDiscountAmount = offers.reduce((sum, offer) => {
-    const definition = getCuratedOfferDefinition(offer.offerKey);
-    if (!definition) return sum;
-    for (const slug of definition.productSlugs) covered.set(slug, (covered.get(slug) ?? 0) + offer.quantity);
-    const offerTotal = definition.productSlugs.reduce(
-      (offerSum, slug) => offerSum + (lineBySlug.get(slug)?.price ?? 0),
-      0,
-    ) * offer.quantity;
-    return sum + Math.round(offerTotal * definition.discountPercent / 100);
-  }, 0);
-  const count = lines.reduce((sum, line) => sum + line.quantity, 0);
-  const volumeDiscountPercent = count >= 3 ? 15 : count === 2 ? 11 : 0;
-  const uncoveredSubtotal = lines.reduce((sum, line) =>
-    sum + line.price * Math.max(0, line.quantity - (covered.get(line.slug) ?? 0)), 0);
-  const volumeDiscountAmount = Math.round(uncoveredSubtotal * volumeDiscountPercent / 100);
-  const subtotal = lines.reduce((sum, line) => sum + line.price * line.quantity, 0);
-  const discountAmount = Math.min(bundleDiscountAmount + volumeDiscountAmount, subtotal);
-  return { discountAmount, bundleDiscountAmount, volumeDiscountAmount, volumeDiscountPercent };
+  void offers;
+  void lines;
+  return { discountAmount: 0, bundleDiscountAmount: 0, volumeDiscountAmount: 0, volumeDiscountPercent: 0 };
 }
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  const [cart, setCart] = useState<CartState>({ lines: [], curatedOffers: [] });
+  const [cart, setCart] = useState<CartState>({ lines: [], curatedOffers: [], giftQuantities: {} });
   const [ready, setReady] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const { lines, curatedOffers } = cart;
@@ -265,7 +268,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         return current;
       }
       const lines = addProducts(current.lines, [product], quantity);
-      return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines) };
+      return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines), giftQuantities: current.giftQuantities };
+    });
+    trackMetaEvent("AddToCart", {
+      content_name: product.nameAr,
+      content_ids: [product.id],
+      content_type: "product",
+      value: product.price * quantity,
+      currency: "EGP",
     });
     toast("أُضيف المنتج إلى سلة المشتريات.");
     setIsOpen(true);
@@ -280,7 +290,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     setCart((current) => {
       const lines = addProducts(current.lines, availableProducts, quantity);
-      return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines) };
+      return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines), giftQuantities: current.giftQuantities };
+    });
+    trackMetaEvent("AddToCart", {
+      content_name: availableProducts.map((p) => p.nameAr).join(", "),
+      content_ids: availableProducts.map((p) => p.id),
+      content_type: "product",
+      value: availableProducts.reduce((sum, p) => sum + p.price * quantity, 0),
+      currency: "EGP",
     });
     const skipped = products.length - availableProducts.length;
     toast(
@@ -309,7 +326,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ...current.curatedOffers,
         { offerKey, quantity: 1 },
       ]);
-      return { lines, curatedOffers: pruneOffers(offers, lines) };
+      return { lines, curatedOffers: pruneOffers(offers, lines), giftQuantities: current.giftQuantities };
+    });
+    trackMetaEvent("AddToCart", {
+      content_name: products.map((p) => p.nameAr).join(", "),
+      content_ids: products.map((p) => p.id),
+      content_type: "product",
+      value: products.reduce((sum, p) => sum + p.price, 0),
+      currency: "EGP",
     });
     toast("أُضيفت المجموعة بخصمها إلى سلة المشتريات.");
     setIsOpen(true);
@@ -318,7 +342,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const removeItem = useCallback((productId: string) => {
     setCart((current) => {
       const lines = current.lines.filter((line) => line.productId !== productId);
-      return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines) };
+      return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines), giftQuantities: current.giftQuantities };
     });
   }, []);
 
@@ -330,17 +354,41 @@ export function CartProvider({ children }: { children: ReactNode }) {
           : line,
         )
         .filter((line) => line.quantity > 0);
-      return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines) };
+      return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines), giftQuantities: current.giftQuantities };
     });
   }, []);
 
-  const clear = useCallback(() => setCart({ lines: [], curatedOffers: [] }), []);
+  const clear = useCallback(() => setCart({ lines: [], curatedOffers: [], giftQuantities: {} }), []);
 
   const subtotal = useMemo(() => lines.reduce((sum, line) => sum + line.price * line.quantity, 0), [lines]);
   const discounts = useMemo(() => getDiscountBreakdown(curatedOffers, lines), [curatedOffers, lines]);
   const { discountAmount, bundleDiscountAmount, volumeDiscountAmount, volumeDiscountPercent } = discounts;
-  const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount);
   const count = useMemo(() => lines.reduce((sum, line) => sum + line.quantity, 0), [lines]);
+  const giftSlots = freeGiftSlots(count);
+  const giftQuantities = useMemo(
+    () => calculateGiftQuantities(lines, giftSlots),
+    [lines, giftSlots],
+  );
+  const giftCount = Object.values(giftQuantities).reduce((sum, quantity) => sum + quantity, 0);
+  const giftDiscountAmount = useMemo(
+    () => lines.reduce((sum, line) => sum + line.price * (giftQuantities[line.productId] ?? 0), 0),
+    [lines, giftQuantities],
+  );
+  const subtotalAfterDiscount = Math.max(0, subtotal - discountAmount - giftDiscountAmount);
+  const setGiftQuantity = useCallback((productId: string, quantity: number) => {
+    setCart((current) => {
+      const line = current.lines.find((item) => item.productId === productId);
+      if (!line) return current;
+      const otherGifts = Object.entries(current.giftQuantities)
+        .filter(([id]) => id !== productId)
+        .reduce((sum, [, value]) => sum + value, 0);
+      const nextQuantity = Math.min(line.quantity, Math.max(0, Math.min(quantity, giftSlots - otherGifts)));
+      return {
+        ...current,
+        giftQuantities: { ...current.giftQuantities, [productId]: nextQuantity },
+      };
+    });
+  }, [giftSlots]);
   const freeShippingThreshold = brand.freeShippingThreshold;
   const freeShippingRemaining = Math.max(0, freeShippingThreshold - subtotal);
 
@@ -354,6 +402,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       bundleDiscountAmount,
       volumeDiscountAmount,
       volumeDiscountPercent,
+      giftDiscountAmount,
+      giftQuantities,
+      giftCount,
+      giftSlots,
       subtotalAfterDiscount,
       freeShippingRemaining,
       freeShippingThreshold,
@@ -366,6 +418,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addCuratedItems,
       removeItem,
       setQuantity,
+      setGiftQuantity,
       clear,
     }),
     [
@@ -377,6 +430,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       bundleDiscountAmount,
       volumeDiscountAmount,
       volumeDiscountPercent,
+      giftDiscountAmount,
+      giftQuantities,
+      giftCount,
+      giftSlots,
       subtotalAfterDiscount,
       freeShippingRemaining,
       freeShippingThreshold,
@@ -389,6 +446,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       addCuratedItems,
       removeItem,
       setQuantity,
+      setGiftQuantity,
       clear,
     ],
   );

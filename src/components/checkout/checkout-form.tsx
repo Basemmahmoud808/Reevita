@@ -16,7 +16,7 @@ export function CheckoutForm({
   governorates: Governorate[];
   isDemo: boolean;
 }) {
-  const { lines, curatedOffers, subtotal, bundleDiscountAmount, volumeDiscountAmount, volumeDiscountPercent, subtotalAfterDiscount, ready } = useCart();
+  const { lines, giftQuantities, giftDiscountAmount, curatedOffers, subtotal, bundleDiscountAmount, volumeDiscountAmount, volumeDiscountPercent, subtotalAfterDiscount, ready } = useCart();
   const [state, formAction, pending] = useActionState<CheckoutFormState | null, FormData>(
     placeOrderAction,
     null,
@@ -50,6 +50,11 @@ export function CheckoutForm({
   const itemsJson = JSON.stringify(
     lines.map((line) => ({ product_id: line.productId, quantity: line.quantity })),
   );
+  const giftItemsJson = JSON.stringify(
+    Object.entries(giftQuantities)
+      .filter(([, quantity]) => quantity > 0)
+      .map(([product_id, quantity]) => ({ product_id, quantity })),
+  );
   const curatedOffersJson = JSON.stringify(curatedOffers);
 
   const errorFor = (field: string) => state?.fieldErrors?.[field]?.[0];
@@ -66,10 +71,10 @@ export function CheckoutForm({
   if (lines.length === 0) {
     return (
       <div className="container-luxe flex flex-col items-center py-20 text-center">
-        <h1 className="display-xl">Checkout unavailable</h1>
-        <p className="lead mt-3">Your bag is empty. Add products before checking out.</p>
+        <h1 className="display-xl">سلة المشتريات فارغة</h1>
+        <p className="lead mt-3">سلتك فارغة حالياً. يُرجى إضافة منتجات أولاً للمتابعة إلى إتمام الطلب.</p>
         <Link href="/" className="btn btn-primary mt-7">
-          Back to home
+          العودة للرئيسية
         </Link>
       </div>
     );
@@ -78,10 +83,10 @@ export function CheckoutForm({
   return (
     <div className="container-luxe py-10 md:py-14">
       <div className="mb-8">
-        <p className="eyebrow">CHECKOUT · CASH ON DELIVERY</p>
-        <h1 className="display-xl mt-3">Complete your order</h1>
+        <p className="eyebrow">إتمام الطلب · الدفع عند الاستلام</p>
+        <h1 className="display-xl mt-3">تأكيد طلبك</h1>
         <p className="mt-2 max-w-xl text-sm leading-7 text-muted">
-          Enter your delivery details and we will confirm your order before shipping. No upfront payment required.
+          أدخلي بيانات الشحن وسنقوم بالتواصل معك لتأكيد الطلب قبل الشحن. الدفع عند الاستلام ولا يُطلب أي دفع مسبق إجباري.
         </p>
       </div>
 
@@ -98,6 +103,7 @@ export function CheckoutForm({
       <form action={formAction} className="grid gap-8 lg:grid-cols-[1.35fr_1fr]">
         <input type="hidden" name="idempotencyKey" value={idempotencyKey} />
         <input type="hidden" name="items" value={itemsJson} />
+        <input type="hidden" name="giftItems" value={giftItemsJson} />
         <input type="hidden" name="curatedOffers" value={curatedOffersJson} />
         <input
           type="hidden"
@@ -115,13 +121,13 @@ export function CheckoutForm({
           <section className="rounded-2xl border border-line bg-white/70 p-5 sm:p-7">
             <h2 className="display-md flex items-center gap-2 text-lg">
               <span className="flex size-7 items-center justify-center rounded-full bg-plum text-xs font-bold text-ivory">1</span>
-              Recipient details
+              بيانات المستلم
             </h2>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <label htmlFor="customerName" className="label">
-                  Full name *
+                  الاسم بالكامل *
                 </label>
                 <input
                   id="customerName"
@@ -168,7 +174,7 @@ export function CheckoutForm({
 
               <div>
                 <label htmlFor="customerEmail" className="label">
-                  Email <span className="font-normal text-muted">(optional)</span>
+                  البريد الإلكتروني <span className="font-normal text-muted">(اختياري)</span>
                 </label>
                 <input
                   id="customerEmail"
@@ -190,13 +196,13 @@ export function CheckoutForm({
           <section className="rounded-2xl border border-line bg-white/70 p-5 sm:p-7">
             <h2 className="display-md flex items-center gap-2 text-lg">
               <span className="flex size-7 items-center justify-center rounded-full bg-plum text-xs font-bold text-ivory">2</span>
-              Delivery address
+              عنوان التوصيل
             </h2>
 
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               <div>
                 <label htmlFor="governorateId" className="label">
-                  Governorate *
+                  المحافظة *
                 </label>
                 <select
                   id="governorateId"
@@ -212,7 +218,7 @@ export function CheckoutForm({
                   aria-invalid={Boolean(errorFor("governorateId") && !governorateErrorCleared)}
                 >
                   <option value="" disabled>
-                    Select governorate
+                    اختاري المحافظة
                   </option>
                   {governorates.map((item) => (
                     <option key={item.id} value={item.id}>
@@ -227,7 +233,7 @@ export function CheckoutForm({
 
               <div>
                 <label htmlFor="city" className="label">
-                  City / district *
+                  المدينة / الحي / المركز *
                 </label>
                 <input
                   id="city"
@@ -246,7 +252,7 @@ export function CheckoutForm({
 
               <div className="sm:col-span-2">
                 <label htmlFor="addressLine" className="label">
-                  Full address *
+                  العنوان بالتفصيل *
                 </label>
                 <input
                   id="addressLine"
@@ -265,7 +271,7 @@ export function CheckoutForm({
 
               <div>
                 <label htmlFor="landmark" className="label">
-                  Landmark <span className="font-normal text-muted">(optional)</span>
+                  علامة مميزة <span className="font-normal text-muted">(اختياري)</span>
                 </label>
                 <input
                   id="landmark"
@@ -278,7 +284,7 @@ export function CheckoutForm({
 
               <div>
                 <label htmlFor="orderNotes" className="label">
-                  Order notes <span className="font-normal text-muted">(optional)</span>
+                  ملاحظات على الطلب <span className="font-normal text-muted">(اختياري)</span>
                 </label>
                 <input id="orderNotes" name="orderNotes" defaultValue={state?.values?.orderNotes} className="field" placeholder="مثال: الاتصال قبل الوصول" />
               </div>
@@ -302,7 +308,7 @@ export function CheckoutForm({
             <div className="mt-4 flex items-start gap-3 rounded-xl border border-gold/50 bg-gold/5 p-4">
               <ShieldCheck className="mt-0.5 size-5 shrink-0 text-gold-deep" aria-hidden />
               <div>
-                <p className="text-sm font-bold text-plum">Cash on delivery (COD)</p>
+                <p className="text-sm font-bold text-plum">الدفع عند الاستلام</p>
                 <p className="mt-1 text-[0.75rem] leading-6 text-muted">
                   يمكنك الدفع للمندوب عند الاستلام، أو إرسال العربون المتفق عليه عبر فودافون كاش أو إنستا باي. بعد إنشاء الطلب أرسلي صورة التحويل ورقم الطلب على واتساب، وسيتم خصم العربون المؤكد من المبلغ المتبقي.
                 </p>
@@ -350,7 +356,7 @@ export function CheckoutForm({
 
         <aside className="lg:sticky lg:top-28 lg:self-start">
           <div className="rounded-2xl border border-line bg-white/80 p-6 shadow-card">
-            <h2 className="display-md text-xl">Your order</h2>
+            <h2 className="display-md text-xl">ملخص الطلب</h2>
             <ul className="mt-4 divide-y divide-line">
               {lines.map((line) => (
                 <li key={line.productId} className="flex items-start justify-between gap-3 py-3">
@@ -369,29 +375,35 @@ export function CheckoutForm({
 
             <dl className="mt-4 space-y-2.5 border-t border-line pt-4 text-sm">
               <div className="flex items-center justify-between">
-                <dt className="text-muted">Subtotal</dt>
+                <dt className="text-muted">المجموع الفرعي</dt>
                 <dd className="font-semibold text-plum">{formatEGP(subtotal)}</dd>
               </div>
               {volumeDiscountAmount > 0 && (
                 <div className="flex items-center justify-between text-emerald-800">
-                  <dt>Multi-buy discount ({volumeDiscountPercent}%)</dt>
+                  <dt>خصم الشراء المتعدد ({volumeDiscountPercent}%)</dt>
                   <dd className="font-bold">−{formatEGP(volumeDiscountAmount)}</dd>
+                </div>
+              )}
+              {giftDiscountAmount > 0 && (
+                <div className="flex items-center justify-between text-emerald-800">
+                  <dt>White Friday gifts</dt>
+                  <dd className="font-bold">−{formatEGP(giftDiscountAmount)}</dd>
                 </div>
               )}
               {bundleDiscountAmount > 0 && (
                 <div className="flex items-center justify-between text-emerald-800">
-                  <dt>Bundle savings</dt>
+                  <dt>توفير المجموعات</dt>
                   <dd className="font-bold">−{formatEGP(bundleDiscountAmount)}</dd>
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <dt className="text-muted">Shipping</dt>
+                <dt className="text-muted">الشحن</dt>
                 <dd className="font-semibold text-plum">
                   {governorate ? (shippingFee === 0 ? "مجاني" : formatEGP(shippingFee)) : "—"}
                 </dd>
               </div>
               <div className="flex items-center justify-between border-t border-line pt-3">
-                <dt className="font-bold text-plum">Total</dt>
+                <dt className="font-bold text-plum">الإجمالي</dt>
                 <dd className="text-xl font-bold text-plum">{formatEGP(total)}</dd>
               </div>
             </dl>
@@ -404,8 +416,8 @@ export function CheckoutForm({
                 </>
               ) : (
                 <>
-                  Confirm order
-                  <ArrowLeft className="size-4" aria-hidden />
+                  تأكيد الطلب
+                  <ArrowLeft className="size-4 rtl:rotate-0 ltr:rotate-180" aria-hidden />
                 </>
               )}
             </button>
