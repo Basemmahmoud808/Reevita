@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { Check, CircleHelp, MessageCircle, PackageCheck, Truck } from "lucide-react";
 import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
 import { getPlacedDemoOrder } from "@/lib/data/orders";
@@ -25,7 +25,10 @@ async function readOrder(orderNumber: string): Promise<PlacedOrder | null> {
   const raw = cookieStore.get(LAST_ORDER_COOKIE)?.value;
   if (raw) {
     try {
-      const parsed = JSON.parse(decodeURIComponent(raw)) as PlacedOrder;
+      const decoded = raw.startsWith("{") || raw.startsWith("%7B")
+        ? decodeURIComponent(raw)
+        : Buffer.from(raw, "base64url").toString("utf8");
+      const parsed = JSON.parse(decoded) as PlacedOrder;
       if (parsed.orderNumber?.toLowerCase() === orderNumber.toLowerCase()) return parsed;
     } catch {
       // fall through to demo lookup
@@ -37,6 +40,7 @@ async function readOrder(orderNumber: string): Promise<PlacedOrder | null> {
 export default async function OrderConfirmationPage({ params }: PageProps) {
   const { orderNumber } = await params;
   const order = await readOrder(orderNumber);
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   if (!order) {
     return (
@@ -62,6 +66,19 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
     <div className="bg-ivory">
       <ClearCartOnMount />
       <MetaPixelPurchase order={order} />
+      <script
+        nonce={nonce}
+        dangerouslySetInnerHTML={{
+          __html: `window.__rvPurchaseInline=${JSON.stringify(order.orderNumber)};if(typeof window.fbq==="function"){window.fbq("track","Purchase",${JSON.stringify({
+            value: Number(order.total) || 0,
+            currency: "EGP",
+            content_type: "product",
+            content_ids: (order.items || []).map((i) => i.productId).filter(Boolean),
+            num_items: (order.items || []).reduce((s, i) => s + (i.quantity ?? 1), 0) || 1,
+            order_id: order.orderNumber,
+          }).replace(/</g, "\\u003c")},{eventID:${JSON.stringify(`purchase_${order.orderNumber}`)}});}`,
+        }}
+      />
       <section className="border-b border-line/70 bg-cream/50 py-12 md:py-16">
         <div className="container-luxe max-w-3xl text-center">
           <span className="mx-auto flex size-16 items-center justify-center rounded-full bg-success/10">

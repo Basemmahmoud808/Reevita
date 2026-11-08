@@ -110,6 +110,7 @@ export function CheckoutForm({
           name="cartSnapshot"
           value={JSON.stringify(
             lines.map((line) => ({
+              productId: line.productId,
               nameAr: line.nameAr,
               quantity: line.quantity,
               price: line.price,

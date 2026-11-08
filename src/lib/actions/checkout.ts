@@ -9,6 +9,7 @@ import { LAST_ORDER_COOKIE } from "@/lib/orders/constants";
 import type { TrackedOrder } from "@/lib/types";
 import { notifyAdminOfNewOrder } from "@/lib/notifications/admin-push";
 import { notifyAdminViaTelegram } from "@/lib/notifications/admin-telegram";
+import { sendMetaServerEvent } from "@/lib/analytics/meta-capi";
 
 export interface CheckoutFormState {
   error?: string;
@@ -73,6 +74,7 @@ export async function placeOrderAction(
         const quantity = Math.max(1, Math.min(10, Math.round(Number(record.quantity) || 1)));
         const unitPrice = Math.max(0, Number(record.price) || 0);
         return {
+          productId: typeof record.productId === "string" ? record.productId : undefined,
           productName: String(record.nameAr ?? "").slice(0, 140),
           quantity,
           unitPrice,
@@ -136,6 +138,38 @@ export async function placeOrderAction(
       const notifications = await Promise.allSettled([
         notifyAdminOfNewOrder(notice),
         notifyAdminViaTelegram(notice),
+        (async () => {
+          const cs = await cookies();
+          await sendMetaServerEvent({
+            eventName: "Purchase",
+            eventId: `purchase_${order.orderNumber}`,
+            eventSourceUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://reevita-store.vercel.app"}/order/${order.orderNumber}`,
+            customData: {
+              content_type: "product",
+              content_ids: parsed.data.items.map((item) => item.product_id),
+              contents: parsed.data.items.map((item) => ({
+                id: item.product_id,
+                quantity: item.quantity,
+              })),
+              value: Number(order.total) || 0,
+              currency: "EGP",
+              num_items: parsed.data.items.reduce((sum, item) => sum + item.quantity, 0),
+              order_id: order.orderNumber,
+            },
+            userData: {
+              fullName: parsed.data.customerName,
+              phone: parsed.data.customerPhone,
+              email: parsed.data.customerEmail,
+              city: parsed.data.city,
+              country: "eg",
+              clientIpAddress: ip,
+              clientUserAgent: headerList.get("user-agent"),
+              fbp: cs.get("_fbp")?.value ?? null,
+              fbc: cs.get("_fbc")?.value ?? null,
+              externalId: order.orderId,
+            },
+          });
+        })(),
       ]);
       if (notifications.some((result) => result.status === "rejected")) {
         // Notification delivery must never prevent a completed order from being confirmed.
@@ -146,7 +180,7 @@ export async function placeOrderAction(
     const cookieStore = await cookies();
     cookieStore.set(
       LAST_ORDER_COOKIE,
-      encodeURIComponent(
+      Buffer.from(JSON.stringify({ ...order, items: order.items && order.items.length > 0 ? order.items : displayItems }), "utf8").toString("base64url") || encodeURIComponent(
         JSON.stringify({
           ...order,
           items: order.items && order.items.length > 0 ? order.items : displayItems,

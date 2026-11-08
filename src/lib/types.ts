@@ -183,7 +183,7 @@ export interface PlacedOrder {
   total: number;
   currency: string;
   createdAt: string;
-  items?: { productName: string; quantity: number; unitPrice: number; totalPrice: number }[];
+  items?: { productId?: string; productName: string; quantity: number; unitPrice: number; totalPrice: number }[];
   governorateAr?: string;
   isDuplicate?: boolean;
 }

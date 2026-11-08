@@ -6,6 +6,7 @@ import { SiteChrome } from "@/components/layout/site-chrome";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { JsonLd } from "@/components/ui/json-ld";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
+import { MetaPixelPageViewTracker } from "@/components/analytics/meta-pixel-events";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -106,6 +107,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MetaPixel />
       </head>
       <body className="min-h-dvh bg-ivory text-ink">
+        <MetaPixelPageViewTracker />
         <a href="#main" className="skip-link">
           Skip to main content
         </a>
