@@ -13,11 +13,15 @@ import { useEffect, useMemo, useState } from "react";
 import type { Collection, Product } from "@/lib/types";
 
 const storyImage = "/images/reevita-story.jpg";
+
 export function ReferenceHome({ products, collections = [] }: { products: Product[]; collections?: Collection[] }) {
   const { locale } = useI18n();
   const [activeHeroImage, setActiveHeroImage] = useState(0);
   const [isHeroPaused, setIsHeroPaused] = useState(false);
-  const collectionSlides = useMemo(() => collections.length > 0 ? collections : featuredCollections, [collections]);
+  const collectionSlides = useMemo(
+    () => (collections.length > 0 ? collections : featuredCollections),
+    [collections],
+  );
   const heroImages = [
     {
       src: "/images/reevita-white-friday-hero.png",
@@ -32,32 +36,69 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
       alt: "REEVITA hair mist surrounded by botanical ingredients",
     },
   ];
-  const heroCopy = [
-    {
-      eyebrow: "REEVITA COSMETICS",
-      subtitle: "",
-      title: "Your Royal Touch",
-      description: "Beauty essentials made for you.",
-      button: "Shop Now",
-      buttonHref: "/shop",
-    },
-    {
-      eyebrow: "REEVITA COSMETICS",
-      subtitle: "Nature-inspired",
-      title: "Beauty from Nature",
-      description: "Gentle care for skin and hair.",
-      button: "Shop Now",
-      buttonHref: "/shop",
-    },
-    {
-      eyebrow: "REEVITA COSMETICS",
-      subtitle: "Daily beauty",
-      title: "Care for You",
-      description: "Simple products for every day.",
-      button: "Shop Now",
-      buttonHref: "/shop",
-    },
-  ];
+  const heroCopy = useMemo(
+    () =>
+      locale === "ar"
+        ? [
+            {
+              eyebrow: "",
+              subtitle: "",
+              title: "عروض الوايت فرايداي",
+              description: "",
+              button: "تسوقي العروض الآن",
+              buttonHref: "/shop",
+              isPoster: true,
+            },
+            {
+              eyebrow: "ريفيتا كوزمتكس",
+              subtitle: "مستوحاة من الطبيعة",
+              title: "جمالك من الطبيعة",
+              description: "عناية لطيفة ومتكاملة لبشرتك وشعرك.",
+              button: "تسوقي الآن",
+              buttonHref: "/shop",
+              isPoster: false,
+            },
+            {
+              eyebrow: "ريفيتا كوزمتكس",
+              subtitle: "روتينك اليومي",
+              title: "لمسة ملكية كل يوم",
+              description: "تركيبات نقية وعطور تدوم طويلاً.",
+              button: "تسوقي الآن",
+              buttonHref: "/shop",
+              isPoster: false,
+            },
+          ]
+        : [
+            {
+              eyebrow: "",
+              subtitle: "",
+              title: "White Friday Offers",
+              description: "",
+              button: "Shop Offers Now",
+              buttonHref: "/shop",
+              isPoster: true,
+            },
+            {
+              eyebrow: "REEVITA COSMETICS",
+              subtitle: "Nature-inspired",
+              title: "Beauty from Nature",
+              description: "Gentle care for skin and hair.",
+              button: "Shop Now",
+              buttonHref: "/shop",
+              isPoster: false,
+            },
+            {
+              eyebrow: "REEVITA COSMETICS",
+              subtitle: "Daily beauty",
+              title: "Your Royal Touch",
+              description: "Clean formulas and lasting scents for every day.",
+              button: "Shop Now",
+              buttonHref: "/shop",
+              isPoster: false,
+            },
+          ],
+    [locale],
+  );
 
   useEffect(() => {
     if (isHeroPaused) return;
@@ -74,13 +115,14 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
       .filter((variants) => variants.length > 0);
   }, [products]);
 
+  const currentSlide = heroCopy[activeHeroImage]!;
+
   return (
     <div className="reference-home">
       <div>
         <section className="reference-hero">
           <div
             className="reference-hero-media"
-            style={{ aspectRatio: "1365 / 768", height: "auto", minHeight: 0 }}
             onMouseEnter={() => setIsHeroPaused(true)}
             onMouseLeave={() => setIsHeroPaused(false)}
             onFocus={() => setIsHeroPaused(true)}
@@ -93,34 +135,61 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
                 alt={image.alt}
                 fill
                 priority={index === 0}
-                quality={100}
-                unoptimized
-                sizes="(max-width: 639px) 100vw, 100vw"
+                quality={90}
+                sizes="100vw"
                 loading={index === 0 ? "eager" : "lazy"}
                 fetchPriority={index === 0 ? "high" : "auto"}
-                style={{ objectFit: "contain", objectPosition: "center" }}
-                className={`reference-hero-image transition-opacity duration-1000 motion-reduce:transition-none ${
+                className={`reference-hero-image reference-hero-image--${index} transition-opacity duration-1000 motion-reduce:transition-none ${
                   activeHeroImage === index ? "opacity-100" : "opacity-0"
                 }`}
                 aria-hidden={activeHeroImage !== index}
               />
             ))}
-            <div className="reference-hero-overlay" aria-hidden="true" style={{ display: "none" }} />
-            <div className={`reference-hero-content reference-hero-content--${activeHeroImage}`} aria-live="polite">
-              <div
-                key={activeHeroImage}
-                className={`reference-hero-copy reference-hero-copy--${activeHeroImage} reference-hero-copy-enter`}
-              >
-                <p className="reference-kicker">{heroCopy[activeHeroImage]!.eyebrow}</p>
-                {heroCopy[activeHeroImage]!.subtitle ? <p className="reference-hero-subtitle">{heroCopy[activeHeroImage]!.subtitle}</p> : null}
-                <h1>{heroCopy[activeHeroImage]!.title}</h1>
-                <p className="reference-hero-description">{heroCopy[activeHeroImage]!.description}</p>
-                <Link href={heroCopy[activeHeroImage]!.buttonHref} className="reference-button">
-                  {heroCopy[activeHeroImage]!.button} <ArrowRight className="size-4 rtl:rotate-180" aria-hidden />
-                </Link>
+            <div
+              className={`reference-hero-overlay reference-hero-overlay--${activeHeroImage}`}
+              aria-hidden="true"
+            />
+            {currentSlide.isPoster ? (
+              <div className="reference-hero-poster-wrap" aria-live="polite">
+                <h1 className="sr-only">{currentSlide.title}</h1>
+                <Link
+                  href={currentSlide.buttonHref}
+                  className="reference-hero-poster-hitbox"
+                  aria-label={currentSlide.button}
+                />
+                <div className="reference-hero-poster-cta-bar">
+                  <Link
+                    href={currentSlide.buttonHref}
+                    className="reference-button reference-hero-poster-button"
+                  >
+                    {currentSlide.button} <ArrowRight className="size-4 rtl:rotate-180" aria-hidden />
+                  </Link>
+                </div>
               </div>
-            </div>
-            <div className="absolute inset-x-0 bottom-5 z-10 flex justify-center gap-2" role="tablist" aria-label="Hero images">
+            ) : (
+              <div
+                dir="ltr"
+                className={`reference-hero-content reference-hero-content--${activeHeroImage}`}
+                aria-live="polite"
+              >
+                <div
+                  key={`${activeHeroImage}-${locale}`}
+                  dir={locale === "ar" ? "rtl" : "ltr"}
+                  className={`reference-hero-copy reference-hero-copy--${activeHeroImage} reference-hero-copy-enter`}
+                >
+                  <p className="reference-kicker">{currentSlide.eyebrow}</p>
+                  {currentSlide.subtitle ? (
+                    <p className="reference-hero-subtitle">{currentSlide.subtitle}</p>
+                  ) : null}
+                  <h1>{currentSlide.title}</h1>
+                  <p className="reference-hero-description">{currentSlide.description}</p>
+                  <Link href={currentSlide.buttonHref} className="reference-button">
+                    {currentSlide.button} <ArrowRight className="size-4 rtl:rotate-180" aria-hidden />
+                  </Link>
+                </div>
+              </div>
+            )}
+            <div className="absolute inset-x-0 bottom-2.5 sm:bottom-5 z-10 flex justify-center gap-2" role="tablist" aria-label="Hero images">
               {heroImages.map((image, index) => (
                 <button
                   key={image.src}
@@ -130,7 +199,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
                   aria-label={`Show hero image ${index + 1}`}
                   onClick={() => setActiveHeroImage(index)}
                   className={`h-1.5 rounded-full transition-all motion-reduce:transition-none ${
-                    activeHeroImage === index ? "w-8 bg-ivory" : "w-1.5 bg-ivory/60"
+                    activeHeroImage === index ? "w-8 bg-ivory shadow-sm" : "w-1.5 bg-ivory/60"
                   }`}
                 />
               ))}
@@ -156,7 +225,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
                 <Link key={collection.slug} href={`/collections/${collection.slug}`} className="curated-home-card group">
                   <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
                   <div className="curated-home-card-copy">
-                    <span className="reference-collection-eyebrow">{collection.setCount} SETS</span>
+                    <span className="reference-collection-eyebrow">{locale === "ar" ? `${collection.setCount} مجموعات` : `${collection.setCount} SETS`}</span>
                     <span className="curated-home-card-title">{locale === "ar" ? (collection.nameAr || collection.nameEn) : collection.nameEn}</span>
                     <span className="curated-home-card-link">{locale === "ar" ? "اكتشفي المجموعة" : "Explore collection"} <ArrowRight className="size-4 rtl:rotate-180" aria-hidden /></span>
                   </div>
