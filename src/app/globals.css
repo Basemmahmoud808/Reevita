@@ -2881,18 +2881,19 @@ body {
   position: absolute;
   inset: 0;
   z-index: 1;
+  display: block !important;
   pointer-events: none;
   background: linear-gradient(
     90deg,
-    rgba(247, 243, 235, 0.84) 0%,
-    rgba(247, 243, 235, 0.52) 34%,
-    rgba(247, 243, 235, 0) 62%
+    rgba(247, 243, 235, 0.72) 0%,
+    rgba(247, 243, 235, 0.38) 32%,
+    rgba(247, 243, 235, 0) 56%
   );
   transition: opacity 400ms ease;
 }
 
 .reference-hero-overlay--0 {
-  opacity: 0;
+  opacity: 0 !important;
 }
 
 .reference-hero-poster-wrap {
@@ -2902,8 +2903,8 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  align-items: center;
-  padding-bottom: clamp(1.6rem, 3.8vw, 3.2rem);
+  align-items: flex-start;
+  padding: clamp(0.75rem, 2.2vw, 1.75rem) clamp(1rem, 3vw, 2.5rem);
 }
 
 .reference-hero-poster-hitbox {
@@ -2918,19 +2919,19 @@ body {
 }
 
 .reference-hero-poster-button {
-  background: linear-gradient(135deg, #7a1c2e 0%, #56111f 100%) !important;
+  background: linear-gradient(135deg, #6e1628 0%, #4a0d1a 100%) !important;
   color: #fffdf8 !important;
-  border: 1px solid rgba(235, 198, 134, 0.75) !important;
+  border: 1px solid rgba(235, 198, 134, 0.85) !important;
   border-radius: 9999px !important;
-  padding: 0.65rem 1.45rem !important;
-  font-size: clamp(0.72rem, 1.1vw, 0.92rem) !important;
+  padding: 0.6rem 1.35rem !important;
+  font-size: clamp(0.7rem, 1vw, 0.88rem) !important;
   font-weight: 700 !important;
   letter-spacing: 0.03em;
-  box-shadow: 0 10px 26px rgba(45, 8, 16, 0.42), 0 0 0 3px rgba(255, 253, 248, 0.18) !important;
+  box-shadow: 0 8px 22px rgba(30, 4, 10, 0.45) !important;
 }
 
 .reference-hero-poster-button:hover {
-  background: linear-gradient(135deg, #8e2237 0%, #681526 100%) !important;
+  background: linear-gradient(135deg, #861c32 0%, #5c1121 100%) !important;
   transform: translateY(-2px);
 }
 
@@ -2946,15 +2947,14 @@ body {
 }
 
 .reference-hero-copy {
-  width: min(44%, 25rem);
-  max-width: 25rem;
-  padding: clamp(0.85rem, 2vw, 1.5rem);
-  border-radius: 0.85rem;
-  background: rgba(247, 243, 235, 0.68);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  box-shadow: 0 16px 40px -24px rgba(30, 42, 34, 0.22);
+  width: min(40%, 24rem);
+  max-width: 24rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
   pointer-events: auto;
 }
 
@@ -2962,98 +2962,111 @@ body {
   animation: reference-hero-copy-enter 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.reference-hero-copy .reference-kicker {
+  color: #6b5331;
+  font-size: clamp(0.62rem, 0.85vw, 0.74rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-shadow: 0 1px 10px rgba(247, 243, 235, 0.9);
+}
+
+.reference-hero-copy > p.reference-hero-subtitle,
 .reference-hero-subtitle {
   margin-top: 0.35rem;
-  color: currentColor;
-  font-size: clamp(0.68rem, 1vw, 0.85rem);
-  font-weight: 600;
-  letter-spacing: 0.06em;
+  color: #3d5243 !important;
+  font-size: clamp(0.68rem, 0.95vw, 0.82rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
   line-height: 1.3;
   text-transform: uppercase;
+  text-shadow: 0 1px 10px rgba(247, 243, 235, 0.9) !important;
 }
 
 .reference-hero h1 {
   margin-top: 0.25rem;
-  max-width: 14ch;
-  font-size: clamp(1.65rem, 3.6vw, 3.1rem);
+  max-width: 13ch;
+  font-size: clamp(1.75rem, 3.8vw, 3.25rem);
   font-weight: 700;
-  line-height: 1.12;
-  color: #26392e;
+  line-height: 1.08;
+  color: #1f3a2c;
+  text-shadow: 0 2px 14px rgba(247, 243, 235, 0.92);
 }
 
-.reference-hero-description {
-  max-width: 20rem;
+.reference-hero-copy > p.reference-hero-description,
+.reference-hero-copy > p:not(.reference-kicker):not(.reference-hero-subtitle) {
+  max-width: 19rem;
   margin-top: 0.55rem;
-  font-size: clamp(0.78rem, 1.05vw, 0.95rem);
+  font-size: clamp(0.8rem, 1.05vw, 0.96rem);
+  font-weight: 500;
   line-height: 1.5;
-  color: #3c473f;
+  color: #2f4235 !important;
+  text-shadow: 0 1px 10px rgba(247, 243, 235, 0.92) !important;
 }
 
 .reference-hero-copy .reference-button {
-  margin-top: 0.95rem;
+  margin-top: 1rem;
   border-radius: 0.45rem;
-  padding: 0.7rem 1.3rem;
+  padding: 0.7rem 1.35rem;
   font-size: clamp(0.75rem, 0.95vw, 0.88rem);
   font-weight: 600;
-  border-color: #294d3a;
-  background: #294d3a;
+  border-color: #264a36;
+  background: #264a36;
   color: #fffdf8;
   box-shadow: 0 6px 16px rgba(41, 56, 45, 0.22);
 }
 
-/* Per-slide tailored palettes */
-.reference-hero-copy--1 {
-  color: #243b2e;
+/* Slide 1: Fresh Botanical Green */
+.reference-hero-copy--1 .reference-kicker {
+  color: #4d6428 !important;
 }
 
-.reference-hero-copy--1 .reference-kicker {
-  color: #546a2f;
-  font-weight: 700;
+.reference-hero-copy--1 > p.reference-hero-subtitle {
+  color: #2f4d3a !important;
 }
 
 .reference-hero-copy--1 h1 {
-  color: #1f3f2d;
+  color: #1b3b29 !important;
 }
 
-.reference-hero-copy--1 .reference-hero-description {
-  color: #354c3d;
+.reference-hero-copy--1 > p.reference-hero-description {
+  color: #283f31 !important;
 }
 
 .reference-hero-copy--1 .reference-button {
-  border-color: #264a36;
-  background: #264a36;
+  border-color: #234733;
+  background: #234733;
 }
 
 .reference-hero-copy--1 .reference-button:hover {
-  border-color: #1b3627;
-  background: #1b3627;
+  border-color: #183324;
+  background: #183324;
 }
 
-.reference-hero-copy--2 {
-  color: #44332b;
-}
-
+/* Slide 2: Warm Botanical Bronze */
 .reference-hero-copy--2 .reference-kicker {
-  color: #8c6239;
-  font-weight: 700;
+  color: #7c542e !important;
+}
+
+.reference-hero-copy--2 > p.reference-hero-subtitle {
+  color: #6b4735 !important;
 }
 
 .reference-hero-copy--2 h1 {
-  color: #5c3a2b;
+  color: #4f2f21 !important;
 }
 
-.reference-hero-copy--2 .reference-hero-description {
-  color: #544036;
+.reference-hero-copy--2 > p.reference-hero-description {
+  color: #473228 !important;
 }
 
 .reference-hero-copy--2 .reference-button {
-  border-color: #684536;
-  background: #684536;
+  border-color: #5e3d2e;
+  background: #5e3d2e;
 }
 
 .reference-hero-copy--2 .reference-button:hover {
-  border-color: #523529;
-  background: #523529;
+  border-color: #482e22;
+  background: #482e22;
 }
 
 @keyframes reference-hero-copy-enter {
@@ -3069,45 +3082,54 @@ body {
 
 @media (max-width: 639px) {
   .reference-hero-media {
-    min-height: 230px;
+    min-height: 220px;
   }
 
   .reference-hero-image--1,
   .reference-hero-image--2 {
     object-fit: cover !important;
-    object-position: 70% center !important;
+    object-position: 68% center !important;
+  }
+
+  .reference-hero-overlay {
+    background: linear-gradient(
+      90deg,
+      rgba(247, 243, 235, 0.86) 0%,
+      rgba(247, 243, 235, 0.56) 38%,
+      rgba(247, 243, 235, 0) 64%
+    );
   }
 
   .reference-hero-content {
     align-items: center;
-    padding: 0.75rem 0.85rem;
+    padding: 0.75rem 0.9rem;
   }
 
   .reference-hero-copy {
-    width: min(56%, 13.5rem);
-    padding: 0.7rem 0.8rem;
-    border-radius: 0.7rem;
-    background: rgba(247, 243, 235, 0.82);
+    width: min(48%, 12.2rem);
+    padding: 0;
+    background: transparent;
   }
 
   .reference-hero-copy .reference-kicker {
-    font-size: 0.56rem;
+    font-size: 0.54rem;
     letter-spacing: 0.1em;
   }
 
+  .reference-hero-copy > p.reference-hero-subtitle,
   .reference-hero-subtitle {
     margin-top: 0.15rem;
-    font-size: 0.58rem;
+    font-size: 0.56rem;
   }
 
   .reference-hero h1 {
-    max-width: 12ch;
-    font-size: clamp(1.05rem, 4.6vw, 1.35rem);
-    line-height: 1.15;
+    max-width: 11ch;
+    font-size: clamp(1.08rem, 4.8vw, 1.38rem);
+    line-height: 1.12;
   }
 
-  .reference-hero-description {
-    max-width: 13rem;
+  .reference-hero-copy > p.reference-hero-description {
+    max-width: 11.5rem;
     margin-top: 0.25rem;
     font-size: 0.68rem;
     line-height: 1.35;
@@ -3116,18 +3138,18 @@ body {
   .reference-hero-copy .reference-button {
     min-height: 0;
     margin-top: 0.5rem;
-    padding: 0.42rem 0.8rem;
+    padding: 0.42rem 0.82rem;
     gap: 0.35rem;
     font-size: 0.68rem;
   }
 
   .reference-hero-poster-wrap {
-    padding-bottom: 1.35rem;
+    padding: 0.55rem 0.75rem;
   }
 
   .reference-hero-poster-button {
-    padding: 0.42rem 1rem !important;
-    font-size: 0.68rem !important;
+    padding: 0.36rem 0.85rem !important;
+    font-size: 0.62rem !important;
   }
 }
 
@@ -3139,7 +3161,7 @@ body {
 
 @media (min-width: 640px) and (max-width: 1023px) {
   .reference-hero-copy {
-    width: min(48%, 23rem);
+    width: min(44%, 21rem);
   }
 }
 
