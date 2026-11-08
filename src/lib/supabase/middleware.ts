@@ -12,10 +12,10 @@ export async function updateSession(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://connect.facebook.net ${isDev ? "'unsafe-eval'" : ""}`.trim(),
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://*.facebook.net https://www.facebook.com https://*.facebook.com",
     // Next attaches this nonce to framework styles. Inline style attributes
     // remain separately scoped because a few responsive UI values are dynamic.
-    `style-src 'self' 'nonce-${nonce}'`,
+    "style-src 'self' 'unsafe-inline'",
     "style-src-attr 'unsafe-inline'",
     "img-src 'self' data: blob: https://*.supabase.co https://www.facebook.com https://*.facebook.com https://connect.facebook.net",
     "font-src 'self' data:",

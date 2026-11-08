@@ -1,12 +1,9 @@
-import { headers } from "next/headers";
 import { META_PIXEL_ID } from "@/lib/analytics/meta-pixel";
 
 /**
- * Injects Meta Pixel base code with CSP nonce into the document head.
+ * Injects Meta Pixel base code into the document head.
  */
-export async function MetaPixel() {
-  const nonce = (await headers()).get("x-nonce") ?? undefined;
-
+export function MetaPixel() {
   const pixelCode = `
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -22,10 +19,7 @@ fbq('track', 'PageView');
 
   return (
     <>
-      <script
-        nonce={nonce}
-        dangerouslySetInnerHTML={{ __html: pixelCode }}
-      />
+      <script dangerouslySetInnerHTML={{ __html: pixelCode }} />
       <noscript>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
