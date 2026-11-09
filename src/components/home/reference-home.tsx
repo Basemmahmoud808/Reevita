@@ -269,7 +269,7 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
             <div className="reference-story-copy">
               <p className="reference-kicker">{locale === "ar" ? "فلسفتنا" : "OUR PHILOSOPHY"}</p>
               <h2 className="mt-3">{locale === "ar" ? <>عناية حقيقية<br />بنتائج ملموسة</> : <>Skincare<br />That Works</>}</h2>
-              <p className="mt-3 text-sm leading-6 text-[#67665d]">{locale === "ar" ? "تركيبات نقية، فعالة ولطيفة لإبراز إشراقتك الطبيعية." : "Clean, effective, and gentle formulas for your natural glow."}</p>
+              <p className="mt-3 text-sm leading-6 text-ink/85">{locale === "ar" ? "تركيبات نقية، فعالة ولطيفة لإبراز إشراقتك الطبيعية." : "Clean, effective, and gentle formulas for your natural glow."}</p>
               <a href="#collections" className="reference-outline-button mt-5">{locale === "ar" ? "اكتشفي ريفيتا" : "Discover REEVITA"} <ArrowRight className="size-4 rtl:rotate-180" /></a>
             </div>
           </div>
