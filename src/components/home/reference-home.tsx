@@ -12,7 +12,7 @@ import { useI18n } from "@/lib/i18n";
 import { useMemo } from "react";
 import type { Collection, Product } from "@/lib/types";
 
-const heroImage = "/images/reevita-berry-hero.jpg";
+const heroImage = "/images/reevita-hero-royal.jpg";
 const storyImage = "/images/reevita-story.jpg";
 
 export function ReferenceHome({ products, collections = [] }: { products: Product[]; collections?: Collection[] }) {
