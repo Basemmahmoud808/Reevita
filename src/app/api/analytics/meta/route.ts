@@ -2,6 +2,7 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { sendMetaServerEvent } from "@/lib/analytics/meta-capi";
 import { META_PIXEL_ID } from "@/lib/analytics/meta-pixel";
+import { clientIp, rateLimit } from "@/lib/security/rate-limit";
 
 const ALLOWED_EVENTS = new Set([
   "PageView",
@@ -35,6 +36,14 @@ export async function POST(request: Request) {
 
     const headerStore = await headers();
     const cookieStore = await cookies();
+
+    const limited = await rateLimit(`meta-capi:${clientIp(headerStore)}`, 120, 60 * 1000);
+    if (!limited.allowed) {
+      return NextResponse.json(
+        { ok: false, error: "Too many requests" },
+        { status: 429, headers: { "Retry-After": String(limited.retryAfterSeconds) } },
+      );
+    }
 
     const forwardedFor = headerStore.get("x-forwarded-for");
     const clientIpAddress = forwardedFor
