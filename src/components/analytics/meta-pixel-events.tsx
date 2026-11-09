@@ -31,13 +31,27 @@ function PageViewTrackerInner() {
       // On SPA client-side route transitions, fire both browser fbq and server CAPI PageView.
       trackMetaEvent("PageView", { page_path: fullPath });
     }
-
-    if (pathname === "/checkout") {
-      trackMetaEvent("InitiateCheckout", {
-        currency: "EGP",
-      });
-    }
   }, [pathname, searchParams]);
+
+  // Global listener for WhatsApp, Phone, and Email contact interactions
+  useEffect(() => {
+    const onDocumentClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const anchor = target?.closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href") || "";
+      if (href.includes("wa.me") || href.startsWith("tel:") || href.startsWith("mailto:")) {
+        const method = href.includes("wa.me")
+          ? "whatsapp"
+          : href.startsWith("tel:")
+            ? "phone"
+            : "email";
+        trackMetaEvent("Contact", { contact_method: method, content_name: href });
+      }
+    };
+    document.addEventListener("click", onDocumentClick, { capture: true });
+    return () => document.removeEventListener("click", onDocumentClick, { capture: true });
+  }, []);
 
   return null;
 }
@@ -81,6 +95,40 @@ export function MetaPixelViewContent({ product }: { product: ViewContentProduct 
       },
     );
   }, [product]);
+
+  return null;
+}
+
+export function MetaPixelViewCollection({
+  slug,
+  nameEn,
+  setCount,
+}: {
+  slug: string;
+  nameEn: string;
+  setCount: number;
+}) {
+  const firedForSlug = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (firedForSlug.current === slug) return;
+    firedForSlug.current = slug;
+
+    trackMetaEvent(
+      "ViewContent",
+      {
+        content_name: nameEn,
+        content_category: "Collection",
+        content_ids: [slug],
+        content_type: "product_group",
+        num_items: setCount,
+        currency: "EGP",
+      },
+      {
+        eventId: `viewcollection_${slug}_${Date.now()}`,
+      },
+    );
+  }, [slug, nameEn, setCount]);
 
   return null;
 }

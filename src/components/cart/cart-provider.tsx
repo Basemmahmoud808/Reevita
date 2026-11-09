@@ -348,9 +348,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const setQuantity = useCallback((productId: string, quantity: number) => {
     setCart((current) => {
+      const existing = current.lines.find((line) => line.productId === productId);
+      const clamped = Math.min(Math.max(1, Math.round(quantity)), MAX_QUANTITY);
+      if (existing && clamped > existing.quantity) {
+        const addedQty = clamped - existing.quantity;
+        trackMetaEvent("AddToCart", {
+          content_name: existing.nameAr,
+          content_ids: [existing.productId],
+          content_type: "product",
+          value: existing.price * addedQty,
+          currency: "EGP",
+        });
+      }
       const lines = current.lines
         .map((line) => line.productId === productId
-          ? { ...line, quantity: Math.min(Math.max(1, Math.round(quantity)), MAX_QUANTITY) }
+          ? { ...line, quantity: clamped }
           : line,
         )
         .filter((line) => line.quantity > 0);

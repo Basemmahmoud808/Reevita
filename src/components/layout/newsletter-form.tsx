@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { Loader2, Send } from "lucide-react";
 import { subscribeAction, type NewsletterState } from "@/lib/actions/newsletter";
+import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
 import { cn } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 
@@ -12,6 +13,14 @@ export function NewsletterForm({ className, tone = "dark" }: { className?: strin
     null,
   );
   const { t } = useI18n();
+  const trackedLeadRef = useRef(false);
+
+  useEffect(() => {
+    if (state?.ok && !trackedLeadRef.current) {
+      trackedLeadRef.current = true;
+      trackMetaEvent("Lead", { content_name: "Newsletter Subscription" });
+    }
+  }, [state?.ok]);
 
   return (
     <form action={formAction} className={cn("w-full", className)}>

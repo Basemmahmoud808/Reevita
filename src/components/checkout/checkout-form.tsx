@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft, Loader2, Lock, ShieldCheck, Truck } from "lucide-react";
 import { useCart } from "@/components/cart/cart-provider";
 import { placeOrderAction, type CheckoutFormState } from "@/lib/actions/checkout";
+import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
 import { formatEGP } from "@/lib/format";
 import { depositPayment } from "@/lib/payment";
 import type { Governorate } from "@/lib/types";
@@ -40,6 +41,24 @@ export function CheckoutForm({
       document.getElementById("checkout-error")?.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [state]);
+
+  const initiatedCheckoutRef = useRef(false);
+  useEffect(() => {
+    if (!ready || lines.length === 0 || initiatedCheckoutRef.current) return;
+    initiatedCheckoutRef.current = true;
+    trackMetaEvent("InitiateCheckout", {
+      content_type: "product",
+      content_ids: lines.map((line) => line.productId),
+      contents: lines.map((line) => ({
+        id: line.productId,
+        quantity: line.quantity,
+        item_price: line.price,
+      })),
+      num_items: lines.reduce((sum, line) => sum + line.quantity, 0),
+      value: subtotalAfterDiscount,
+      currency: "EGP",
+    });
+  }, [ready, lines, subtotalAfterDiscount]);
 
   const shippingFee = governorate
     ? subtotal >= governorate.freeShippingThreshold

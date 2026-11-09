@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { CuratedSetCard } from "@/components/collection/curated-set-card";
+import { MetaPixelViewCollection } from "@/components/analytics/meta-pixel-events";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { getCollectionBySlug } from "@/lib/data/catalog";
 import { siteUrl } from "@/lib/env";
@@ -37,6 +38,7 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
 
   return (
     <main className="container-luxe curated-collection-page">
+      <MetaPixelViewCollection slug={collection.slug} nameEn={collection.nameEn} setCount={sets.length} />
       <Link href="/collections" className="curated-back-link"><ArrowLeft className="size-4" aria-hidden /> All collections</Link>
       <header className="curated-collection-hero">
         <div className="curated-collection-hero-image" style={{ aspectRatio: collection.coverAspectRatio ?? "3 / 2" }}>
