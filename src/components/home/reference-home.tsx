@@ -9,104 +9,38 @@ import { CuratedCollectionCover } from "@/components/collection/curated-collecti
 import { blurForSlug } from "@/lib/images";
 import { featuredCollections } from "@/lib/catalog";
 import { useI18n } from "@/lib/i18n";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Collection, Product } from "@/lib/types";
 
+const heroImage = "/images/reevita-berry-hero.jpg";
 const storyImage = "/images/reevita-story.jpg";
 
 export function ReferenceHome({ products, collections = [] }: { products: Product[]; collections?: Collection[] }) {
   const { locale } = useI18n();
-  const [activeHeroImage, setActiveHeroImage] = useState(0);
-  const [isHeroPaused, setIsHeroPaused] = useState(false);
   const collectionSlides = useMemo(
     () => (collections.length > 0 ? collections : featuredCollections),
     [collections],
   );
-  const heroImages = [
-    {
-      src: "/images/reevita-white-friday-hero.png",
-      alt: "REEVITA White Friday offers and free gifts",
-    },
-    {
-      src: "/images/reevita-hero-greenery.png",
-      alt: "REEVITA body care products surrounded by fresh greenery",
-    },
-    {
-      src: "/images/reevita-hero.png",
-      alt: "REEVITA hair mist surrounded by botanical ingredients",
-    },
-  ];
+
   const heroCopy = useMemo(
     () =>
       locale === "ar"
-        ? [
-            {
-              eyebrow: "",
-              subtitle: "",
-              title: "عروض الوايت فرايداي",
-              description: "",
-              button: "تسوقي العروض الآن",
-              buttonHref: "/shop",
-              isPoster: true,
-            },
-            {
-              eyebrow: "ريفيتا كوزمتكس",
-              subtitle: "مستوحاة من الطبيعة",
-              title: "جمالك من الطبيعة",
-              description: "عناية لطيفة ومتكاملة لبشرتك وشعرك.",
-              button: "تسوقي الآن",
-              buttonHref: "/shop",
-              isPoster: false,
-            },
-            {
-              eyebrow: "ريفيتا كوزمتكس",
-              subtitle: "روتينك اليومي",
-              title: "لمسة ملكية كل يوم",
-              description: "تركيبات نقية وعطور تدوم طويلاً.",
-              button: "تسوقي الآن",
-              buttonHref: "/shop",
-              isPoster: false,
-            },
-          ]
-        : [
-            {
-              eyebrow: "",
-              subtitle: "",
-              title: "White Friday Offers",
-              description: "",
-              button: "Shop Offers Now",
-              buttonHref: "/shop",
-              isPoster: true,
-            },
-            {
-              eyebrow: "REEVITA COSMETICS",
-              subtitle: "Nature-inspired",
-              title: "Beauty from Nature",
-              description: "Gentle care for skin and hair.",
-              button: "Shop Now",
-              buttonHref: "/shop",
-              isPoster: false,
-            },
-            {
-              eyebrow: "REEVITA COSMETICS",
-              subtitle: "Daily beauty",
-              title: "Your Royal Touch",
-              description: "Clean formulas and lasting scents for every day.",
-              button: "Shop Now",
-              buttonHref: "/shop",
-              isPoster: false,
-            },
-          ],
+        ? {
+            eyebrow: "ريفيتا كوزمتكس",
+            title: "لمستك الملكية",
+            description: "عناية متكاملة وعطور ساحرة صُممت لأجلك.",
+            button: "تسوقي الآن",
+            buttonHref: "/shop",
+          }
+        : {
+            eyebrow: "REEVITA COSMETICS",
+            title: "Your Royal Touch",
+            description: "Beauty essentials made for you.",
+            button: "Shop Now",
+            buttonHref: "/shop",
+          },
     [locale],
   );
-
-  useEffect(() => {
-    if (isHeroPaused) return;
-    const timer = window.setInterval(() => {
-      setActiveHeroImage((current) => (current + 1) % heroImages.length);
-    }, 5000);
-    return () => window.clearInterval(timer);
-  }, [isHeroPaused, heroImages.length]);
 
   const groupedBestSellers = useMemo(() => {
     const categoryOrder = ["shampoo", "body-lotion", "body-butter", "body-splash", "hair-mist", "shower-gel"];
@@ -115,94 +49,35 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
       .filter((variants) => variants.length > 0);
   }, [products]);
 
-  const currentSlide = heroCopy[activeHeroImage]!;
-
   return (
     <div className="reference-home">
       <div>
         <section className="reference-hero">
-          <div
-            className="reference-hero-media"
-            onMouseEnter={() => setIsHeroPaused(true)}
-            onMouseLeave={() => setIsHeroPaused(false)}
-            onFocus={() => setIsHeroPaused(true)}
-            onBlur={() => setIsHeroPaused(false)}
-          >
-            {heroImages.map((image, index) => (
-              <Image
-                key={image.src}
-                src={image.src}
-                alt={image.alt}
-                fill
-                priority={index === 0}
-                quality={90}
-                sizes="100vw"
-                loading={index === 0 ? "eager" : "lazy"}
-                fetchPriority={index === 0 ? "high" : "auto"}
-                className={`reference-hero-image reference-hero-image--${index} transition-opacity duration-1000 motion-reduce:transition-none ${
-                  activeHeroImage === index ? "opacity-100" : "opacity-0"
-                }`}
-                aria-hidden={activeHeroImage !== index}
-              />
-            ))}
-            <div
-              className={`reference-hero-overlay reference-hero-overlay--${activeHeroImage}`}
-              aria-hidden="true"
+          <div className="reference-hero-media">
+            <Image
+              src={heroImage}
+              alt="REEVITA Cosmetics complete body and hair care collection"
+              fill
+              priority
+              quality={95}
+              sizes="100vw"
+              loading="eager"
+              fetchPriority="high"
+              className="reference-hero-image"
             />
-            {currentSlide.isPoster ? (
-              <div className="reference-hero-poster-wrap" aria-live="polite">
-                <h1 className="sr-only">{currentSlide.title}</h1>
-                <Link
-                  href={currentSlide.buttonHref}
-                  className="reference-hero-poster-hitbox"
-                  aria-label={currentSlide.button}
-                />
-                <div className="reference-hero-poster-cta-bar">
-                  <Link
-                    href={currentSlide.buttonHref}
-                    className="reference-button reference-hero-poster-button"
-                  >
-                    {currentSlide.button} <ArrowRight className="size-4 rtl:rotate-180" aria-hidden />
-                  </Link>
-                </div>
-              </div>
-            ) : (
+            <div className="reference-hero-content" aria-live="polite">
               <div
-                dir="ltr"
-                className={`reference-hero-content reference-hero-content--${activeHeroImage}`}
-                aria-live="polite"
+                key={locale}
+                dir={locale === "ar" ? "rtl" : "ltr"}
+                className="reference-hero-copy reference-hero-copy-enter"
               >
-                <div
-                  key={`${activeHeroImage}-${locale}`}
-                  dir={locale === "ar" ? "rtl" : "ltr"}
-                  className={`reference-hero-copy reference-hero-copy--${activeHeroImage} reference-hero-copy-enter`}
-                >
-                  <p className="reference-kicker">{currentSlide.eyebrow}</p>
-                  {currentSlide.subtitle ? (
-                    <p className="reference-hero-subtitle">{currentSlide.subtitle}</p>
-                  ) : null}
-                  <h1>{currentSlide.title}</h1>
-                  <p className="reference-hero-description">{currentSlide.description}</p>
-                  <Link href={currentSlide.buttonHref} className="reference-button">
-                    {currentSlide.button} <ArrowRight className="size-4 rtl:rotate-180" aria-hidden />
-                  </Link>
-                </div>
+                <p className="reference-kicker">{heroCopy.eyebrow}</p>
+                <h1>{heroCopy.title}</h1>
+                <p className="reference-hero-description">{heroCopy.description}</p>
+                <Link href={heroCopy.buttonHref} className="reference-button">
+                  {heroCopy.button} <ArrowRight className="size-3.5 rtl:rotate-180" aria-hidden />
+                </Link>
               </div>
-            )}
-            <div className="absolute inset-x-0 bottom-2.5 sm:bottom-5 z-10 flex justify-center gap-2" role="tablist" aria-label="Hero images">
-              {heroImages.map((image, index) => (
-                <button
-                  key={image.src}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeHeroImage === index}
-                  aria-label={`Show hero image ${index + 1}`}
-                  onClick={() => setActiveHeroImage(index)}
-                  className={`h-1.5 rounded-full transition-all motion-reduce:transition-none ${
-                    activeHeroImage === index ? "w-8 bg-ivory shadow-sm" : "w-1.5 bg-ivory/60"
-                  }`}
-                />
-              ))}
             </div>
           </div>
         </section>
