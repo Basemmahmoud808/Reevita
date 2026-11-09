@@ -3106,7 +3106,7 @@ body {
     position: relative !important;
     inset: auto !important;
     aspect-ratio: auto !important;
-    min-height: clamp(21rem, 56svh, 26rem) !important;
+    min-height: clamp(27.5rem, 68svh, 33rem) !important;
     border-radius: 0 !important;
   }
 
