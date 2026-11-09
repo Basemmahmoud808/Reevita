@@ -3157,8 +3157,25 @@ body {
   }
 }
 
+@keyframes announcement-pulse-glow {
+  0%,
+  100% {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+  }
+  50% {
+    opacity: 0.88;
+    text-shadow: 0 0 18px rgba(243, 229, 171, 0.75), 0 0 6px rgba(212, 175, 55, 0.55);
+  }
+}
+
+.announcement-shimmer {
+  animation: announcement-pulse-glow 2.6s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .reference-hero-copy-enter {
+  .reference-hero-copy-enter,
+  .announcement-shimmer {
     animation: none;
   }
 }

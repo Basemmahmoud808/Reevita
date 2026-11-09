@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { AnnouncementBar } from "@/components/layout/announcement-bar";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
@@ -10,5 +11,12 @@ export function SiteChrome({ part }: { part: "header" | "footer" }) {
   // duplicating it in individual pages) gives assistive technology one header,
   // one footer and one set of social links on every storefront route.
   if (pathname.startsWith("/admin")) return null;
-  return part === "header" ? <Header /> : <Footer />;
+  return part === "header" ? (
+    <div className="sticky top-0 z-50 w-full">
+      <AnnouncementBar />
+      <Header />
+    </div>
+  ) : (
+    <Footer />
+  );
 }
