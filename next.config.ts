@@ -54,24 +54,6 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains; preload",
           },
-          {
-            key: "Content-Security-Policy",
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://vercel.live",
-              "style-src 'self' 'unsafe-inline'",
-              `img-src 'self' data: blob: https://connect.facebook.net https://www.facebook.com ${supabaseHost ? `https://${supabaseHost}` : ""}`,
-              "font-src 'self' data:",
-              `connect-src 'self' https://connect.facebook.net https://www.facebook.com ${supabaseHost ? `https://${supabaseHost}` : ""} https://*.supabase.co https://*.vercel-insights.com https://vitals.vercel-insights.com`,
-              "frame-ancestors 'none'",
-              "form-action 'self'",
-              "base-uri 'self'",
-              "object-src 'none'",
-            ]
-              .map((s) => s.trim())
-              .filter(Boolean)
-              .join("; "),
-          },
         ],
       },
       {
