@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -40,18 +39,11 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
     <main className="container-luxe curated-collection-page">
       <MetaPixelViewCollection slug={collection.slug} nameEn={collection.nameEn} setCount={sets.length} />
       <Link href="/collections" className="curated-back-link"><ArrowLeft className="size-4" aria-hidden /> All collections</Link>
-      <header className="curated-collection-hero">
-        <div className="curated-collection-hero-image" style={{ aspectRatio: collection.coverAspectRatio ?? "3 / 2" }}>
-          <Image
-            src={collection.image}
-            alt={`${collection.nameEn} collection cover`}
-            fill
-            quality={100}
-            sizes="(max-width: 700px) 100vw, (max-width: 1100px) 50vw, 42rem"
-            className={collection.coverFit === "contain" ? "object-contain" : "object-cover"}
-            preload
-          />
-          <h1 className="sr-only">{collection.nameEn}</h1>
+      <header className="curated-collection-hero curated-collection-hero-text-only">
+        <div className="curated-collection-hero-copy">
+          <p className="eyebrow">COLLECTION</p>
+          <h1>{collection.nameEn}</h1>
+          <span className="curated-set-count">{sets.length} sets</span>
         </div>
       </header>
 
