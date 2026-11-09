@@ -9,7 +9,7 @@ export function LanguageToggle() {
     <button
       type="button"
       onClick={toggleLocale}
-      className="reference-language-toggle inline-flex h-8 items-center gap-2 border border-[#ded8cc] px-3 text-[0.62rem] font-bold text-[#344238] transition-colors hover:bg-[#ebe4d8]"
+      className="reference-language-toggle inline-flex h-8 items-center gap-2 border border-white/30 px-3 text-[0.62rem] font-bold text-white transition-colors hover:bg-white/15"
       aria-label={`Switch language to ${locale === "en" ? "Arabic" : "English"}`}
     >
       <Languages className="size-3.5" aria-hidden />

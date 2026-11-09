@@ -23,7 +23,7 @@ export function SocialIconLinks({ className = "" }: { className?: string }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`REEVITA on ${label}`}
-          className="inline-flex size-10 items-center justify-center rounded-lg border border-[#d9d4c9] bg-transparent text-[#405247] transition-all duration-300 hover:scale-[1.12] hover:border-[#405247] hover:bg-[#405247] hover:text-[#f7f3eb] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#405247] focus-visible:ring-offset-2"
+          className="inline-flex size-10 items-center justify-center rounded-lg border border-line bg-white/70 text-plum transition-all duration-300 hover:scale-[1.12] hover:border-plum hover:bg-plum hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-plum focus-visible:ring-offset-2"
         >
           <Icon className="size-[17px]" />
         </a>

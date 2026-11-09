@@ -163,12 +163,12 @@
   }
 
   .reference-header nav a {
-    color: #4c514c;
+    color: #36242c;
     transition: color 180ms ease;
   }
 
   .reference-header nav button {
-    color: #4c514c;
+    color: #36242c;
     transition: color 180ms ease;
   }
 
@@ -274,7 +274,7 @@
   }
 
   .reference-outline-button {
-    border: 1px solid #5d6259;
+    border: 1px solid #82234d;
     color: #141013;
   }
 
@@ -342,7 +342,7 @@
     border: 1px solid #ebc4d3;
     border-radius: 0.75rem;
     background: #fdf3f7;
-    box-shadow: 0 18px 44px -36px rgba(41, 56, 45, 0.45);
+    box-shadow: 0 18px 44px -36px rgba(130, 35, 77, 0.45);
   }
 
   .reference-collection-copy {
@@ -392,7 +392,7 @@
   }
 
   .reference-collection-price {
-    border-inline-start: 1px solid #d8d0c3;
+    border-inline-start: 1px solid #e2b8c8;
     padding-inline-start: 0.8rem;
   }
 
@@ -437,20 +437,20 @@
   }
 
   .reference-collection-cart {
-    border: 1px solid #cfc8bb;
+    border: 1px solid #e2b8c8;
     background: transparent;
     color: #82234d;
   }
 
   .reference-collection-cart:not(:disabled):hover {
     border-color: #82234d;
-    background: #ece8df;
+    background: #f7dce6;
   }
 
   .reference-collection-cart:disabled {
     cursor: not-allowed;
-    background: #ebe7de;
-    color: #5f665f;
+    background: #f7dce6;
+    color: #6b4f5b;
     opacity: 1;
   }
 
@@ -497,7 +497,7 @@
   }
 
   .reference-collection-arrows .reference-slider-button {
-    border-color: #cfc8bb;
+    border-color: #e2b8c8;
     background: #fffdf8;
     color: #82234d;
   }
@@ -518,7 +518,7 @@
     width: 0.42rem;
     height: 0.42rem;
     border-radius: 999px;
-    background: #c9c1b4;
+    background: #dfb3c4;
     transition: width 180ms ease, background-color 180ms ease;
   }
 
@@ -625,7 +625,7 @@
     border: 1px solid #ebc4d3;
     border-radius: 0.9rem;
     background: #fdf3f7;
-    box-shadow: 0 18px 44px -36px rgba(41, 56, 45, 0.4);
+    box-shadow: 0 18px 44px -36px rgba(130, 35, 77, 0.4);
   }
 
   .collection-product-main-image {
@@ -649,7 +649,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    color: #687067;
+    color: #5e434f;
     font-size: 0.68rem;
   }
 
@@ -659,7 +659,7 @@
     height: 2.5rem;
     align-items: center;
     justify-content: center;
-    border: 1px solid #d5cdbf;
+    border: 1px solid #e2b8c8;
     border-radius: 999px;
     background: rgba(248, 245, 239, 0.92);
     color: #82234d;
@@ -745,7 +745,7 @@
     cursor: not-allowed;
     border-color: #c9c8c1;
     background: #d7d9d4;
-    color: #687067;
+    color: #5e434f;
   }
 
   .collection-product-thumbnails {
@@ -1162,7 +1162,7 @@
   .glass-surface {
     border: 1px solid color-mix(in srgb, var(--color-ivory) 72%, var(--color-line));
     background: color-mix(in srgb, var(--color-ivory) 82%, transparent);
-    box-shadow: 0 18px 45px -32px rgba(41, 56, 45, 0.32);
+    box-shadow: 0 18px 45px -32px rgba(130, 35, 77, 0.32);
     backdrop-filter: blur(18px) saturate(110%);
   }
 
@@ -1266,7 +1266,7 @@
   .btn-primary {
     background-color: var(--color-plum);
     color: var(--color-ivory);
-    box-shadow: 0 16px 30px -22px rgba(41, 56, 45, 0.75);
+    box-shadow: 0 16px 30px -22px rgba(130, 35, 77, 0.75);
   }
 
   .btn-primary,
@@ -2114,7 +2114,7 @@ body {
   overflow: hidden;
   border: 1px solid rgba(226, 219, 207, 0.82);
   border-radius: 0.85rem;
-  background: #33443a;
+  background: #751f45;
   isolation: isolate;
 }
 
@@ -2135,8 +2135,8 @@ body {
   display: block;
   z-index: 1;
   background:
-    linear-gradient(90deg, rgba(24, 42, 34, 0.76) 0%, rgba(24, 42, 34, 0.62) 34%, rgba(24, 42, 34, 0.24) 61%, rgba(24, 42, 34, 0.02) 82%),
-    linear-gradient(0deg, rgba(24, 42, 34, 0.2), transparent 44%);
+    linear-gradient(90deg, rgba(94, 21, 54, 0.76) 0%, rgba(94, 21, 54, 0.62) 34%, rgba(94, 21, 54, 0.24) 61%, rgba(94, 21, 54, 0.02) 82%),
+    linear-gradient(0deg, rgba(94, 21, 54, 0.2), transparent 44%);
 }
 
 .reference-hero-content {
@@ -2207,13 +2207,13 @@ body {
 .reference-hero-copy .reference-button {
   border: 1px solid #fdf3f7;
   background: #fdf3f7;
-  color: #293b31;
+  color: #5e1536;
 }
 
 .reference-hero-copy .reference-button:hover {
   border-color: #fffdf8;
   background: #fffdf8;
-  color: #293b31;
+  color: #5e1536;
 }
 
 .reference-hero-copy .reference-outline-button {
@@ -2239,8 +2239,8 @@ body {
 
   .reference-hero-overlay {
     background:
-      linear-gradient(90deg, rgba(24, 42, 34, 0.74) 0%, rgba(24, 42, 34, 0.58) 52%, rgba(24, 42, 34, 0.12) 86%),
-      linear-gradient(0deg, rgba(24, 42, 34, 0.28), transparent 55%);
+      linear-gradient(90deg, rgba(94, 21, 54, 0.74) 0%, rgba(94, 21, 54, 0.58) 52%, rgba(94, 21, 54, 0.12) 86%),
+      linear-gradient(0deg, rgba(94, 21, 54, 0.28), transparent 55%);
   }
 
   .reference-hero-content {
@@ -2634,7 +2634,7 @@ body {
   width: 100%;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  background: #f2eee8;
+  background: #f9e4ec;
 }
 
 .product-gallery-main-image {
@@ -2697,7 +2697,7 @@ body {
   height: 100%;
   overflow: hidden;
   border-radius: 4px;
-  background: #f2eee8;
+  background: #f9e4ec;
 }
 
 .product-detail-info {
@@ -2850,17 +2850,33 @@ body {
 }
 
 .reference-header .reference-header-logo,
+.reference-header .reference-header-logo span,
 .reference-header .reference-wordmark,
 .reference-header nav a,
 .reference-header nav button,
-.reference-header-icon,
-.reference-header span,
-.reference-header button {
+.reference-header .reference-header-icon,
+.reference-header > div > div > button {
   color: #ffffff !important;
 }
 
-.reference-header-icon:hover {
-  background: rgba(255, 255, 255, 0.14) !important;
+.reference-header .reference-header-icon:hover,
+.reference-header > div > div > button:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+}
+
+/* Mobile menu drawer inside header keeps crisp dark/Berry Rose colors on light blush background */
+#mobile-menu {
+  color: #141013;
+}
+
+#mobile-menu a,
+#mobile-menu span {
+  color: inherit;
+}
+
+#mobile-menu .btn-primary,
+#mobile-menu .btn-primary span {
   color: #ffffff !important;
 }
 

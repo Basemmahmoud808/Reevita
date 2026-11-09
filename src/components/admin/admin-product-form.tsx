@@ -71,7 +71,7 @@ export function AdminProductForm() {
         </div>
         <div className="flex items-end">
           <label className="flex items-center gap-2 pb-3 text-xs font-semibold text-plum">
-            <input type="checkbox" name="isFeatured" className="size-4 accent-[#29332e]" />
+            <input type="checkbox" name="isFeatured" className="size-4 accent-[#82234d]" />
             منتج مميز
           </label>
         </div>

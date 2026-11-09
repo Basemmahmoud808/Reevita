@@ -25,7 +25,7 @@ export default async function AdminDashboardLayout({ children }: { children: Rea
   const orders = ordersResult.status === "fulfilled" ? ordersResult.value : { orders: [], total: 0 };
 
   return (
-    <div className="min-h-screen bg-[#f6f0ea]">
+    <div className="min-h-screen bg-[#fdf3f7]">
       <div className="border-b border-line bg-ivory">
         <div className="container-luxe flex flex-wrap items-center justify-between gap-3 py-4">
           <div className="flex items-center gap-4">
