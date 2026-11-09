@@ -71,7 +71,7 @@ export function ProductCard({ product, priority = false, className }: { product:
 
   return (
     <article className={cn("group relative flex flex-col", className)}>
-      <div className="relative overflow-hidden rounded-[0.75rem] border border-line/70 bg-ivory shadow-card transition-shadow duration-500 group-hover:shadow-luxe">
+      <div className="relative overflow-hidden rounded-[0.75rem] bg-ivory">
         <Link href={`/products/${product.slug}`} aria-label={`View ${product.nameEn}`} className="block rounded-[0.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
           <ProductImage product={product} priority={priority} />
         </Link>
@@ -109,7 +109,7 @@ export function GroupedProductCard({ products, priority = false, className }: { 
 
   return (
     <article className={cn("group relative flex flex-col", className)}>
-      <div className="relative overflow-hidden rounded-[0.75rem] border border-line/70 bg-ivory shadow-card transition-shadow duration-500 group-hover:shadow-luxe">
+      <div className="relative overflow-hidden rounded-[0.75rem] bg-ivory">
         <Link href={`/products/${product.slug}`} aria-label={`View ${product.nameEn}`} className="absolute inset-0 z-[1] rounded-[0.75rem] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-offset-2" />
         <ProductImage product={product} priority={priority} />
         <ProductBadge product={product} />

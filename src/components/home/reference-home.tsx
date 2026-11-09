@@ -59,7 +59,8 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
               alt="REEVITA Cosmetics complete body and hair care collection"
               fill
               priority
-              quality={95}
+              unoptimized
+              quality={100}
               sizes="100vw"
               loading="eager"
               fetchPriority="high"
