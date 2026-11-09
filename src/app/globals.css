@@ -3160,12 +3160,12 @@ body {
 @keyframes announcement-pulse-glow {
   0%,
   100% {
-    opacity: 1;
-    text-shadow: 0 0 10px rgba(212, 175, 55, 0.35);
+    filter: brightness(1);
+    box-shadow: 0 0 12px rgba(212, 175, 55, 0.35);
   }
   50% {
-    opacity: 0.88;
-    text-shadow: 0 0 18px rgba(243, 229, 171, 0.75), 0 0 6px rgba(212, 175, 55, 0.55);
+    filter: brightness(1.08);
+    box-shadow: 0 0 18px rgba(243, 229, 171, 0.65);
   }
 }
 
