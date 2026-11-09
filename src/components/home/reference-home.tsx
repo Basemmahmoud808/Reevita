@@ -26,14 +26,14 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
     () =>
       locale === "ar"
         ? {
-            eyebrow: "ريفيتا كوزمتكس",
+            eyebrow: "ريفيتا",
             title: "لمستك الملكية",
             description: "عناية متكاملة وعطور ساحرة صُممت لأجلك.",
             button: "تسوقي الآن",
             buttonHref: "/shop",
           }
         : {
-            eyebrow: "REEVITA COSMETICS",
+            eyebrow: "REEVITA",
             title: "Your Royal Touch",
             description: "Beauty essentials made for you.",
             button: "Shop Now",

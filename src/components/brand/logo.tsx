@@ -15,9 +15,8 @@ const sizes = {
   lg: { word: "text-[2.6rem]", tag: "text-[0.6rem]" },
 };
 
-export function Logo({ className, variant = "dark", size = "md", withTagline = true, href = "/" }: LogoProps) {
+export function Logo({ className, variant = "dark", size = "md", href = "/" }: LogoProps) {
   const palette = variant === "dark" ? "text-plum" : "text-ivory";
-  const tagColor = variant === "dark" ? "text-gold-deep" : "text-gold";
 
   const content = (
     <span className={cn("inline-flex flex-col items-center leading-none", className)}>
@@ -26,17 +25,6 @@ export function Logo({ className, variant = "dark", size = "md", withTagline = t
           Reevita
         </span>
       </span>
-      {withTagline && (
-        <span
-          className={cn(
-            "eyebrow-plain mt-1.5 ps-[1.15rem] tracking-[0.48em]",
-            sizes[size].tag,
-            tagColor,
-          )}
-        >
-          COSMETICS
-        </span>
-      )}
     </span>
   );
 

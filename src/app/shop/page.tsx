@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { ProductGrid } from "@/components/product/product-grid";
-import { ShopToolbar } from "@/components/shop/shop-toolbar";
 import { getProducts } from "@/lib/data/catalog";
 import { cn } from "@/lib/format";
 
@@ -43,8 +42,6 @@ export default async function ShopPage({ searchParams }: { searchParams: SearchP
         <h1 className="display-xl mt-3">Shop the ritual</h1>
         <p className="lead mt-3">Thoughtfully made body care, hair care and beauty essentials for your everyday routine.</p>
       </div>
-
-      <ShopToolbar total={products.length} />
 
       {products.length > 0 ? (
         <ProductGrid products={products} prioritizeFirst className="mt-9" />
