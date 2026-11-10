@@ -171,12 +171,16 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
       0,
     );
 
-    const eventId = `purchase_${order.orderNumber}`;
-    const win = window as { __rvPurchaseInline?: string };
-    const alreadyFiredInline = win.__rvPurchaseInline === order.orderNumber;
-    if (alreadyFiredInline) {
-      delete win.__rvPurchaseInline;
+    // Fire Purchase once per order: skip on refresh / revisit within the session.
+    const storageKey = `rv_purchase_fired_${order.orderNumber}`;
+    try {
+      if (window.sessionStorage.getItem(storageKey)) return;
+      window.sessionStorage.setItem(storageKey, "1");
+    } catch {
+      // sessionStorage unavailable (private mode etc.) - fall through and fire
     }
+
+    const eventId = `purchase_${order.orderNumber}`;
 
     trackMetaEvent(
       "Purchase",
@@ -191,7 +195,6 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
       },
       {
         eventId,
-        skipBrowser: alreadyFiredInline,
         userData: {
           phone: order.customerPhone,
           fullName: order.customerName,
