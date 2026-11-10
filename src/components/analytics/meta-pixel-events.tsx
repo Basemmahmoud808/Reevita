@@ -160,6 +160,8 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
       .map((item) => item.productId || item.product_id)
       .filter((id): id is string => Boolean(id));
 
+    const finalContentIds = contentIds.length > 0 ? contentIds : [`order_${order.orderNumber}`];
+
     const contents = (order.items || []).map((item) => ({
       id: item.productId || item.product_id || item.productName || item.nameAr || "item",
       quantity: item.quantity ?? 1,
@@ -182,11 +184,28 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
 
     const eventId = `purchase_${order.orderNumber}`;
 
+    // Direct browser fbq call if available
+    if (typeof window !== "undefined" && typeof window.fbq === "function") {
+      try {
+        window.fbq("track", "Purchase", {
+          value: Number(order.total) || 0,
+          currency: "EGP",
+          content_ids: finalContentIds,
+          content_type: "product",
+          num_items: numItems > 0 ? numItems : 1,
+          order_id: order.orderNumber,
+        }, { eventID: eventId });
+      } catch (err) {
+        console.error("[Meta Pixel] fbq error:", err);
+      }
+    }
+
+    // Also dispatch to CAPI server-side endpoint with matching eventId
     trackMetaEvent(
       "Purchase",
       {
         content_type: "product",
-        content_ids: contentIds,
+        content_ids: finalContentIds,
         contents,
         value: Number(order.total) || 0,
         currency: "EGP",
@@ -195,6 +214,7 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
       },
       {
         eventId,
+        skipBrowser: true, // Already called fbq directly above
         userData: {
           phone: order.customerPhone,
           fullName: order.customerName,

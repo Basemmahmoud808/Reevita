@@ -432,11 +432,11 @@ export function CheckoutForm({
               {pending ? (
                 <>
                   <Loader2 className="size-4 animate-spin" aria-hidden />
-                  جاري تأكيد الطلب…
+                  جاري إرسال الطلب…
                 </>
               ) : (
                 <>
-                  تأكيد الطلب
+                  إتمام الطلب والدفع عند الاستلام
                   <ArrowLeft className="size-4 rtl:rotate-0 ltr:rotate-180" aria-hidden />
                 </>
               )}
