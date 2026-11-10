@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowRight, MapPin, MessageCircle, Phone, User } from "lucide-react";
 import { getAdminOrder } from "@/lib/data/admin";
 import { AdminStatusForm } from "@/components/admin/admin-status-form";
+import { AdminDeleteOrderForm } from "@/components/admin/admin-delete-order-form";
 import { formatDateAr, formatEGP, whatsappLink } from "@/lib/format";
 import { statusMeta } from "@/lib/orders/status";
 import { normalizeEgyptianPhone } from "@/lib/phone";
@@ -151,6 +152,16 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               trackingNumber={order.trackingNumber}
             />
           </section>
+
+          {(order.status === "cancelled" || order.status === "refused") && (
+            <section className="rounded-2xl border border-danger/30 bg-white/80 p-5">
+              <h2 className="display-md text-lg">حذف الطلب نهائيًا</h2>
+              <p className="mb-3 mt-1 text-[0.68rem] leading-6 text-muted">
+                الحذف لا يمكن التراجع عنه. متاح فقط للطلبات الملغاة أو المرفوضة.
+              </p>
+              <AdminDeleteOrderForm orderId={order.id} />
+            </section>
+          )}
 
           <section className="rounded-2xl border border-line bg-cream/50 p-5 text-[0.68rem] leading-6 text-muted">
             <p className="font-bold text-plum">إرشادات سريعة</p>

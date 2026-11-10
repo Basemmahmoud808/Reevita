@@ -5,7 +5,6 @@ import { formatDateAr, formatEGP } from "@/lib/format";
 import { statusMeta } from "@/lib/orders/status";
 import type { OrderStatus } from "@/lib/types";
 import { cn } from "@/lib/format";
-import { AdminDeleteOrderForm } from "@/components/admin/admin-delete-order-form";
 
 export const dynamic = "force-dynamic";
 
@@ -130,7 +129,6 @@ export default async function AdminOrdersPage({ searchParams }: { searchParams: 
                       <Link href={`/admin/orders/${order.id}`} className="text-[0.65rem] font-bold text-gold-deep hover:underline">
                         تفاصيل
                       </Link>
-                      <AdminDeleteOrderForm orderId={order.id} />
                     </div>
                   </td>
                 </tr>
