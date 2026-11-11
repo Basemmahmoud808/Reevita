@@ -142,7 +142,7 @@ export async function placeOrderAction(
           const cs = await cookies();
           await sendMetaServerEvent({
             eventName: "Purchase",
-            eventId: `purchase_${order.orderNumber}`,
+            eventId: order.orderNumber,
             eventSourceUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://reevita-store.vercel.app"}/order/${order.orderNumber}`,
             customData: {
               content_type: "product",

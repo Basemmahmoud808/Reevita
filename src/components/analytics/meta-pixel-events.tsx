@@ -182,7 +182,8 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
       // sessionStorage unavailable (private mode etc.) - fall through and fire
     }
 
-    const eventId = `purchase_${order.orderNumber}`;
+    // Event deduplication key matching order number exactly
+    const eventId = order.orderNumber;
 
     // Direct browser fbq call if available
     if (typeof window !== "undefined" && typeof window.fbq === "function") {
