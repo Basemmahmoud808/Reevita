@@ -182,40 +182,24 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
       // sessionStorage unavailable (private mode etc.) - fall through and fire
     }
 
-    // Event deduplication key matching order number exactly
-    const eventId = order.orderNumber;
+    // Event deduplication key matching order number
+    const eventId = `purchase_${order.orderNumber}`;
 
-    // Direct browser fbq call if available
-    if (typeof window !== "undefined" && typeof window.fbq === "function") {
-      try {
-        window.fbq("track", "Purchase", {
-          value: Number(order.total) || 0,
-          currency: "EGP",
-          content_ids: finalContentIds,
-          content_type: "product",
-          num_items: numItems > 0 ? numItems : 1,
-          order_id: order.orderNumber,
-        }, { eventID: eventId });
-      } catch (err) {
-        console.error("[Meta Pixel] fbq error:", err);
-      }
-    }
-
-    // Also dispatch to CAPI server-side endpoint with matching eventId
+    // Dispatch to both browser pixel (queued safely if fbq is still loading)
+    // and CAPI server-side endpoint with shared eventID deduplication.
     trackMetaEvent(
       "Purchase",
       {
-        content_type: "product",
-        content_ids: finalContentIds,
-        contents,
         value: Number(order.total) || 0,
         currency: "EGP",
+        content_ids: finalContentIds,
+        content_type: "product",
+        contents,
         num_items: numItems > 0 ? numItems : 1,
         order_id: order.orderNumber,
       },
       {
         eventId,
-        skipBrowser: true, // Already called fbq directly above
         userData: {
           phone: order.customerPhone,
           fullName: order.customerName,

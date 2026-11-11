@@ -210,11 +210,44 @@ export async function getCustomerOrders(email: string | null, phone: string | nu
   }));
 }
 
-/** Used by the order-confirmation page: demo data can be re-read, Supabase cannot (RLS). */
-export async function getPlacedDemoOrder(orderNumber: string) {
+/** Used by the order-confirmation page: reads from demo store or via security-definer RPC in Supabase. */
+export async function getPlacedDemoOrder(orderNumber: string): Promise<PlacedOrder | null> {
   if (!isSupabaseConfigured) {
     const order = demoOrder(orderNumber);
     return order ? toPlacedOrder(order) : null;
   }
-  return null;
+
+  const supabase = await createSupabaseServerClient();
+  if (!supabase) return null;
+
+  const { data, error } = await supabase.rpc("get_order_confirmation", {
+    p_order_number: orderNumber.trim(),
+  });
+  if (error || !data) return null;
+
+  const row = data as Record<string, unknown>;
+  if (!row.orderNumber) return null;
+
+  const rawItems = Array.isArray(row.items) ? (row.items as Array<Record<string, unknown>>) : [];
+  return {
+    orderId: String(row.orderId ?? ""),
+    orderNumber: String(row.orderNumber),
+    status: String(row.status ?? "pending"),
+    customerName: String(row.customerName ?? ""),
+    customerPhone: String(row.customerPhone ?? ""),
+    subtotal: Number(row.subtotal ?? 0),
+    discountAmount: Number(row.discountAmount ?? 0),
+    shippingFee: Number(row.shippingFee ?? 0),
+    codFee: Number(row.codFee ?? 0),
+    total: Number(row.total ?? 0),
+    currency: String(row.currency ?? "EGP"),
+    createdAt: String(row.createdAt ?? new Date().toISOString()),
+    items: rawItems.map((item) => ({
+      productId: item.productId ? String(item.productId) : undefined,
+      productName: String(item.productName ?? ""),
+      quantity: Number(item.quantity ?? 1),
+      unitPrice: Number(item.unitPrice ?? 0),
+      totalPrice: Number(item.totalPrice ?? 0),
+    })),
+  };
 }

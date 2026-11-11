@@ -7,6 +7,77 @@ declare global {
 
 export const META_PIXEL_ID = "1146539657836690";
 
+interface PendingBrowserEvent {
+  event: string;
+  params: Record<string, unknown>;
+  eventId: string;
+}
+
+const pendingBrowserEvents: PendingBrowserEvent[] = [];
+let retryTimer: ReturnType<typeof setInterval> | null = null;
+let listenerAttached = false;
+
+function flushPendingBrowserEvents(): boolean {
+  if (typeof window === "undefined" || typeof window.fbq !== "function") {
+    return false;
+  }
+
+  while (pendingBrowserEvents.length > 0) {
+    const item = pendingBrowserEvents.shift();
+    if (!item) break;
+    try {
+      window.fbq("track", item.event, item.params, { eventID: item.eventId });
+    } catch {
+      // Never throw if fbq is blocked or fails
+    }
+  }
+
+  if (retryTimer !== null) {
+    clearInterval(retryTimer);
+    retryTimer = null;
+  }
+  return true;
+}
+
+function enqueueBrowserEvent(
+  event: string,
+  params: Record<string, unknown>,
+  eventId: string,
+) {
+  if (typeof window === "undefined") return;
+
+  if (typeof window.fbq === "function") {
+    try {
+      window.fbq("track", event, params, { eventID: eventId });
+    } catch {
+      // Never throw if fbq is blocked or fails
+    }
+    return;
+  }
+
+  pendingBrowserEvents.push({ event, params, eventId });
+
+  if (!listenerAttached) {
+    listenerAttached = true;
+    window.addEventListener("meta-pixel-ready", () => {
+      flushPendingBrowserEvents();
+    });
+  }
+
+  if (retryTimer === null) {
+    let attempts = 0;
+    retryTimer = setInterval(() => {
+      attempts += 1;
+      if (flushPendingBrowserEvents() || attempts >= 100) {
+        if (retryTimer !== null) {
+          clearInterval(retryTimer);
+          retryTimer = null;
+        }
+      }
+    }, 100);
+  }
+}
+
 function getCookieValue(name: string): string | undefined {
   if (typeof document === "undefined") return undefined;
   const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
@@ -21,9 +92,10 @@ function generateEventId(prefix: string): string {
 }
 
 /**
- * Dispatches a Meta Pixel event both to the browser pixel (`window.fbq`)
- * and to our server-side Conversions API endpoint (`/api/analytics/meta`)
- * with shared `event_id` deduplication.
+ * Dispatches a Meta Pixel event both to the browser pixel (`window.fbq`),
+ * queuing until the pixel script has initialized if needed, and to our
+ * server-side Conversions API endpoint (`/api/analytics/meta`) with shared
+ * `event_id` deduplication.
  */
 export function trackMetaEvent(
   event: string,
@@ -44,12 +116,8 @@ export function trackMetaEvent(
 
   const eventId = options?.eventId || generateEventId(event.toLowerCase());
 
-  if (!options?.skipBrowser && typeof window.fbq === "function") {
-    if (params) {
-      window.fbq("track", event, params, { eventID: eventId });
-    } else {
-      window.fbq("track", event, {}, { eventID: eventId });
-    }
+  if (!options?.skipBrowser) {
+    enqueueBrowserEvent(event, params ?? {}, eventId);
   }
 
   if (!options?.skipServer) {

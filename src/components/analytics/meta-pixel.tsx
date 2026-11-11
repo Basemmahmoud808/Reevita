@@ -22,6 +22,7 @@ export function MetaPixel() {
           fbq('optOut', '${META_PIXEL_ID}', 'InferredEvents');
           fbq('init', '${META_PIXEL_ID}');
           fbq('track', 'PageView');
+          try { window.dispatchEvent(new Event('meta-pixel-ready')); } catch (e) {}
         `}
       </Script>
       <noscript>
