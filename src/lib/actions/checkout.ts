@@ -195,7 +195,10 @@ export async function placeOrderAction(
       },
     );
 
-    redirect(`/order/${order.orderNumber}`);
+    const destination = order.confirmationToken
+      ? `/order/${order.orderNumber}?token=${encodeURIComponent(order.confirmationToken)}`
+      : `/order/${order.orderNumber}`;
+    redirect(destination);
   } catch (error) {
     if (error instanceof OrderError) {
       return { error: error.message, code: error.code, values };

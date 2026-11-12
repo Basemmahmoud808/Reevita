@@ -13,9 +13,25 @@ interface PendingBrowserEvent {
   eventId: string;
 }
 
+const MAX_QUEUE_LENGTH = 50;
+const POLL_INTERVAL_MS = 100;
+const MAX_POLL_DURATION_MS = 10_000;
+const MAX_POLL_ATTEMPTS = Math.ceil(MAX_POLL_DURATION_MS / POLL_INTERVAL_MS);
+
 const pendingBrowserEvents: PendingBrowserEvent[] = [];
 let retryTimer: ReturnType<typeof setInterval> | null = null;
-let listenerAttached = false;
+let readyListener: (() => void) | null = null;
+
+function stopPollingAndCleanup() {
+  if (retryTimer !== null) {
+    clearInterval(retryTimer);
+    retryTimer = null;
+  }
+  if (readyListener !== null && typeof window !== "undefined") {
+    window.removeEventListener("meta-pixel-ready", readyListener);
+    readyListener = null;
+  }
+}
 
 function flushPendingBrowserEvents(): boolean {
   if (typeof window === "undefined" || typeof window.fbq !== "function") {
@@ -32,10 +48,7 @@ function flushPendingBrowserEvents(): boolean {
     }
   }
 
-  if (retryTimer !== null) {
-    clearInterval(retryTimer);
-    retryTimer = null;
-  }
+  stopPollingAndCleanup();
   return true;
 }
 
@@ -47,6 +60,7 @@ function enqueueBrowserEvent(
   if (typeof window === "undefined") return;
 
   if (typeof window.fbq === "function") {
+    flushPendingBrowserEvents();
     try {
       window.fbq("track", event, params, { eventID: eventId });
     } catch {
@@ -55,26 +69,30 @@ function enqueueBrowserEvent(
     return;
   }
 
+  if (pendingBrowserEvents.length >= MAX_QUEUE_LENGTH) {
+    pendingBrowserEvents.shift();
+  }
   pendingBrowserEvents.push({ event, params, eventId });
 
-  if (!listenerAttached) {
-    listenerAttached = true;
-    window.addEventListener("meta-pixel-ready", () => {
+  if (readyListener === null) {
+    readyListener = () => {
       flushPendingBrowserEvents();
-    });
+    };
+    window.addEventListener("meta-pixel-ready", readyListener);
   }
 
   if (retryTimer === null) {
     let attempts = 0;
     retryTimer = setInterval(() => {
       attempts += 1;
-      if (flushPendingBrowserEvents() || attempts >= 100) {
-        if (retryTimer !== null) {
-          clearInterval(retryTimer);
-          retryTimer = null;
-        }
+      if (flushPendingBrowserEvents()) {
+        return;
       }
-    }, 100);
+      if (attempts >= MAX_POLL_ATTEMPTS) {
+        pendingBrowserEvents.length = 0;
+        stopPollingAndCleanup();
+      }
+    }, POLL_INTERVAL_MS);
   }
 }
 

@@ -18,28 +18,34 @@ export const metadata: Metadata = {
 
 interface PageProps {
   params: Promise<{ orderNumber: string }>;
+  searchParams?: Promise<{ token?: string }>;
 }
 
-async function readOrder(orderNumber: string): Promise<PlacedOrder | null> {
+async function readOrder(orderNumber: string, token?: string): Promise<PlacedOrder | null> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(LAST_ORDER_COOKIE)?.value;
+  let cookieToken: string | undefined;
   if (raw) {
     try {
       const decoded = raw.startsWith("{") || raw.startsWith("%7B")
         ? decodeURIComponent(raw)
         : Buffer.from(raw, "base64url").toString("utf8");
       const parsed = JSON.parse(decoded) as PlacedOrder;
-      if (parsed.orderNumber?.toLowerCase() === orderNumber.toLowerCase()) return parsed;
+      if (parsed.orderNumber?.toLowerCase() === orderNumber.toLowerCase()) {
+        return parsed;
+      }
+      cookieToken = parsed.confirmationToken;
     } catch {
-      // fall through to demo lookup
+      // fall through to RPC/demo lookup
     }
   }
-  return getPlacedDemoOrder(orderNumber);
+  return getPlacedDemoOrder(orderNumber, token || cookieToken);
 }
 
-export default async function OrderConfirmationPage({ params }: PageProps) {
+export default async function OrderConfirmationPage({ params, searchParams }: PageProps) {
   const { orderNumber } = await params;
-  const order = await readOrder(orderNumber);
+  const resolvedSearchParams = searchParams ? await searchParams : undefined;
+  const order = await readOrder(orderNumber, resolvedSearchParams?.token);
 
   if (!order) {
     return (
@@ -73,7 +79,9 @@ export default async function OrderConfirmationPage({ params }: PageProps) {
           <p className="eyebrow mt-6 justify-center">ORDER CONFIRMED</p>
           <h1 className="display-xl mt-4">تم استلام طلبك بنجاح</h1>
           <p className="lead mt-3">
-            شكرًا {order.customerName}! سنتواصل معك على {order.customerPhone} لتأكيد الطلب قبل الشحن.
+            {order.customerPhone
+              ? `شكرًا ${order.customerName}! سنتواصل معك على ${order.customerPhone} لتأكيد الطلب قبل الشحن.`
+              : `شكرًا ${order.customerName}! سنتواصل معك لتأكيد الطلب قبل الشحن.`}
           </p>
           <div className="mx-auto mt-6 inline-flex flex-col items-center gap-1 rounded-2xl border border-gold/40 bg-ivory px-8 py-4">
             <span className="text-[0.65rem] font-bold tracking-[0.2em] text-gold-deep uppercase">

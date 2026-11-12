@@ -83,6 +83,7 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
     success: boolean;
     order_id: string;
     order_number: string;
+    confirmation_token?: string;
     status: string;
     customer_name: string;
     customer_phone: string;
@@ -98,9 +99,11 @@ export async function placeOrder(payload: CheckoutPayload, ipAddress: string | n
   return {
     orderId: result.order_id,
     orderNumber: result.order_number,
+    confirmationToken: result.confirmation_token,
     status: result.status,
     customerName: result.customer_name,
     customerPhone: result.customer_phone,
+    city: payload.city,
     subtotal: Number(result.subtotal),
     discountAmount: Number(result.discount_amount ?? 0),
     shippingFee: Number(result.shipping_fee),
@@ -211,17 +214,28 @@ export async function getCustomerOrders(email: string | null, phone: string | nu
 }
 
 /** Used by the order-confirmation page: reads from demo store or via security-definer RPC in Supabase. */
-export async function getPlacedDemoOrder(orderNumber: string): Promise<PlacedOrder | null> {
+export async function getPlacedDemoOrder(
+  orderNumber: string,
+  confirmationToken?: string,
+): Promise<PlacedOrder | null> {
   if (!isSupabaseConfigured) {
     const order = demoOrder(orderNumber);
-    return order ? toPlacedOrder(order) : null;
+    if (!order) return null;
+    if (confirmationToken && order.confirmationToken !== confirmationToken.trim()) {
+      return null;
+    }
+    return toPlacedOrder(order);
   }
+
+  const trimmedToken = confirmationToken?.trim();
+  if (!trimmedToken) return null;
 
   const supabase = await createSupabaseServerClient();
   if (!supabase) return null;
 
   const { data, error } = await supabase.rpc("get_order_confirmation", {
     p_order_number: orderNumber.trim(),
+    p_token: trimmedToken,
   });
   if (error || !data) return null;
 
@@ -230,11 +244,14 @@ export async function getPlacedDemoOrder(orderNumber: string): Promise<PlacedOrd
 
   const rawItems = Array.isArray(row.items) ? (row.items as Array<Record<string, unknown>>) : [];
   return {
-    orderId: String(row.orderId ?? ""),
+    orderId: "",
     orderNumber: String(row.orderNumber),
+    confirmationToken: trimmedToken,
     status: String(row.status ?? "pending"),
     customerName: String(row.customerName ?? ""),
-    customerPhone: String(row.customerPhone ?? ""),
+    customerPhone: "",
+    city: row.city ? String(row.city) : undefined,
+    governorateAr: row.governorateAr ? String(row.governorateAr) : undefined,
     subtotal: Number(row.subtotal ?? 0),
     discountAmount: Number(row.discountAmount ?? 0),
     shippingFee: Number(row.shippingFee ?? 0),

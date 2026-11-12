@@ -172,6 +172,7 @@ export interface DemoOrderItem {
 export interface DemoOrder {
   id: string;
   orderNumber: string;
+  confirmationToken: string;
   customerName: string;
   customerPhone: string;
   customerEmail: string | null;
@@ -294,6 +295,7 @@ export function demoPlaceOrder(input: {
   const order: DemoOrder = {
     id: `99999999-0000-0000-0000-${String(orderSequence).padStart(12, "0")}`,
     orderNumber: `RV-2026-${String(10000 + orderSequence)}`,
+    confirmationToken: crypto.randomUUID(),
     customerName: input.customerName.trim(),
     customerPhone: normalizedPhone,
     customerEmail: input.customerEmail ?? null,
@@ -341,9 +343,11 @@ export function toPlacedOrder(order: DemoOrder): PlacedOrder {
   return {
     orderId: order.id,
     orderNumber: order.orderNumber,
+    confirmationToken: order.confirmationToken,
     status: order.status,
     customerName: order.customerName,
     customerPhone: order.customerPhone,
+    city: order.city,
     subtotal: order.subtotal,
     discountAmount: order.discountAmount,
     shippingFee: order.shippingFee,
@@ -353,6 +357,7 @@ export function toPlacedOrder(order: DemoOrder): PlacedOrder {
     createdAt: order.createdAt,
     governorateAr: order.governorateAr,
     items: order.items.map((item) => ({
+      productId: item.productId,
       productName: item.nameAr,
       quantity: item.quantity,
       unitPrice: item.unitPrice,

@@ -173,9 +173,11 @@ export interface CheckoutPayload {
 export interface PlacedOrder {
   orderId: string;
   orderNumber: string;
+  confirmationToken?: string;
   status: string;
   customerName: string;
   customerPhone: string;
+  city?: string;
   subtotal: number;
   discountAmount?: number;
   shippingFee: number;
