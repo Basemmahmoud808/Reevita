@@ -74,6 +74,12 @@ export function getCuratedSetDiscountPercent(productCount: number, collectionSlu
   return 0;
 }
 
+export function getCollectionDiscountPercent(collectionSlug: string): number {
+  if (collectionSlug === "complete-care-bundle") return 25;
+  if (collectionSlug === "hair-care-duo-bundle") return 11;
+  return 15;
+}
+
 /** The cover artwork is for choosing a collection; only the remaining photos are purchasable sets. */
 export function getCuratedOfferDefinition(offerKey: string): CuratedOfferDefinition | null {
   for (const collection of curatedCollectionDefinitions) {

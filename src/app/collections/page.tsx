@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { CuratedCollectionCover } from "@/components/collection/curated-collection-cover";
+import { getCollectionDiscountPercent } from "@/lib/curated-collections";
 import { getCollections } from "@/lib/data/catalog";
 
 export const revalidate = 60;
@@ -36,24 +37,38 @@ export default async function CollectionsPage() {
         <div className="curated-collection-list-grid">
           {collections.map((collection) => {
             const setCount = collection.setCount ?? 0;
+            const discountPercent = getCollectionDiscountPercent(collection.slug);
             return (
-              <article key={collection.id} className="card-luxe curated-collection-list-card group flex h-full flex-col overflow-hidden transition-transform duration-300 hover:-translate-y-1">
-                <Link href={`/collections/${collection.slug}`} className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep focus-visible:ring-inset">
-                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw" />
-                </Link>
-                <div className="curated-collection-list-card-body flex flex-1 flex-col">
-                  <p className="eyebrow">COLLECTION</p>
-                  <h2 className="curated-collection-list-title display-md">{collection.nameEn}</h2>
-                  <div className="curated-collection-list-count mt-auto flex flex-wrap items-center justify-between gap-2">
-                    <span>{setCount} sets</span>
-                  </div>
-                  <div className="curated-collection-list-action flex min-h-10 flex-col items-start gap-3">
-                    <Link href={`/collections/${collection.slug}`} className="inline-flex flex-wrap items-center gap-2 font-bold text-plum group-hover:text-gold-deep">
-                      Explore collection <ArrowRight className="size-4" aria-hidden />
-                    </Link>
-                  </div>
+              <Link
+                key={collection.id}
+                href={`/collections/${collection.slug}`}
+                className="curated-collection-list-card group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold-deep"
+              >
+                <CuratedCollectionCover
+                  image={collection.image}
+                  alt={`${collection.nameEn} collection`}
+                  aspectRatio={collection.coverAspectRatio}
+                  fit={collection.coverFit}
+                  sizes="(max-width: 768px) 86vw, (max-width: 1200px) 46vw, 25vw"
+                />
+                <span className="curated-card-shine" aria-hidden="true" />
+                <div className="curated-card-badge">
+                  <span>{setCount} SETS</span>
+                  {discountPercent > 0 && (
+                    <>
+                      <span className="curated-card-badge-dot" aria-hidden="true">•</span>
+                      <span className="curated-card-badge-accent">SAVE {discountPercent}%</span>
+                    </>
+                  )}
                 </div>
-              </article>
+                <div className="curated-collection-list-card-body">
+                  <h2 className="curated-collection-list-title">{collection.nameEn}</h2>
+                  <span className="curated-home-card-link">
+                    <span>Explore collection</span>
+                    <ArrowRight className="curated-card-arrow size-4 rtl:rotate-180" aria-hidden />
+                  </span>
+                </div>
+              </Link>
             );
           })}
         </div>

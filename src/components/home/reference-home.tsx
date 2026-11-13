@@ -6,6 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { GroupedProductCard } from "@/components/product/product-card";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { CuratedCollectionCover } from "@/components/collection/curated-collection-cover";
+import { getCollectionDiscountPercent } from "@/lib/curated-collections";
 import { blurForSlug } from "@/lib/images";
 import { featuredCollections } from "@/lib/catalog";
 import { useI18n } from "@/lib/i18n";
@@ -97,16 +98,33 @@ export function ReferenceHome({ products, collections = [] }: { products: Produc
 
           {collectionSlides.length > 0 ? (
             <div className="curated-home-grid" aria-label="Curated REEVITA collections">
-              {collectionSlides.map((collection) => (
-                <Link key={collection.slug} href={`/collections/${collection.slug}`} className="curated-home-card group">
-                  <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
-                  <div className="curated-home-card-copy">
-                    <span className="reference-collection-eyebrow">{locale === "ar" ? `${collection.setCount} مجموعات` : `${collection.setCount} SETS`}</span>
-                    <span className="curated-home-card-title">{locale === "ar" ? (collection.nameAr || collection.nameEn) : collection.nameEn}</span>
-                    <span className="curated-home-card-link">{locale === "ar" ? "اكتشفي المجموعة" : "Explore collection"} <ArrowRight className="size-4 rtl:rotate-180" aria-hidden /></span>
-                  </div>
-                </Link>
-              ))}
+              {collectionSlides.map((collection) => {
+                const discountPercent = getCollectionDiscountPercent(collection.slug);
+                return (
+                  <Link key={collection.slug} href={`/collections/${collection.slug}`} className="curated-home-card group">
+                    <CuratedCollectionCover image={collection.image} alt={`${collection.nameEn} collection`} aspectRatio={collection.coverAspectRatio} fit={collection.coverFit} sizes="(max-width: 700px) 86vw, (max-width: 1100px) 46vw, 40vw" />
+                    <span className="curated-card-shine" aria-hidden="true" />
+                    <div className="curated-card-badge">
+                      <span>{locale === "ar" ? `${collection.setCount} مجموعات` : `${collection.setCount} SETS`}</span>
+                      {discountPercent > 0 && (
+                        <>
+                          <span className="curated-card-badge-dot" aria-hidden="true">•</span>
+                          <span className="curated-card-badge-accent">
+                            {locale === "ar" ? `خصم ${discountPercent}%` : `SAVE ${discountPercent}%`}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <div className="curated-home-card-copy">
+                      <span className="curated-home-card-title">{locale === "ar" ? (collection.nameAr || collection.nameEn) : collection.nameEn}</span>
+                      <span className="curated-home-card-link">
+                        <span>{locale === "ar" ? "اكتشفي المجموعة" : "Explore collection"}</span>
+                        <ArrowRight className="curated-card-arrow size-4 rtl:rotate-180" aria-hidden />
+                      </span>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <div className="reference-collection-empty">Collections are coming soon.</div>
