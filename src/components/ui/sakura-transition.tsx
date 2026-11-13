@@ -48,8 +48,8 @@ export function useSakuraTransition(): SakuraTransitionContextValue {
 
 const DESKTOP_PETALS = 260;
 const MOBILE_PETALS = 175;
-const ENTER_SWAP_MS = 350;
-const EXIT_DURATION_MS = 550;
+const ENTER_SWAP_MS = 400;
+const EXIT_DURATION_MS = 700;
 const SAFETY_TIMEOUT_MS = 6000;
 
 // Sprite sheet dimensions (pre-rendered once for 60/120fps mobile performance)
@@ -192,9 +192,9 @@ function createPetal(
     alpha = 0.75;
   }
 
-  // Diagonal wind vector from top-right to bottom-left
-  const baseSpeedX = -Math.max(width * 1.25, 760) * speedFactor * rand(0.92, 1.08);
-  const baseSpeedY = Math.max(height * 0.9, 620) * speedFactor * rand(0.92, 1.08);
+  // Diagonal wind vector from top-right to bottom-left (cinematic, readable pace)
+  const baseSpeedX = -Math.max(width * 0.95, 620) * speedFactor * rand(0.9, 1.1);
+  const baseSpeedY = Math.max(height * 0.72, 480) * speedFactor * rand(0.9, 1.1);
 
   let x: number;
   let y: number;
@@ -202,8 +202,8 @@ function createPetal(
   if (spawnMode === "enter") {
     const enterSec = ENTER_SWAP_MS / 1000;
     const spreadBias = (Math.random() + Math.random()) * 0.5;
-    const targetX = (spreadBias * 1.2 - 0.1) * width;
-    const targetY = rand(-0.1, 1.08) * height;
+    const targetX = (spreadBias * 1.15 - 0.1) * width;
+    const targetY = rand(-0.08, 1.05) * height;
     x = targetX - baseSpeedX * enterSec;
     y = targetY - baseSpeedY * enterSec;
   } else if (spawnMode === "recycle") {
@@ -373,13 +373,14 @@ export function SakuraTransitionProvider({ children }: { children: ReactNode }) 
       let exitAlphaFactor = 1;
 
       if (phase === "sustaining") {
-        velocityScale = 0.78;
+        velocityScale = 0.75;
       } else if (phase === "exiting") {
         const exitElapsedMs = now - exitStartTimeRef.current;
         const exitProgress = Math.min(1, exitElapsedMs / EXIT_DURATION_MS);
-        velocityScale = 1.25 + 2.0 * exitProgress;
-        if (exitProgress > 0.72) {
-          exitAlphaFactor = Math.max(0, 1 - (exitProgress - 0.72) / 0.28);
+        // Gentle acceleration so petals glide naturally off the bottom-left edge
+        velocityScale = 1.0 + 0.85 * exitProgress;
+        if (exitProgress > 0.86) {
+          exitAlphaFactor = Math.max(0, 1 - (exitProgress - 0.86) / 0.14);
         }
         if (exitElapsedMs >= EXIT_DURATION_MS) {
           stopAndClear();
