@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { brand } from "@/lib/catalog";
 import { siteUrl } from "@/lib/env";
 import { Providers } from "@/components/providers";
@@ -119,6 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <SiteChrome part="footer" />
           <CartDrawer />
         </Providers>
+        <Analytics />
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
       </body>
     </html>
