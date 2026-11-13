@@ -2483,10 +2483,6 @@ body {
     gap: 1.25rem;
   }
 
-  .curated-set-image {
-    aspect-ratio: 4 / 3 !important;
-  }
-
   .curated-set-content {
     padding: 1.25rem 1rem 1.1rem;
   }

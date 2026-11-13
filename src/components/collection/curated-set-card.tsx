@@ -24,7 +24,7 @@ export function CuratedSetCard({ set, index, collectionName, collectionSlug }: {
           fill
           quality={100}
           sizes="(max-width: 700px) 92vw, (max-width: 1100px) 46vw, 31vw"
-          className="object-cover"
+          className="object-contain"
         />
         <span className="curated-set-number">SET {String(index + 1).padStart(2, "0")}</span>
       </div>
