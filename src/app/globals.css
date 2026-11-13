@@ -1739,22 +1739,22 @@
 
 .curated-card-badge {
   position: absolute;
-  top: 0.75rem;
-  inset-inline-start: 0.75rem;
+  top: 0.55rem;
+  inset-inline-start: 0.55rem;
   z-index: 2;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.28rem 0.65rem;
+  gap: 0.3rem;
+  padding: 0.22rem 0.55rem;
   border-radius: 9999px;
   border: 1px solid rgba(255, 255, 255, 0.65);
   background: rgba(253, 243, 247, 0.88);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   color: var(--color-plum-deep);
-  font-size: 0.68rem;
+  font-size: clamp(0.58rem, 1.8vw, 0.68rem);
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   box-shadow: 0 4px 14px rgba(20, 16, 19, 0.12);
 }
 
@@ -2551,7 +2551,7 @@ body {
 .curated-home-card-copy,
 .curated-collection-list-card-body {
   min-width: 0;
-  padding: 2.75rem 0.85rem 0.9rem;
+  padding: 2.15rem 0.75rem 0.75rem;
 }
 
 .curated-home-card-title,
@@ -2967,8 +2967,6 @@ body {
 .reference-home h1,
 .reference-home h2,
 .reference-home h3,
-.curated-home-card-title,
-.curated-collection-list-title,
 .product-detail-title {
   color: #141013 !important;
 }
@@ -3101,21 +3099,32 @@ body {
 /* Collection cards & Best Sellers cards */
 .curated-home-card,
 .curated-collection-list-card {
-  background: #ffffff !important;
-  border: 1.5px solid #ebc4d3 !important;
-  border-radius: 14px !important;
+  background: var(--color-wine) !important;
+  border: 1px solid rgba(235, 196, 211, 0.72) !important;
+  border-radius: 16px !important;
   overflow: hidden !important;
-  box-shadow: 0 14px 32px -20px rgba(130, 35, 77, 0.25) !important;
+  box-shadow: 0 14px 32px -20px rgba(130, 35, 77, 0.28) !important;
 }
 
 .curated-home-card-copy,
 .curated-collection-list-card-body {
-  background: linear-gradient(180deg, #ffffff 0%, #fdf3f7 100%) !important;
+  background: linear-gradient(
+    to top,
+    rgba(38, 8, 22, 0.92) 0%,
+    rgba(94, 21, 54, 0.58) 55%,
+    transparent 100%
+  ) !important;
+  color: #fdf3f7 !important;
+}
+
+.curated-home-card-title,
+.curated-collection-list-title {
+  color: #fdf3f7 !important;
 }
 
 .curated-home-card-link,
 .curated-collection-list-action a {
-  color: #82234d !important;
+  color: #f5cfa0 !important;
   font-weight: 700 !important;
 }
 
