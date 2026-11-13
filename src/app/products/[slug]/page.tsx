@@ -17,6 +17,8 @@ import { blurForSlug } from "@/lib/images";
 import { siteUrl } from "@/lib/env";
 import { productScentLabel } from "@/lib/product-labels";
 
+export const revalidate = 60;
+
 type ProductPageProps = {
   params: Promise<{ slug: string }>;
 };

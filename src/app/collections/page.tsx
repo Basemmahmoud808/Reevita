@@ -4,6 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { CuratedCollectionCover } from "@/components/collection/curated-collection-cover";
 import { getCollections } from "@/lib/data/catalog";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Curated Body & Hair Care Gift Collections",
   description: "Discover curated REEVITA body and hair care sets, thoughtfully paired for gifting, daily rituals and signature scents.",

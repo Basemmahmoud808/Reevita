@@ -1,6 +1,21 @@
+import { createClient } from "@supabase/supabase-js";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { isSupabaseConfigured, supabaseAnonKey, supabaseUrl } from "@/lib/env";
+
+/**
+ * Cookie-free public Supabase client for cacheable storefront catalogue reads
+ * (enables Next.js ISR / Data Cache / Edge CDN caching without forcing dynamic SSR).
+ */
+export function createSupabasePublicClient() {
+  if (!isSupabaseConfigured) return null;
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+  });
+}
 
 /**
  * Request-scoped Supabase client using the anon key + the visitor's auth cookies.

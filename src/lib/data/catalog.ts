@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import {
   categories as staticCategories,
   collectionProducts as getStaticCollectionProducts,
@@ -11,7 +12,7 @@ import {
 } from "@/lib/catalog";
 import { demoGovernorates, demoProducts } from "@/lib/demo/store";
 import { isSupabaseConfigured } from "@/lib/env";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabasePublicClient } from "@/lib/supabase/server";
 import type { Category, Collection, Governorate, Product, StockStatus } from "@/lib/types";
 import { canonicalProductNames } from "@/lib/product-names";
 import { curatedCollectionDefinitions } from "@/lib/curated-collections";
@@ -173,27 +174,35 @@ export const getCollectionBySlug = cache(async (slug: string): Promise<{
     }]),
   };
 });
+const fetchCachedProducts = unstable_cache(
+  async (): Promise<Product[]> => {
+    const supabase = createSupabasePublicClient();
+    if (!supabase) return demoProducts();
+
+    const [{ data, error }, availabilityResult] = await Promise.all([
+      supabase.from("products").select(SELECT_PRODUCT).eq("is_active", true).order("created_at", { ascending: true }),
+      supabase.from("product_availability").select("product_id, stock_status"),
+    ]);
+
+    if (error) {
+      console.error("[reevita] product query failed, serving static catalogue", error.message);
+      return catalogueFallback();
+    }
+
+    const availability = new Map<string, StockStatus>();
+    for (const row of (availabilityResult.data ?? []) as Array<{ product_id: string; stock_status: string }>) {
+      availability.set(row.product_id, mapStock(row.stock_status));
+    }
+
+    return attachProductSizeOptions(((data ?? []) as unknown as ProductRow[]).map((row) => mapProduct(row, availability)));
+  },
+  ["reevita-public-products"],
+  { revalidate: 60, tags: ["catalog", "products"] },
+);
+
 export const getProducts = cache(async (): Promise<Product[]> => {
   if (!isSupabaseConfigured) return demoProducts();
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return demoProducts();
-
-  const [{ data, error }, availabilityResult] = await Promise.all([
-    supabase.from("products").select(SELECT_PRODUCT).eq("is_active", true).order("created_at", { ascending: true }),
-    supabase.from("product_availability").select("product_id, stock_status"),
-  ]);
-
-  if (error) {
-    console.error("[reevita] product query failed, serving static catalogue", error.message);
-    return catalogueFallback();
-  }
-
-  const availability = new Map<string, StockStatus>();
-  for (const row of (availabilityResult.data ?? []) as Array<{ product_id: string; stock_status: string }>) {
-    availability.set(row.product_id, mapStock(row.stock_status));
-  }
-
-  return attachProductSizeOptions(((data ?? []) as unknown as ProductRow[]).map((row) => mapProduct(row, availability)));
+  return fetchCachedProducts();
 });
 
 export const getProductBySlug = cache(async (slug: string): Promise<Product | null> => {
@@ -211,63 +220,79 @@ export const getProductsByFragrance = cache(async (slug: string): Promise<Produc
   return products.filter((product) => product.fragranceSlug === slug);
 });
 
+const fetchCachedCategories = unstable_cache(
+  async (): Promise<Category[]> => {
+    const supabase = createSupabasePublicClient();
+    if (!supabase) return staticCategories;
+    const { data, error } = await supabase
+      .from("categories")
+      .select("slug, name, name_ar, description, image_url, display_order")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true });
+    if (error || !data) return staticCategories;
+    const allowedSlugs = new Set(staticCategories.map((category) => category.slug));
+    return (data as Array<Record<string, unknown>>).filter((row) => allowedSlugs.has(String(row.slug))).map((row) => {
+      const meta = getStaticCategory(String(row.slug));
+      return {
+        slug: String(row.slug),
+        nameAr: String(row.name_ar),
+        nameEn: String(row.name),
+        shortAr: meta?.shortAr ?? "",
+        descriptionAr: String(row.description ?? meta?.descriptionAr ?? ""),
+        image: String(row.image_url ?? meta?.image ?? ""),
+        displayOrder: Number(row.display_order ?? 0),
+      };
+    });
+  },
+  ["reevita-public-categories"],
+  { revalidate: 60, tags: ["catalog", "categories"] },
+);
+
 export const getCategories = cache(async (): Promise<Category[]> => {
   if (!isSupabaseConfigured) return staticCategories;
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return staticCategories;
-  const { data, error } = await supabase
-    .from("categories")
-    .select("slug, name, name_ar, description, image_url, display_order")
-    .eq("is_active", true)
-    .order("display_order", { ascending: true });
-  if (error || !data) return staticCategories;
-  const allowedSlugs = new Set(staticCategories.map((category) => category.slug));
-  return (data as Array<Record<string, unknown>>).filter((row) => allowedSlugs.has(String(row.slug))).map((row) => {
-    const meta = getStaticCategory(String(row.slug));
-    return {
-      slug: String(row.slug),
-      nameAr: String(row.name_ar),
-      nameEn: String(row.name),
-      shortAr: meta?.shortAr ?? "",
-      descriptionAr: String(row.description ?? meta?.descriptionAr ?? ""),
-      image: String(row.image_url ?? meta?.image ?? ""),
-      displayOrder: Number(row.display_order ?? 0),
-    };
-  });
+  return fetchCachedCategories();
 });
+
+const fetchCachedGovernorates = unstable_cache(
+  async (): Promise<Governorate[]> => {
+    const supabase = createSupabasePublicClient();
+    if (!supabase) return demoGovernorates();
+    const { data, error } = await supabase
+      .from("governorates")
+      .select(
+        `id, code, name_ar, name_en, zone,
+         shipping_rate:shipping_rates ( shipping_cost, free_shipping_threshold, estimated_days_min, estimated_days_max )`,
+      )
+      .eq("is_active", true)
+      .order("name_ar", { ascending: true });
+    if (error || !data) {
+      console.error("[reevita] governorates query failed", error?.message);
+      return demoGovernorates();
+    }
+    return (data as Array<Record<string, unknown>>).map((row) => {
+      const rateRaw = row.shipping_rate as
+        | { shipping_cost: number; free_shipping_threshold: number; estimated_days_min: number; estimated_days_max: number }
+        | Array<{ shipping_cost: number; free_shipping_threshold: number; estimated_days_min: number; estimated_days_max: number }>
+        | null;
+      const rate = Array.isArray(rateRaw) ? rateRaw[0] : rateRaw;
+      return {
+        id: String(row.id),
+        code: String(row.code),
+        nameAr: String(row.name_ar),
+        nameEn: String(row.name_en),
+        zone: String(row.zone),
+        shippingCost: Number(rate?.shipping_cost ?? 65),
+        freeShippingThreshold: Number(rate?.free_shipping_threshold ?? 1000),
+        estimatedDaysMin: Number(rate?.estimated_days_min ?? 2),
+        estimatedDaysMax: Number(rate?.estimated_days_max ?? 4),
+      };
+    });
+  },
+  ["reevita-public-governorates"],
+  { revalidate: 60, tags: ["catalog", "governorates"] },
+);
 
 export const getGovernorates = cache(async (): Promise<Governorate[]> => {
   if (!isSupabaseConfigured) return demoGovernorates();
-  const supabase = await createSupabaseServerClient();
-  if (!supabase) return demoGovernorates();
-  const { data, error } = await supabase
-    .from("governorates")
-    .select(
-      `id, code, name_ar, name_en, zone,
-       shipping_rate:shipping_rates ( shipping_cost, free_shipping_threshold, estimated_days_min, estimated_days_max )`,
-    )
-    .eq("is_active", true)
-    .order("name_ar", { ascending: true });
-  if (error || !data) {
-    console.error("[reevita] governorates query failed", error?.message);
-    return demoGovernorates();
-  }
-  return (data as Array<Record<string, unknown>>).map((row) => {
-    const rateRaw = row.shipping_rate as
-      | { shipping_cost: number; free_shipping_threshold: number; estimated_days_min: number; estimated_days_max: number }
-      | Array<{ shipping_cost: number; free_shipping_threshold: number; estimated_days_min: number; estimated_days_max: number }>
-      | null;
-    const rate = Array.isArray(rateRaw) ? rateRaw[0] : rateRaw;
-    return {
-      id: String(row.id),
-      code: String(row.code),
-      nameAr: String(row.name_ar),
-      nameEn: String(row.name_en),
-      zone: String(row.zone),
-      shippingCost: Number(rate?.shipping_cost ?? 65),
-      freeShippingThreshold: Number(rate?.free_shipping_threshold ?? 1000),
-      estimatedDaysMin: Number(rate?.estimated_days_min ?? 2),
-      estimatedDaysMax: Number(rate?.estimated_days_max ?? 4),
-    };
-  });
+  return fetchCachedGovernorates();
 });

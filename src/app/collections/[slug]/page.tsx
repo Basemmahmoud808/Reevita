@@ -8,6 +8,8 @@ import { ScrollReveal } from "@/components/ui/scroll-reveal";
 import { getCollectionBySlug } from "@/lib/data/catalog";
 import { siteUrl } from "@/lib/env";
 
+export const revalidate = 60;
+
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const result = await getCollectionBySlug(slug);

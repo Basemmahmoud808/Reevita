@@ -48,8 +48,9 @@ export function useSakuraTransition(): SakuraTransitionContextValue {
 
 const DESKTOP_PETALS = 260;
 const MOBILE_PETALS = 175;
-const ENTER_SWAP_MS = 400;
-const EXIT_DURATION_MS = 700;
+const ENTER_SWAP_MS = 150;
+const PEAK_COVER_SEC = 0.28;
+const EXIT_DURATION_MS = 650;
 const SAFETY_TIMEOUT_MS = 6000;
 
 // Sprite sheet dimensions (pre-rendered once for 60/120fps mobile performance)
@@ -200,12 +201,11 @@ function createPetal(
   let y: number;
 
   if (spawnMode === "enter") {
-    const enterSec = ENTER_SWAP_MS / 1000;
     const spreadBias = (Math.random() + Math.random()) * 0.5;
     const targetX = (spreadBias * 1.15 - 0.1) * width;
     const targetY = rand(-0.08, 1.05) * height;
-    x = targetX - baseSpeedX * enterSec;
-    y = targetY - baseSpeedY * enterSec;
+    x = targetX - baseSpeedX * PEAK_COVER_SEC;
+    y = targetY - baseSpeedY * PEAK_COVER_SEC;
   } else if (spawnMode === "recycle") {
     if (Math.random() < 0.62) {
       x = width + rand(10, 140);

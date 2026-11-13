@@ -4,6 +4,8 @@ import { getCollections } from "@/lib/data/catalog";
 import { staticProducts } from "@/lib/catalog";
 import { ReferenceHome } from "@/components/home/reference-home";
 
+export const revalidate = 60;
+
 export const metadata: Metadata = {
   title: "Beauty, Body & Hair Care Products in Egypt",
   description: "Shop REEVITA's Egyptian body care, hair care and signature scent rituals, made for beautifully simple everyday care.",
