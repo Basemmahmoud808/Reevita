@@ -65,7 +65,12 @@ interface SpriteSet {
 
 const rand = (min: number, max: number) => min + Math.random() * (max - min);
 
+const REDUCED_MOTION_PETALS = 90;
+
 function getPetalCount(width: number): number {
+  // Many lab/office PCs have Windows animations turned off, which sets
+  // prefers-reduced-motion. Still show the gust there, just a lighter one.
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return REDUCED_MOTION_PETALS;
   return width < 768 ? MOBILE_PETALS : DESKTOP_PETALS;
 }
 
@@ -480,10 +485,8 @@ export function SakuraTransitionProvider({ children }: { children: ReactNode }) 
     (href: string) => {
       if (!href) return;
 
-      if (
-        typeof window === "undefined" ||
-        window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ) {
+      // If the canvas can't be used (very old browser / locked-down device), navigate normally.
+      if (typeof window === "undefined" || !canvasRef.current?.getContext("2d")) {
         router.push(href);
         return;
       }
@@ -535,11 +538,7 @@ export function SakuraTransitionProvider({ children }: { children: ReactNode }) 
 
       if (phaseRef.current === "entering" || phaseRef.current === "sustaining") {
         beginExitSweep();
-      } else if (
-        phaseRef.current === "idle" &&
-        typeof window !== "undefined" &&
-        !window.matchMedia("(prefers-reduced-motion: reduce)").matches
-      ) {
+      } else if (phaseRef.current === "idle" && typeof window !== "undefined") {
         const now = performance.now();
         petalsRef.current = buildPetalPool(window.innerWidth, window.innerHeight, "across");
         startTimeRef.current = now;

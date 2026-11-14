@@ -4,8 +4,11 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 
-const INITIAL_SECONDS = 21 * 86400; // 21 days
-const STORAGE_TARGET_KEY = "rv_wf_countdown_21d_v2";
+/** Midnight at the start of next month (local time) = end of this month's offer. */
+function endOfCurrentMonth(): number {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth() + 1, 1).getTime();
+}
 
 function formatTimeParts(totalSeconds: number) {
   const safe = Math.max(0, totalSeconds);
@@ -25,25 +28,11 @@ function formatTimeParts(totalSeconds: number) {
 
 export function AnnouncementBar() {
   const [dismissed, setDismissed] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(INITIAL_SECONDS);
+  const [secondsLeft, setSecondsLeft] = useState(0);
 
   useEffect(() => {
-    let targetTime: number;
-    try {
-      const saved = sessionStorage.getItem(STORAGE_TARGET_KEY);
-      const parsed = saved ? Number(saved) : NaN;
-      if (!Number.isNaN(parsed) && parsed > Date.now()) {
-        targetTime = parsed;
-      } else {
-        targetTime = Date.now() + INITIAL_SECONDS * 1000;
-        sessionStorage.setItem(STORAGE_TARGET_KEY, String(targetTime));
-      }
-    } catch {
-      targetTime = Date.now() + INITIAL_SECONDS * 1000;
-    }
-
     const tick = () => {
-      const remaining = Math.max(0, Math.floor((targetTime - Date.now()) / 1000));
+      const remaining = Math.max(0, Math.floor((endOfCurrentMonth() - Date.now()) / 1000));
       setSecondsLeft(remaining);
     };
 

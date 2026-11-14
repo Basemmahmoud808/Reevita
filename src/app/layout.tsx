@@ -64,7 +64,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: "#751f45",
-  colorScheme: "light",
+  colorScheme: "only light",
 };
 
 const organizationJsonLd = {
