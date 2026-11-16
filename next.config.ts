@@ -31,6 +31,14 @@ const nextConfig: NextConfig = {
     contentDispositionType: "attachment",
     dangerouslyAllowSVG: false,
   },
+  async redirects() {
+    return [
+      { source: "/glow", destination: "/collections/soft-glow-bundle", permanent: false },
+      { source: "/duo", destination: "/collections/hair-care-duo-bundle", permanent: false },
+      { source: "/complete", destination: "/collections/complete-care-bundle", permanent: false },
+      { source: "/fresh", destination: "/collections/fresh-all-day-bundle", permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

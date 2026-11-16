@@ -27,6 +27,16 @@ function PageViewTrackerInner() {
         }),
         keepalive: true,
       }).catch(() => {});
+
+      // Clean long Facebook/social click-tracking parameters (fbclid) from the address bar
+      // after Meta Pixel and CAPI have captured the full incoming URL.
+      if (searchParams?.has("fbclid")) {
+        const cleaned = new URLSearchParams(searchParams.toString());
+        cleaned.delete("fbclid");
+        const nextQuery = cleaned.toString();
+        const cleanUrl = `${pathname}${nextQuery ? `?${nextQuery}` : ""}${window.location.hash}`;
+        window.history.replaceState(window.history.state, "", cleanUrl);
+      }
     } else {
       // On SPA client-side route transitions, fire both browser fbq and server CAPI PageView.
       trackMetaEvent("PageView", { page_path: fullPath });

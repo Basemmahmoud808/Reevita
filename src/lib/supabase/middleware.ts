@@ -12,14 +12,14 @@ export async function updateSession(request: NextRequest) {
 
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://connect.facebook.net https://*.facebook.net https://www.facebook.com https://*.facebook.com",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://connect.facebook.net https://*.facebook.net https://www.facebook.com https://*.facebook.com",
     // Next attaches this nonce to framework styles. Inline style attributes
     // remain separately scoped because a few responsive UI values are dynamic.
     "style-src 'self' 'unsafe-inline'",
     "style-src-attr 'unsafe-inline'",
     "img-src 'self' data: blob: https://*.supabase.co https://www.facebook.com https://*.facebook.com https://connect.facebook.net",
     "font-src 'self' data:",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://www.facebook.com https://*.facebook.com https://connect.facebook.net https://*.facebook.net",
+    "connect-src 'self' https://va.vercel-scripts.com https://*.supabase.co wss://*.supabase.co https://www.facebook.com https://*.facebook.com https://connect.facebook.net https://*.facebook.net",
     "media-src 'self'",
     "object-src 'none'",
     "base-uri 'self'",
@@ -37,7 +37,12 @@ export async function updateSession(request: NextRequest) {
 
   let response = NextResponse.next({ request: { headers: requestHeaders } });
 
-  if (isSupabaseConfigured) {
+  const hasAuthCookie = request.cookies.getAll().some((cookie) => cookie.name.startsWith("sb-"));
+  const isProtectedRoute =
+    request.nextUrl.pathname.startsWith("/admin") ||
+    request.nextUrl.pathname.startsWith("/account");
+
+  if (isSupabaseConfigured && (hasAuthCookie || isProtectedRoute)) {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
       cookies: {
         getAll() {
