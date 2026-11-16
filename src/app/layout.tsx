@@ -5,6 +5,7 @@ import { siteUrl } from "@/lib/env";
 import { Providers } from "@/components/providers";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { CartDrawer } from "@/components/cart/cart-drawer";
+import { WhatsAppFloatingButton } from "@/components/ui/whatsapp-floating-button";
 import { JsonLd } from "@/components/ui/json-ld";
 import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { MetaPixelPageViewTracker } from "@/components/analytics/meta-pixel-events";
@@ -119,6 +120,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           </main>
           <SiteChrome part="footer" />
           <CartDrawer />
+          <WhatsAppFloatingButton />
         </Providers>
         <Analytics />
         <JsonLd data={[organizationJsonLd, websiteJsonLd]} />
