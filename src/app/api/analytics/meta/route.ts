@@ -70,6 +70,7 @@ export async function POST(request: Request) {
         fbc,
       },
       testEventCode: body.testEventCode,
+      allowBeaconFallback: false,
     });
 
     return NextResponse.json({

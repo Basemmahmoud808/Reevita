@@ -5,8 +5,10 @@ import { ArrowLeft } from "lucide-react";
 import { CuratedSetCard } from "@/components/collection/curated-set-card";
 import { MetaPixelViewCollection } from "@/components/analytics/meta-pixel-events";
 import { ScrollReveal } from "@/components/ui/scroll-reveal";
+import { getCuratedSetDiscountPercent } from "@/lib/curated-collections";
 import { getCollectionBySlug } from "@/lib/data/catalog";
 import { siteUrl } from "@/lib/env";
+import { PROMOTIONAL_DISCOUNTS_ENABLED } from "@/lib/promotions";
 
 export const revalidate = 60;
 
@@ -35,11 +37,26 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
   const result = await getCollectionBySlug(slug);
   if (!result) notFound();
 
-  const { collection, sets } = result;
+  const { collection, sets, products } = result;
+  const setTotals = sets
+    .map((set) => {
+      const rawTotal = set.components.reduce(
+        (sum, component) => sum + (Number(component.product?.price) || 0) * component.quantity,
+        0,
+      );
+      const componentCount = set.components.reduce((sum, component) => sum + component.quantity, 0);
+      const discountPercent = PROMOTIONAL_DISCOUNTS_ENABLED
+        ? getCuratedSetDiscountPercent(componentCount, collection.slug)
+        : 0;
+      return rawTotal - Math.round((rawTotal * discountPercent) / 100);
+    })
+    .filter((total) => total > 0);
+  const fallbackProductTotal = products.reduce((sum, product) => sum + (Number(product.price) || 0), 0);
+  const collectionValue = setTotals.length > 0 ? Math.min(...setTotals) : fallbackProductTotal;
 
   return (
     <main className="container-luxe curated-collection-page">
-      <MetaPixelViewCollection slug={collection.slug} nameEn={collection.nameEn} setCount={sets.length} />
+      <MetaPixelViewCollection slug={collection.slug} nameEn={collection.nameEn} setCount={sets.length} value={collectionValue} />
       <Link href="/collections" className="curated-back-link"><ArrowLeft className="size-4" aria-hidden /> All collections</Link>
       <header className="curated-collection-hero curated-collection-hero-text-only">
         <div className="curated-collection-hero-copy">

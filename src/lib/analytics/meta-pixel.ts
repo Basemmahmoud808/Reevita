@@ -6,6 +6,20 @@ declare global {
 }
 
 export const META_PIXEL_ID = "1146539657836690";
+export const META_CURRENCY = "EGP" as const;
+
+const VALUE_REQUIRED_EVENTS = new Set([
+  "ViewContent",
+  "AddToCart",
+  "InitiateCheckout",
+  "Purchase",
+]);
+
+export function toMetaValue(raw: unknown): number {
+  const num = typeof raw === "number" ? raw : Number(raw);
+  if (!Number.isFinite(num) || num < 0) return 0;
+  return Math.round(num * 100) / 100;
+}
 
 interface PendingBrowserEvent {
   event: string;
@@ -133,9 +147,18 @@ export function trackMetaEvent(
   if (typeof window === "undefined") return;
 
   const eventId = options?.eventId || generateEventId(event.toLowerCase());
+  const normalizedParams: Record<string, unknown> = { ...(params ?? {}) };
+
+  if (VALUE_REQUIRED_EVENTS.has(event)) {
+    normalizedParams.value = toMetaValue(normalizedParams.value);
+    normalizedParams.currency =
+      typeof normalizedParams.currency === "string" && normalizedParams.currency
+        ? normalizedParams.currency
+        : META_CURRENCY;
+  }
 
   if (!options?.skipBrowser) {
-    enqueueBrowserEvent(event, params ?? {}, eventId);
+    enqueueBrowserEvent(event, normalizedParams, eventId);
   }
 
   if (!options?.skipServer) {
@@ -156,7 +179,7 @@ export function trackMetaEvent(
       eventName: event,
       eventId,
       eventSourceUrl: window.location.href,
-      customData: params || {},
+      customData: normalizedParams,
       userData: {
         ...options?.userData,
         fbp,

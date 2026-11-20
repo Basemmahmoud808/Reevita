@@ -10,6 +10,7 @@ import type { TrackedOrder } from "@/lib/types";
 import { notifyAdminOfNewOrder } from "@/lib/notifications/admin-push";
 import { notifyAdminViaTelegram } from "@/lib/notifications/admin-telegram";
 import { sendMetaServerEvent } from "@/lib/analytics/meta-capi";
+import { META_CURRENCY, toMetaValue } from "@/lib/analytics/meta-pixel";
 
 export interface CheckoutFormState {
   error?: string;
@@ -151,8 +152,8 @@ export async function placeOrderAction(
                 id: item.product_id,
                 quantity: item.quantity,
               })),
-              value: Number(order.total) || 0,
-              currency: "EGP",
+              value: toMetaValue(order.total),
+              currency: META_CURRENCY,
               num_items: parsed.data.items.reduce((sum, item) => sum + item.quantity, 0),
               order_id: order.orderNumber,
             },

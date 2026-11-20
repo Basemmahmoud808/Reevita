@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useRef } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
+import { META_CURRENCY, toMetaValue, trackMetaEvent } from "@/lib/analytics/meta-pixel";
 
 function PageViewTrackerInner() {
   const pathname = usePathname();
@@ -10,9 +10,6 @@ function PageViewTrackerInner() {
   const isInitialMount = useRef(true);
 
   useEffect(() => {
-    const query = searchParams?.toString();
-    const fullPath = query ? `${pathname}?${query}` : pathname;
-
     if (isInitialMount.current) {
       isInitialMount.current = false;
       // The inline <head> script already fired browser fbq('track', 'PageView') on initial load;
@@ -39,7 +36,7 @@ function PageViewTrackerInner() {
       }
     } else {
       // On SPA client-side route transitions, fire both browser fbq and server CAPI PageView.
-      trackMetaEvent("PageView", { page_path: fullPath });
+      trackMetaEvent("PageView");
     }
   }, [pathname, searchParams]);
 
@@ -97,8 +94,8 @@ export function MetaPixelViewContent({ product }: { product: ViewContentProduct 
         content_category: product.categoryNameAr || product.categoryNameEn || "Cosmetics",
         content_ids: [product.id],
         content_type: "product",
-        value: Number(product.price) || 0,
-        currency: "EGP",
+        value: toMetaValue(product.price),
+        currency: META_CURRENCY,
       },
       {
         eventId: `viewcontent_${product.id}_${Date.now()}`,
@@ -113,10 +110,12 @@ export function MetaPixelViewCollection({
   slug,
   nameEn,
   setCount,
+  value,
 }: {
   slug: string;
   nameEn: string;
   setCount: number;
+  value: number;
 }) {
   const firedForSlug = useRef<string | null>(null);
 
@@ -132,13 +131,14 @@ export function MetaPixelViewCollection({
         content_ids: [slug],
         content_type: "product_group",
         num_items: setCount,
-        currency: "EGP",
+        value: toMetaValue(value),
+        currency: META_CURRENCY,
       },
       {
         eventId: `viewcollection_${slug}_${Date.now()}`,
       },
     );
-  }, [slug, nameEn, setCount]);
+  }, [slug, nameEn, setCount, value]);
 
   return null;
 }
@@ -175,7 +175,7 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
     const contents = (order.items || []).map((item) => ({
       id: item.productId || item.product_id || item.productName || item.nameAr || "item",
       quantity: item.quantity ?? 1,
-      item_price: item.unitPrice ?? item.price ?? 0,
+      item_price: toMetaValue(item.unitPrice ?? item.price ?? 0),
     }));
 
     const numItems = (order.items || []).reduce(
@@ -200,8 +200,8 @@ export function MetaPixelPurchase({ order }: { order: PurchaseOrder }) {
     trackMetaEvent(
       "Purchase",
       {
-        value: Number(order.total) || 0,
-        currency: "EGP",
+        value: toMetaValue(order.total),
+        currency: META_CURRENCY,
         content_ids: finalContentIds,
         content_type: "product",
         contents,

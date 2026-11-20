@@ -12,10 +12,10 @@ import {
 import { brand } from "@/lib/catalog";
 import { canonicalProductNames } from "@/lib/product-names";
 import { getCuratedOfferDefinition } from "@/lib/curated-collections";
-import { freeGiftSlots } from "@/lib/promotions";
+import { freeGiftSlots, PROMOTIONAL_DISCOUNTS_ENABLED } from "@/lib/promotions";
 import type { CartLine, Product } from "@/lib/types";
 import { useToast } from "@/components/ui/toast";
-import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
+import { META_CURRENCY, toMetaValue, trackMetaEvent } from "@/lib/analytics/meta-pixel";
 
 const STORAGE_KEY = "rv_cart_v1";
 const MAX_QUANTITY = 10;
@@ -270,12 +270,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const lines = addProducts(current.lines, [product], quantity);
       return { lines, curatedOffers: pruneOffers(current.curatedOffers, lines), giftQuantities: current.giftQuantities };
     });
+    const unitPrice = toMetaValue(product.price);
     trackMetaEvent("AddToCart", {
       content_name: product.nameAr,
       content_ids: [product.id],
       content_type: "product",
-      value: product.price * quantity,
-      currency: "EGP",
+      contents: [{ id: product.id, quantity, item_price: unitPrice }],
+      num_items: quantity,
+      value: toMetaValue(unitPrice * quantity),
+      currency: META_CURRENCY,
     });
     toast("أُضيف المنتج إلى سلة المشتريات.");
     setIsOpen(true);
@@ -296,8 +299,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       content_name: availableProducts.map((p) => p.nameAr).join(", "),
       content_ids: availableProducts.map((p) => p.id),
       content_type: "product",
-      value: availableProducts.reduce((sum, p) => sum + p.price * quantity, 0),
-      currency: "EGP",
+      contents: availableProducts.map((p) => ({
+        id: p.id,
+        quantity,
+        item_price: toMetaValue(p.price),
+      })),
+      num_items: availableProducts.length * quantity,
+      value: toMetaValue(availableProducts.reduce((sum, p) => sum + toMetaValue(p.price) * quantity, 0)),
+      currency: META_CURRENCY,
     });
     const skipped = products.length - availableProducts.length;
     toast(
@@ -315,7 +324,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       toast(`${unavailable.nameAr} غير متاح حاليًا، لذلك لم تتم إضافة المجموعة.`, "error");
       return;
     }
-    if (!getCuratedOfferDefinition(offerKey)) {
+    const offerDef = getCuratedOfferDefinition(offerKey);
+    if (!offerDef) {
       toast("تعذّرت إضافة العرض. حدّث الصفحة ثم حاول مرة أخرى.", "error");
       return;
     }
@@ -328,12 +338,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
       ]);
       return { lines, curatedOffers: pruneOffers(offers, lines), giftQuantities: current.giftQuantities };
     });
+    const rawBundleTotal = products.reduce((sum, p) => sum + toMetaValue(p.price), 0);
+    const bundleDiscountPercent = PROMOTIONAL_DISCOUNTS_ENABLED ? offerDef.discountPercent : 0;
+    const bundleValue = rawBundleTotal - Math.round((rawBundleTotal * bundleDiscountPercent) / 100);
     trackMetaEvent("AddToCart", {
       content_name: products.map((p) => p.nameAr).join(", "),
       content_ids: products.map((p) => p.id),
       content_type: "product",
-      value: products.reduce((sum, p) => sum + p.price, 0),
-      currency: "EGP",
+      contents: products.map((p) => ({
+        id: p.id,
+        quantity: 1,
+        item_price: toMetaValue(p.price),
+      })),
+      num_items: products.length,
+      value: toMetaValue(bundleValue),
+      currency: META_CURRENCY,
     });
     toast("أُضيفت المجموعة بخصمها إلى سلة المشتريات.");
     setIsOpen(true);
@@ -352,12 +371,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const clamped = Math.min(Math.max(1, Math.round(quantity)), MAX_QUANTITY);
       if (existing && clamped > existing.quantity) {
         const addedQty = clamped - existing.quantity;
+        const unitPrice = toMetaValue(existing.price);
         trackMetaEvent("AddToCart", {
           content_name: existing.nameAr,
           content_ids: [existing.productId],
           content_type: "product",
-          value: existing.price * addedQty,
-          currency: "EGP",
+          contents: [{ id: existing.productId, quantity: addedQty, item_price: unitPrice }],
+          num_items: addedQty,
+          value: toMetaValue(unitPrice * addedQty),
+          currency: META_CURRENCY,
         });
       }
       const lines = current.lines

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AlertCircle, ArrowLeft, Loader2, Lock, ShieldCheck, Truck } from "lucide-react";
 import { useCart } from "@/components/cart/cart-provider";
 import { placeOrderAction, type CheckoutFormState } from "@/lib/actions/checkout";
-import { trackMetaEvent } from "@/lib/analytics/meta-pixel";
+import { META_CURRENCY, toMetaValue, trackMetaEvent } from "@/lib/analytics/meta-pixel";
 import { formatEGP } from "@/lib/format";
 import { depositPayment } from "@/lib/payment";
 import type { Governorate } from "@/lib/types";
@@ -52,11 +52,11 @@ export function CheckoutForm({
       contents: lines.map((line) => ({
         id: line.productId,
         quantity: line.quantity,
-        item_price: line.price,
+        item_price: toMetaValue(line.price),
       })),
       num_items: lines.reduce((sum, line) => sum + line.quantity, 0),
-      value: subtotalAfterDiscount,
-      currency: "EGP",
+      value: toMetaValue(subtotalAfterDiscount),
+      currency: META_CURRENCY,
     });
   }, [ready, lines, subtotalAfterDiscount]);
 

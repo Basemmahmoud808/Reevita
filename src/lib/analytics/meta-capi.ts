@@ -25,6 +25,7 @@ export interface MetaServerEventInput {
   customData?: Record<string, unknown>;
   userData?: MetaUserDataInput;
   testEventCode?: string | null;
+  allowBeaconFallback?: boolean;
 }
 
 function sha256(value: string): string {
@@ -174,9 +175,9 @@ export async function sendMetaServerEvent(input: MetaServerEventInput): Promise<
     }
   }
 
-  // Also send server-side /tr pixel beacon when CAPI token isn't configured so events still reach Meta
+  // Also send server-side /tr pixel beacon when CAPI token isn't configured so server-only events still reach Meta
   let beaconSent = false;
-  if (!capiSent) {
+  if (!capiSent && input.allowBeaconFallback !== false) {
     try {
       const params = new URLSearchParams({
         id: META_PIXEL_ID,
