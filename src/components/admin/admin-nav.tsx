@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Layers, LayoutDashboard, MessageSquare, Package, ShoppingCart, Store, Truck } from "lucide-react";
+import { Layers, LayoutDashboard, Package, ShoppingCart, Store, Truck } from "lucide-react";
 import { cn } from "@/lib/format";
 
 const links = [
@@ -11,7 +11,6 @@ const links = [
   { href: "/admin/products", label: "المنتجات والمخزون", icon: Package },
   { href: "/admin/collections", label: "المجموعات", icon: Layers },
   { href: "/admin/shipping", label: "الشحن والمحافظات", icon: Truck },
-  { href: "/admin/messenger", label: "رسائل فيسبوك", icon: MessageSquare },
 ];
 
 export function AdminNav() {
